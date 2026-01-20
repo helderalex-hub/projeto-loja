@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão Loja Cosméticos</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #fff0f5; }
+        
+        /* DASHBOARD (Os cartões do topo) */
+        .dashboard { display: flex; gap: 15px; margin-bottom: 25px; }
+        .card-dash { flex: 1; background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-bottom: 4px solid #ddd; }
+        .card-dash h3 { margin: 0; color: #666; font-size: 14px; text-transform: uppercase; }
+        .card-dash p { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #333; }
+        
+        /* Cores específicas do Dashboard */
+        .borda-rosa { border-color: #d63384; color: #d63384; }
+        .borda-verde { border-color: #28a745; color: #28a745; }
+        .borda-vermelha { border-color: #dc3545; color: #dc3545; }
+
+        /* Formulário */
+        .card-form { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 30px;}
+        input { display: block; margin: 5px 0 15px 0; padding: 12px; width: 100%; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        label { font-weight: bold; font-size: 13px; color: #555; }
+        
+        .btn-add { background: #d63384; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s;}
+        .btn-add:hover { background: #c2185b; }
+
+        /* Lista */
+        .item { background: white; padding: 15px; margin-top: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Status de validade */
+        .status-ok { border-left-color: #28a745; }
+        .status-atencao { border-left-color: #ffc107; background-color: #fff9e6; } /* Amarelo */
+        .status-vencido { border-left-color: #dc3545; background-color: #ffe6e6; } /* Vermelho */
+
+        .btn-mini { padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 12px; margin-left: 5px; color: white; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: #d63384; text-align: center;">💄 Painel do Gerente</h1>
+
+    <div class="dashboard">
+        <div class="card-dash borda-rosa">
+            <h3>Produtos</h3>
+            <p id="dash-qtd">0</p>
+        </div>
+        <div class="card-dash borda-verde">
+            <h3>Valor em Estoque</h3>
+            <p id="dash-valor">R$ 0,00</p>
+        </div>
+        <div class="card-dash borda-vermelha">
+            <h3>Vencidos / Alerta</h3>
+            <p id="dash-vencidos">0</p>
+        </div>
+    </div>
+    
+    <div class="card-form">
+        <label>Nome do Produto:</label>
+        <input type="text" id="nome" placeholder="Ex: Base Líquida" />
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>Preço (R$):</label>
+                <input type="number" id="preco" placeholder="0.00" step="0.01" />
+            </div>
+            <div style="flex: 1;">
+                <label>Qtd:</label>
+                <input type="number" id="estoque" placeholder="0" />
+            </div>
+        </div>
+        <label>Data de Validade:</label>
+        <input type="date" id="validade" />
+        
+        <button class="btn-add" onclick="salvarProduto()">SALVAR PRODUTO</button>
+    </div>
+
+    <h3 style="color: #555;">📦 Inventário Detalhado</h3>
+    <div id="lista">Carregando...</div>
+
+    <script>
+        const API = 'http://localhost:3000/produtos';
+
+        async function carregarLista() {
+            const resposta = await fetch(API);
+            const produtos = await resposta.json();
+            
+            const divLista = document.getElementById('lista');
+            divLista.innerHTML = '';
+
+            // Variáveis para o Dashboard
+            let totalItens = 0;
+            let valorTotal = 0;
+            let qtdVencidos = 0;
+            const hoje = new Date(); // Data de hoje
+            
+            produtos.forEach(p => {
+                // Cálculos Matemáticos
+                totalItens += 1;
+                valorTotal += (p.preco * p.estoque);
+
+                // Lógica da Data (Vencido ou não?)
+                let textoValidade = "Sem data";
+                let classeStatus = "status-ok"; // Começa assumindo que está tudo bem
+                let aviso = "";
+
+                if (p.validade) {
+                    const dataObj = new Date(p.validade);
+                    // Ajuste de fuso
+                    const dataUser = new Date(dataObj.getUTCFullYear(), dataObj.getUTCMonth(), dataObj.getUTCDate());
+                    textoValidade = dataUser.toLocaleDateString('pt-BR');
+
+                    // Verifica se venceu
+                    if (dataUser < hoje) {
+                        classeStatus = "status-vencido"; // Fica vermelho
+                        qtdVencidos++;
+                        aviso = "⚠️ VENCIDO";
+                    } 
+                    // Verifica se vence nos próximos 30 dias
+                    else if ((dataUser - hoje) / (1000 * 60 * 60 * 24) < 30) {
+                        classeStatus = "status-atencao"; // Fica amarelo
+                        aviso = "⚠️ Vence logo";
+                    }
+                }
+                
+                // Desenha o Item na Lista
+                divLista.innerHTML += `
+                <div class="item ${classeStatus}">
+                    <div>
+                        <strong>${p.nome}</strong> <small style="color:red; font-weight:bold;">${aviso}</small><br>
+                        <span style="color: #555;">R$ ${p.preco} | Qtd: ${p.estoque}</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size:12px; font-weight:bold;">📅 ${textoValidade}</span>
+                        <div style="margin-top: 5px;">
+                            <button class="btn-mini" style="background:#2196F3;" onclick="editarProduto(${p.id}, '${p.preco}', '${p.estoque}')">✏️</button>
+                            <button class="btn-mini" style="background:#ff4444;" onclick="deletarProduto(${p.id})">🗑️</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            // ATUALIZA O DASHBOARD LÁ EM CIMA
+            document.getElementById('dash-qtd').innerText = totalItens;
+            document.getElementById('dash-valor').innerText = Number(valorTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('dash-vencidos').innerText = qtdVencidos;
+        }
+
+        async function salvarProduto() {
+            const nome = document.getElementById('nome').value;
+            const preco = document.getElementById('preco').value;
+            const estoque = document.getElementById('estoque').value;
+            const validade = document.getElementById('validade').value;
+
+            if(!nome || !preco) return alert("Preencha os dados!");
+
+            await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, preco, estoque, validade })
+            });
+
+            document.location.reload();
+        }
+
+        async function deletarProduto(id) {
+            if (confirm("Apagar item?")) {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                carregarLista();
+            }
+        }
+
+        async function editarProduto(id, precoAtual, estoqueAtual) {
+            const novoPreco = prompt("Novo Preço:", precoAtual);
+            if (novoPreco === null) return;
+            const novoEstoque = prompt("Novo Estoque:", estoqueAtual);
+            if (novoEstoque === null) return;
+
+            await fetch(`${API}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ preco: novoPreco, estoque: novoEstoque })
+            });
+            carregarLista();
+        }
+
+        carregarLista();
+    </script>
+</body>
+</html>
