@@ -3,66 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagnóstico da Loja</title>
+    <title>Minha Loja de Cosméticos</title>
     <style>
-        body { font-family: sans-serif; background-color: #fdf2f8; text-align: center; color: #333; }
-        .erro-box { background: #ffe6e6; color: red; padding: 20px; border: 2px solid red; margin: 20px; font-weight: bold; }
-        .vitrine { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; width: 200px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #fdf2f8; color: #333; padding-bottom: 80px; }
+        
+        /* Cabeçalho */
+        header { background-color: #d63384; color: white; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* Vitrine */
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        
+        /* Card Produto */
+        .produto-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
+        .foto-fake { font-size: 50px; background: #fff0f5; border-radius: 50%; width: 80px; height: 80px; line-height: 80px; margin: 0 auto 10px; }
+        .nome-prod { font-weight: bold; margin-bottom: 5px; }
+        .preco-prod { color: #d63384; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
+        
+        /* Botão Comprar */
+        .btn-comprar { background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-comprar:active { transform: scale(0.95); }
+        .esgotado { background-color: #ccc; cursor: not-allowed; }
+
+        /* BARRA DO CARRINHO (Fixa embaixo) */
+        .barra-carrinho {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #333; color: white; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .info-carrinho { margin-left: 20px; font-size: 16px; }
+        .btn-zap { 
+            background-color: #25D366; color: white; text-decoration: none; 
+            padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-right: 20px;
+            display: flex; align-items: center; gap: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🛠️ Modo de Diagnóstico 🛠️</h1>
-    <p>Se houver um erro, ele vai aparecer abaixo:</p>
+    <header>
+        <h1>✨ Beleza & Cia ✨</h1>
+        <p>Clique em comprar e peça pelo Zap!</p>
+    </header>
 
-    <div id="debug-log">Carregando sistema...</div>
+    <div class="vitrine" id="vitrine">
+        <p style="text-align:center;">Carregando...</p>
+    </div>
 
-    <div class="vitrine" id="vitrine"></div>
+    <div class="barra-carrinho" id="carrinho-bar" style="display: none;">
+        <div class="info-carrinho">
+            🛒 <span id="qtd-itens">0</span> itens <br>
+            <b>Total: R$ <span id="valor-total">0,00</span></b>
+        </div>
+        <a href="#" id="link-zap" class="btn-zap" target="_blank">
+            Enviar Pedido 📲
+        </a>
+    </div>
 
     <script>
-        const logDiv = document.getElementById('debug-log');
-        
-        // 1. Função que captura erros globais (Tela Branca)
-        window.onerror = function(message, source, lineno, colno, error) {
-            logDiv.innerHTML += `<div class="erro-box">ERRO CRÍTICO: ${message} <br> Linha: ${lineno}</div>`;
-            return false;
-        };
-
-        // 2. Tenta conectar
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos'; 
+        
+        // ⚠️ COLOQUE SEU NÚMERO AQUI (com 55 e DDD):
+        const MEU_WHATSAPP = "5511917193522"; 
 
-        async function carregar() {
-            try {
-                logDiv.innerHTML += "<br>🔄 Tentando buscar dados no Render...";
-                
-                const response = await fetch(API);
-                
-                if (!response.ok) {
-                    throw new Error(`O Servidor respondeu com erro: ${response.status}`);
-                }
+        let carrinho = [];
 
-                const produtos = await response.json();
-                logDiv.innerHTML += `<br>✅ Sucesso! Recebi ${produtos.length} produtos.`;
-
-                const divVitrine = document.getElementById('vitrine');
-                
-                produtos.forEach(p => {
-                    divVitrine.innerHTML += `
-                    <div class="card">
-                        <h3>${p.nome}</h3>
-                        <p>R$ ${p.preco}</p>
-                    </div>`;
-                });
-
-            } catch (erro) {
-                // Aqui capturamos erro de conexão (CORS ou Internet)
-                logDiv.innerHTML += `<div class="erro-box">FALHA NO FETCH: ${erro.message}</div>`;
-                logDiv.innerHTML += `<p>DICA: Se o erro for "Failed to fetch", é problema de CORS no servidor.</p>`;
+        // Função de Data segura para Safari
+        function converterDataSegura(dataString) {
+            if (!dataString) return new Date();
+            if (dataString.includes('/')) {
+                const partes = dataString.split('/');
+                return new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
             }
+            return new Date(dataString);
         }
 
-        carregar();
+        async function carregarVitrine() {
+            try {
+                const res = await fetch(API);
+                const produtos = await res.json();
+                const div = document.getElementById('vitrine');
+                div.innerHTML = '';
+                const hoje = new Date();
+
+                produtos.forEach(p => {
+                    // Regra: Validade
+                    if (p.validade && converterDataSegura(p.validade) < hoje) return;
+
+                    // Regra: Estoque
+                    const semEstoque = p.estoque <= 0;
+                    
+                    div.innerHTML += `
+                    <div class="produto-card">
+                        <div>
+                            <div class="foto-fake">💄</div>
+                            <div class="nome-prod">${p.nome}</div>
+                        </div>
+                        <div>
+                            <div class="preco-prod">R$ ${p.preco}</div>
+                            <small>Estoque: ${p.estoque}</small><br><br>
+                            <button class="${semEstoque ? 'btn-comprar esgotado' : 'btn-comprar'}" 
+                                    ${semEstoque ? "disabled" : ""} 
+                                    onclick="adicionar('${p.nome}', ${p.preco})">
+                                ${semEstoque ? "Esgotado" : "Adicionar +"}
+                            </button>
+                        </div>
+                    </div>`;
+                });
+            } catch(e) { document.body.innerHTML = "Erro ao carregar."; }
+        }
+
+        function adicionar(nome, preco) {
+            // Adiciona ao carrinho
+            carrinho.push({ nome, preco });
+            atualizarBarra();
+        }
+
+        function atualizarBarra() {
+            // Mostra a barra preta
+            document.getElementById('carrinho-bar').style.display = 'flex';
+            
+            // Atualiza Texto
+            const qtd = carrinho.length;
+            const total = carrinho.reduce((soma, item) => soma + item.preco, 0);
+            
+            document.getElementById('qtd-itens').innerText = qtd;
+            document.getElementById('valor-total').innerText = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+            // Gera o Link do WhatsApp
+            let mensagem = "Olá! Gostaria de fazer um pedido:%0A";
+            carrinho.forEach(item => {
+                mensagem += `- ${item.nome} (R$ ${item.preco})%0A`;
+            });
+            mensagem += `%0A*Total: R$ ${total}*`;
+
+            const linkFinal = `https://wa.me/${MEU_WHATSAPP}?text=${mensagem}`;
+            document.getElementById('link-zap').href = linkFinal;
+        }
+
+        carregarVitrine();
     </script>
 </body>
 </html>
