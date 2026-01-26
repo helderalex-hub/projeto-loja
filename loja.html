@@ -3,143 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Loja de Cosméticos</title>
+    <title>Minha Loja Europeia</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #fdf2f8; color: #333; padding-bottom: 80px; }
-        
-        /* Cabeçalho */
-        header { background-color: #d63384; color: white; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        /* Vitrine */
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #fdf2f8; color: #333; padding-bottom: 100px; }
+        header { background-color: #d63384; color: white; padding: 20px; text-align: center; }
         .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .produto-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-add { background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold;}
         
-        /* Card Produto */
-        .produto-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
-        .foto-fake { font-size: 50px; background: #fff0f5; border-radius: 50%; width: 80px; height: 80px; line-height: 80px; margin: 0 auto 10px; }
-        .nome-prod { font-weight: bold; margin-bottom: 5px; }
-        .preco-prod { color: #d63384; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
-        
-        /* Botão Comprar */
-        .btn-comprar { background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-comprar:active { transform: scale(0.95); }
-        .esgotado { background-color: #ccc; cursor: not-allowed; }
-
-        /* BARRA DO CARRINHO (Fixa embaixo) */
-        .barra-carrinho {
+        /* Barra Inferior */
+        .barra-pagamento {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #333; color: white; padding: 15px;
+            background: #222; color: white; padding: 15px;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
             z-index: 100;
         }
-        .info-carrinho { margin-left: 20px; font-size: 16px; }
-        .btn-zap { 
-            background-color: #25D366; color: white; text-decoration: none; 
-            padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-right: 20px;
-            display: flex; align-items: center; gap: 5px;
+        .btn-pagar { 
+            background-color: #635bff; /* Cor oficial do Stripe */
+            color: white; border: none; padding: 12px 25px; 
+            border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 16px;
+            margin-right: 20px; text-decoration: none;
         }
+        .btn-pagar:hover { background-color: #4e45e5; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>✨ Beleza & Cia ✨</h1>
-        <p>Clique em comprar e peça pelo Zap!</p>
+        <h1>✨ Beleza Europa ✨</h1>
+        <p>Entregamos em toda União Europeia 🇪🇺</p>
     </header>
 
-    <div class="vitrine" id="vitrine">
-        <p style="text-align:center;">Carregando...</p>
-    </div>
+    <div class="vitrine" id="vitrine">Carregando...</div>
 
-    <div class="barra-carrinho" id="carrinho-bar" style="display: none;">
-        <div class="info-carrinho">
-            🛒 <span id="qtd-itens">0</span> itens <br>
-            <b>Total: R$ <span id="valor-total">0,00</span></b>
+    <div class="barra-pagamento" id="barra-pagamento" style="display: none;">
+        <div style="margin-left: 20px;">
+            🛒 <span id="qtd">0</span> itens <br>
+            Total: € <span id="total">0.00</span>
         </div>
-        <a href="#" id="link-zap" class="btn-zap" target="_blank">
-            Enviar Pedido 📲
-        </a>
+        <button onclick="finalizarCompra()" class="btn-pagar" id="btn-finalizar">
+            Pagar com Cartão 💳
+        </button>
     </div>
 
     <script>
-        const API = 'https://projeto-loja-dzqv.onrender.com/produtos'; 
-        
-        // ⚠️ COLOQUE SEU NÚMERO AQUI (com 55 e DDD):
-        const MEU_WHATSAPP = "5511917193522"; 
-
+        const API_URL = 'https://projeto-loja-dzqv.onrender.com'; // Seu servidor
         let carrinho = [];
 
-        // Função de Data segura para Safari
-        function converterDataSegura(dataString) {
-            if (!dataString) return new Date();
-            if (dataString.includes('/')) {
-                const partes = dataString.split('/');
-                return new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
-            }
-            return new Date(dataString);
-        }
-
         async function carregarVitrine() {
-            try {
-                const res = await fetch(API);
-                const produtos = await res.json();
-                const div = document.getElementById('vitrine');
-                div.innerHTML = '';
-                const hoje = new Date();
+            const res = await fetch(`${API_URL}/produtos`);
+            const produtos = await res.json();
+            const div = document.getElementById('vitrine');
+            div.innerHTML = '';
 
-                produtos.forEach(p => {
-                    // Regra: Validade
-                    if (p.validade && converterDataSegura(p.validade) < hoje) return;
-
-                    // Regra: Estoque
-                    const semEstoque = p.estoque <= 0;
-                    
-                    div.innerHTML += `
-                    <div class="produto-card">
-                        <div>
-                            <div class="foto-fake">💄</div>
-                            <div class="nome-prod">${p.nome}</div>
-                        </div>
-                        <div>
-                            <div class="preco-prod">R$ ${p.preco}</div>
-                            <small>Estoque: ${p.estoque}</small><br><br>
-                            <button class="${semEstoque ? 'btn-comprar esgotado' : 'btn-comprar'}" 
-                                    ${semEstoque ? "disabled" : ""} 
-                                    onclick="adicionar('${p.nome}', ${p.preco})">
-                                ${semEstoque ? "Esgotado" : "Adicionar +"}
-                            </button>
-                        </div>
-                    </div>`;
-                });
-            } catch(e) { document.body.innerHTML = "Erro ao carregar."; }
+            produtos.forEach(p => {
+                div.innerHTML += `
+                <div class="produto-card">
+                    <h3>${p.nome}</h3>
+                    <p style="color:#d63384; font-weight:bold;">€ ${p.preco}</p>
+                    <button class="btn-add" onclick="adicionar('${p.nome}', ${p.preco})">Adicionar +</button>
+                </div>`;
+            });
         }
 
         function adicionar(nome, preco) {
-            // Adiciona ao carrinho
             carrinho.push({ nome, preco });
             atualizarBarra();
         }
 
         function atualizarBarra() {
-            // Mostra a barra preta
-            document.getElementById('carrinho-bar').style.display = 'flex';
-            
-            // Atualiza Texto
-            const qtd = carrinho.length;
-            const total = carrinho.reduce((soma, item) => soma + item.preco, 0);
-            
-            document.getElementById('qtd-itens').innerText = qtd;
-            document.getElementById('valor-total').innerText = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('barra-pagamento').style.display = 'flex';
+            document.getElementById('qtd').innerText = carrinho.length;
+            const total = carrinho.reduce((acc, item) => acc + item.preco, 0);
+            document.getElementById('total').innerText = total.toFixed(2);
+        }
 
-            // Gera o Link do WhatsApp
-            let mensagem = "Olá! Gostaria de fazer um pedido:%0A";
-            carrinho.forEach(item => {
-                mensagem += `- ${item.nome} (R$ ${item.preco})%0A`;
-            });
-            mensagem += `%0A*Total: R$ ${total}*`;
+        async function finalizarCompra() {
+            const btn = document.getElementById('btn-finalizar');
+            btn.innerText = "Processando...";
+            btn.disabled = true;
 
-            const linkFinal = `https://wa.me/${MEU_WHATSAPP}?text=${mensagem}`;
-            document.getElementById('link-zap').href = linkFinal;
+            try {
+                // 1. Envia o carrinho para o Render
+                const resposta = await fetch(`${API_URL}/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itens: carrinho })
+                });
+
+                const dados = await resposta.json();
+
+                // 2. Se deu certo, o Render devolve o link do Stripe
+                if (dados.url) {
+                    window.location.href = dados.url; // Redireciona o cliente
+                } else {
+                    alert('Erro ao criar pagamento.');
+                }
+            } catch (erro) {
+                alert('Erro de conexão com o servidor.');
+                btn.innerText = "Tentar Novamente";
+                btn.disabled = false;
+            }
         }
 
         carregarVitrine();
