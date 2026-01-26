@@ -1,71 +1,61 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
-
 const app = express();
+// Importa o Stripe usando a chave que guardamos no Render
+const stripe = require('stripe')(process.env.STRIPE_KEY);
+
 app.use(express.json());
 app.use(cors());
 
-// Conexão com o Banco de Dados
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false } // Adicionado para garantir conexão segura na nuvem
+// Seus produtos (Banco de Dados simples)
+let produtos = [
+    { id: 1, nome: 'Batom Vermelho', preco: 50.00, estoque: 10, validade: '2026-12-30' },
+    { id: 2, nome: 'Creme Hidratante', preco: 85.50, estoque: 5, validade: '2025-11-20' },
+    { id: 3, nome: 'Perfume Floral', preco: 120.00, estoque: 2, validade: '2027-01-15' }
+];
+
+// Rota 1: Listar Produtos
+app.get('/produtos', (req, res) => {
+    res.json(produtos);
 });
 
-// 1. Rota para LISTAR produtos
-app.get('/produtos', async (req, res) => {
+// Rota 2: Criar Pagamento (CHECKOUT)
+app.post('/checkout', async (req, res) => {
     try {
-        const resultado = await pool.query('SELECT * FROM produtos ORDER BY id DESC');
-        res.json(resultado.rows);
-    } catch (erro) {
-        console.error(erro);
-        res.status(500).json({ erro: erro.message });
+        const itensCarrinho = req.body.itens; // Recebe a lista do frontend
+
+        // Formata os itens para o Stripe entender
+        const line_items = itensCarrinho.map(item => {
+            return {
+                price_data: {
+                    currency: 'eur', // Moeda (Euro)
+                    product_data: {
+                        name: item.nome,
+                    },
+                    unit_amount: Math.round(item.preco * 100), // Stripe usa centavos (50.00 vira 5000)
+                },
+                quantity: 1,
+            };
+        });
+
+        // Cria a sessão de pagamento no Stripe
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'], // Aceita cartão
+            line_items: line_items,
+            mode: 'payment',
+            success_url: 'https://helderalex-hub.github.io/projeto-loja/sucesso.html',
+            cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
+        });
+
+        // Manda o link de pagamento de volta para o cliente
+        res.json({ url: session.url });
+
+    } catch (error) {
+        console.error("Erro no pagamento:", error);
+        res.status(500).json({ error: "Erro ao criar pagamento" });
     }
 });
 
-// 2. Rota para CADASTRAR produto
-app.post('/produtos', async (req, res) => {
-    try {
-        const { nome, preco, estoque, validade } = req.body;
-        const query = 'INSERT INTO produtos (nome, preco, estoque, validade) VALUES ($1, $2, $3, $4) RETURNING *';
-        const values = [nome, preco, estoque, validade];
-        const resultado = await pool.query(query, values);
-        res.json(resultado.rows[0]);
-    } catch (erro) {
-        console.error(erro);
-        res.status(500).json({ erro: erro.message });
-    }
-});
-
-// 3. Rota para ATUALIZAR (Preço e Estoque)
-app.put('/produtos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { preco, estoque } = req.body;
-        const query = 'UPDATE produtos SET preco = $1, estoque = $2 WHERE id = $3';
-        await pool.query(query, [preco, estoque, id]);
-        res.json({ message: "Produto atualizado!" });
-    } catch (erro) {
-        console.error(erro);
-        res.status(500).json({ erro: erro.message });
-    }
-});
-
-// 4. Rota para DELETAR
-app.delete('/produtos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        await pool.query('DELETE FROM produtos WHERE id = $1', [id]);
-        res.json({ message: "Deletado!" });
-    } catch (erro) {
-        console.error(erro);
-        res.status(500).json({ erro: erro.message });
-    }
-});
-
-// --- AQUI ESTÁ A MUDANÇA IMPORTANTE PARA A NUVEM ---
-// O servidor vai usar a porta que a nuvem der (process.env.PORT) OU a 3000 se for local
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
