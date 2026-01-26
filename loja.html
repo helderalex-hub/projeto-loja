@@ -5,61 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Loja de Cosméticos</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #fdf2f8; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #fdf2f8; color: #333; padding-bottom: 80px; }
+        
+        /* Cabeçalho */
         header { background-color: #d63384; color: white; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 30px; max-width: 1000px; margin: 0 auto; }
-        .produto-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-        .foto-fake { font-size: 60px; background: #fff0f5; border-radius: 50%; width: 100px; height: 100px; line-height: 100px; margin: 0 auto 15px; }
-        .btn-comprar { background-color: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 100%; }
-        .esgotado { background-color: #6c757d; cursor: not-allowed; }
+        
+        /* Vitrine */
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        
+        /* Card Produto */
+        .produto-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
+        .foto-fake { font-size: 50px; background: #fff0f5; border-radius: 50%; width: 80px; height: 80px; line-height: 80px; margin: 0 auto 10px; }
+        .nome-prod { font-weight: bold; margin-bottom: 5px; }
+        .preco-prod { color: #d63384; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
+        
+        /* Botão Comprar */
+        .btn-comprar { background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-comprar:active { transform: scale(0.95); }
+        .esgotado { background-color: #ccc; cursor: not-allowed; }
+
+        /* BARRA DO CARRINHO (Fixa embaixo) */
+        .barra-carrinho {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #333; color: white; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .info-carrinho { margin-left: 20px; font-size: 16px; }
+        .btn-zap { 
+            background-color: #25D366; color: white; text-decoration: none; 
+            padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-right: 20px;
+            display: flex; align-items: center; gap: 5px;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <h1>✨ Beleza & Cia ✨</h1>
-        <p>Os melhores cosméticos com entrega rápida</p>
+        <p>Clique em comprar e peça pelo Zap!</p>
     </header>
 
     <div class="vitrine" id="vitrine">
-        <p style="text-align:center;">Carregando produtos...</p>
+        <p style="text-align:center;">Carregando...</p>
+    </div>
+
+    <div class="barra-carrinho" id="carrinho-bar" style="display: none;">
+        <div class="info-carrinho">
+            🛒 <span id="qtd-itens">0</span> itens <br>
+            <b>Total: R$ <span id="valor-total">0,00</span></b>
+        </div>
+        <a href="#" id="link-zap" class="btn-zap" target="_blank">
+            Enviar Pedido 📲
+        </a>
     </div>
 
     <script>
-        // O CÉREBRO DA SUA LOJA ESTÁ AQUI:
-        const API = 'https://api-loja-helder.onrender.com/produtos'; 
+        const API = 'https://projeto-loja-dzqv.onrender.com/produtos'; 
+        
+        // ⚠️ COLOQUE SEU NÚMERO AQUI (com 55 e DDD):
+        const MEU_WHATSAPP = "5511917193522"; 
+
+        let carrinho = [];
+
+        // Função de Data segura para Safari
+        function converterDataSegura(dataString) {
+            if (!dataString) return new Date();
+            if (dataString.includes('/')) {
+                const partes = dataString.split('/');
+                return new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
+            }
+            return new Date(dataString);
+        }
 
         async function carregarVitrine() {
-            const resposta = await fetch(API);
-            const produtos = await resposta.json();
-            const divVitrine = document.getElementById('vitrine');
-            divVitrine.innerHTML = '';
+            try {
+                const res = await fetch(API);
+                const produtos = await res.json();
+                const div = document.getElementById('vitrine');
+                div.innerHTML = '';
+                const hoje = new Date();
 
-            const hoje = new Date();
+                produtos.forEach(p => {
+                    // Regra: Validade
+                    if (p.validade && converterDataSegura(p.validade) < hoje) return;
 
-            produtos.forEach(p => {
-                // REGRA 1: Esconde produtos vencidos
-                if (p.validade) {
-                    const dataObj = new Date(p.validade);
-                    if (dataObj < hoje) return; 
-                }
-
-                // REGRA 2: Verifica estoque
-                const semEstoque = (p.estoque <= 0);
-                const textoBotao = semEstoque ? "ESGOTADO" : "COMPRAR";
-
-                divVitrine.innerHTML += `
-                <div class="produto-card">
-                    <div class="foto-fake">💄</div>
-                    <div style="font-size: 18px; font-weight: bold;">${p.nome}</div>
-                    <div style="font-size: 22px; color: #d63384; font-weight: bold; margin: 10px 0;">R$ ${p.preco}</div>
-                    <p style="font-size: 12px; color: #666;">Restam: ${p.estoque} unidades</p>
-                    <button class="${semEstoque ? 'btn-comprar esgotado' : 'btn-comprar'}" ${semEstoque ? "disabled" : ""} onclick="alert('✅ Adicionado ao carrinho!')">
-                        ${textoBotao}
-                    </button>
-                </div>`;
-            });
+                    // Regra: Estoque
+                    const semEstoque = p.estoque <= 0;
+                    
+                    div.innerHTML += `
+                    <div class="produto-card">
+                        <div>
+                            <div class="foto-fake">💄</div>
+                            <div class="nome-prod">${p.nome}</div>
+                        </div>
+                        <div>
+                            <div class="preco-prod">R$ ${p.preco}</div>
+                            <small>Estoque: ${p.estoque}</small><br><br>
+                            <button class="${semEstoque ? 'btn-comprar esgotado' : 'btn-comprar'}" 
+                                    ${semEstoque ? "disabled" : ""} 
+                                    onclick="adicionar('${p.nome}', ${p.preco})">
+                                ${semEstoque ? "Esgotado" : "Adicionar +"}
+                            </button>
+                        </div>
+                    </div>`;
+                });
+            } catch(e) { document.body.innerHTML = "Erro ao carregar."; }
         }
+
+        function adicionar(nome, preco) {
+            // Adiciona ao carrinho
+            carrinho.push({ nome, preco });
+            atualizarBarra();
+        }
+
+        function atualizarBarra() {
+            // Mostra a barra preta
+            document.getElementById('carrinho-bar').style.display = 'flex';
+            
+            // Atualiza Texto
+            const qtd = carrinho.length;
+            const total = carrinho.reduce((soma, item) => soma + item.preco, 0);
+            
+            document.getElementById('qtd-itens').innerText = qtd;
+            document.getElementById('valor-total').innerText = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+            // Gera o Link do WhatsApp
+            let mensagem = "Olá! Gostaria de fazer um pedido:%0A";
+            carrinho.forEach(item => {
+                mensagem += `- ${item.nome} (R$ ${item.preco})%0A`;
+            });
+            mensagem += `%0A*Total: R$ ${total}*`;
+
+            const linkFinal = `https://wa.me/${MEU_WHATSAPP}?text=${mensagem}`;
+            document.getElementById('link-zap').href = linkFinal;
+        }
+
         carregarVitrine();
     </script>
 </body>
