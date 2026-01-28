@@ -5,64 +5,83 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// --- 1. ROTA DO WEBHOOK (O TELEFONE VERMELHO) ---
-// Esta rota precisa vir ANTES das configurações normais
-// Ela recebe o aviso do Stripe e verifica a assinatura de segurança
+// --- ROTA DO WEBHOOK (COM SUPER LOGS) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
 
     try {
-        // Verifica se o aviso veio mesmo do Stripe usando a chave que você salvou no Render
         event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
-        console.error(`⚠️ Erro de Webhook: ${err.message}`);
+        console.error(`⚠️ Erro de Assinatura: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Se o evento for "Compra Concluída com Sucesso"
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
-        console.log("💰 Pagamento aprovado! Sessão:", session.id);
+        console.log("💰 Pagamento aprovado! ID da Sessão:", session.id);
 
-        // Pede ao Stripe a lista do que foi comprado nessa sessão
-        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
-            expand: ['data.price.product'],
-        });
+        try {
+            // Pede ao Stripe a lista expandida
+            const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+                expand: ['data.price.product'],
+            });
 
-        // Para cada item comprado, baixa o estoque
-        for (const item of lineItems.data) {
-            // Recupera o ID do produto que escondemos na hora do checkout
-            const produtoId = item.price.product.metadata.id_supabase;
-            
-            if (produtoId) {
-                await baixarEstoque(produtoId);
+            console.log(`📦 Quantidade de itens no pedido: ${lineItems.data.length}`);
+
+            for (const item of lineItems.data) {
+                // LOG IMPORTANTE: Vamos ver o que o Stripe mandou
+                const produtoStripe = item.price.product;
+                const quantidadeComprada = item.quantity;
+                console.log(`🔍 Analisando item: ${produtoStripe.name}`);
+                console.log(`   - Metadata encontrada:`, produtoStripe.metadata);
+                console.log(`   - Quantidade comprada: ${quantidadeComprada}`);
+
+                const produtoId = produtoStripe.metadata.id_supabase;
+                
+                if (produtoId) {
+                    await baixarEstoque(produtoId, quantidadeComprada);
+                } else {
+                    console.log("⚠️ ALERTA: Este produto não tem 'id_supabase' na metadata. O estoque não será baixado.");
+                }
             }
+        } catch (erroInterno) {
+            console.error("❌ Erro ao processar itens:", erroInterno.message);
         }
     }
 
-    res.send(); // Responde "OK" para o Stripe
+    res.send();
 });
 
-// --- FUNÇÃO PARA BAIXAR ESTOQUE ---
-async function baixarEstoque(id) {
+// --- FUNÇÃO PARA BAIXAR ESTOQUE (CORRIGIDA PARA QUANTIDADE) ---
+async function baixarEstoque(id, quantidade) {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-    // 1. Pega o estoque atual
-    const { data: produto } = await supabase
+    console.log(`📉 Tentando baixar ${quantidade} unidades do produto ID ${id}...`);
+
+    const { data: produto, error } = await supabase
         .from('produtos')
         .select('estoque')
         .eq('id', id)
         .single();
 
+    if (error) {
+        console.log("❌ Erro ao buscar no banco:", error.message);
+        return;
+    }
+
     if (produto) {
-        const novoEstoque = produto.estoque - 1;
-        // 2. Salva o novo estoque
-        await supabase
+        const novoEstoque = produto.estoque - quantidade;
+        const { error: erroUpdate } = await supabase
             .from('produtos')
             .update({ estoque: novoEstoque })
             .eq('id', id);
-        console.log(`📉 Produto ${id}: Estoque baixou para ${novoEstoque}`);
+
+        if (!erroUpdate) {
+            console.log(`✅ SUCESSO! Estoque atualizado para ${novoEstoque}`);
+        } else {
+            console.log("❌ Erro ao salvar novo estoque:", erroUpdate.message);
+        }
     }
 }
 
@@ -70,11 +89,9 @@ async function baixarEstoque(id) {
 app.use(express.json());
 app.use(cors());
 
-// Conexão Supabase Geral
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- ROTAS DO SITE (PRODUTOS) ---
-
+// --- ROTAS NORMAIS ---
 app.get('/produtos', async (req, res) => {
     const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
     if (error) return res.status(500).json({ error: error.message });
@@ -99,7 +116,7 @@ app.delete('/produtos/:id', async (req, res) => {
     res.json({ message: "Deletado" });
 });
 
-// --- ROTA DE CHECKOUT (ATUALIZADA) ---
+// --- CHECKOUT ---
 app.post('/checkout', async (req, res) => {
     try {
         const itensCarrinho = req.body.itens;
@@ -109,14 +126,13 @@ app.post('/checkout', async (req, res) => {
                     currency: 'eur',
                     product_data: { 
                         name: item.nome,
-                        // AQUI ESTÁ O SEGREDO: Escondemos o ID do produto aqui
                         metadata: { 
-                            id_supabase: item.id 
+                            id_supabase: item.id // O ID precisa estar aqui!
                         }
                     },
                     unit_amount: Math.round(item.preco * 100), 
                 },
-                quantity: 1,
+                quantity: 1, // Nota: Se o carrinho agrupar quantidades, isso precisa mudar no frontend depois. Por enquanto assume 1 por linha.
             };
         });
 
@@ -136,5 +152,5 @@ app.post('/checkout', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Servidor DETETIVE rodando na porta ${PORT}`);
 });
