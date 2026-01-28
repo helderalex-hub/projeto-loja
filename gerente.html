@@ -62,13 +62,11 @@
 
         const supabase = window.supabase.createClient(S_URL, S_KEY);
 
-        // 1. FUNÇÃO DE SEGURANÇA (A PRIMEIRA A EXECUTAR)
         async function verificarAcesso() {
             const { data } = await supabase.auth.getSession();
             if (!data.session) {
                 window.location.href = 'login.html';
             } else {
-                // SÓ CHAMA A LISTA SE ESTIVER LOGADO
                 carregarLista();
             }
         }
@@ -78,12 +76,12 @@
             window.location.href = 'login.html';
         }
 
-        // 2. FUNÇÃO DE CARREGAR DADOS
         async function carregarLista() {
+            const divLista = document.getElementById('lista');
+            divLista.innerHTML = "Carregando produtos...";
             try {
                 const resposta = await fetch(API);
                 const produtos = await resposta.json();
-                const divLista = document.getElementById('lista');
                 divLista.innerHTML = '';
 
                 let totalItens = 0, valorTotal = 0, qtdVencidos = 0;
@@ -91,8 +89,8 @@
                 
                 produtos.forEach(p => {
                     totalItens++;
-                    const precoNum = parseFloat(p.preco);
-                    valorTotal += (precoNum * p.estoque);
+                    const precoNum = parseFloat(p.preco) || 0;
+                    valorTotal += (precoNum * (p.estoque || 0));
 
                     let textoValidade = "Sem data", classeStatus = "status-ok", aviso = "";
                     if (p.validade) {
@@ -122,7 +120,7 @@
                 document.getElementById('dash-vencidos').innerText = qtdVencidos;
 
             } catch (erro) {
-                document.getElementById('lista').innerHTML = 'Erro ao carregar dados do servidor.';
+                divLista.innerHTML = 'Erro ao carregar dados do servidor. Tente atualizar a página.';
             }
         }
 
@@ -151,6 +149,17 @@
         async function editarProduto(id, precoAtual, estoqueAtual) {
             const novoP = prompt("Novo Preço:", precoAtual);
             const novoE = prompt("Novo Estoque:", estoqueAtual);
-            if (novoP && novoE) {
+            if (novoP !== null && novoE !== null) {
                 await fetch(`${API}/${id}`, {
-                    method: '
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preco: novoP, estoque: novoE })
+                });
+                carregarLista();
+            }
+        }
+
+        verificarAcesso();
+    </script>
+</body>
+</html>
