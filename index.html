@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <title>Gestão Loja Cosméticos</title>
@@ -38,7 +38,7 @@
 </head>
 <body>
 
-    <h1 style="color: #d63384; text-align: center;">💄 Painel do Gerente</h1>
+    <h1 style="color: #d63384; text-align: center;">💄 Painel do Gerente (Euro)</h1>
 
     <div class="dashboard">
         <div class="card-dash borda-rosa">
@@ -47,7 +47,7 @@
         </div>
         <div class="card-dash borda-verde">
             <h3>Valor em Estoque</h3>
-            <p id="dash-valor">R$ 0,00</p>
+            <p id="dash-valor">€ 0,00</p>
         </div>
         <div class="card-dash borda-vermelha">
             <h3>Vencidos / Alerta</h3>
@@ -60,7 +60,7 @@
         <input type="text" id="nome" placeholder="Ex: Base Líquida" />
         <div style="display: flex; gap: 10px;">
             <div style="flex: 1;">
-                <label>Preço (R$):</label>
+                <label>Preço (€):</label>
                 <input type="number" id="preco" placeholder="0.00" step="0.01" />
             </div>
             <div style="flex: 1;">
@@ -78,71 +78,78 @@
     <div id="lista">Carregando...</div>
 
     <script>
+        // SEU ENDEREÇO DO RENDER
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
         async function carregarLista() {
-            const resposta = await fetch(API);
-            const produtos = await resposta.json();
-            
-            const divLista = document.getElementById('lista');
-            divLista.innerHTML = '';
-
-            // Variáveis para o Dashboard
-            let totalItens = 0;
-            let valorTotal = 0;
-            let qtdVencidos = 0;
-            const hoje = new Date(); // Data de hoje
-            
-            produtos.forEach(p => {
-                // Cálculos Matemáticos
-                totalItens += 1;
-                valorTotal += (p.preco * p.estoque);
-
-                // Lógica da Data (Vencido ou não?)
-                let textoValidade = "Sem data";
-                let classeStatus = "status-ok"; // Começa assumindo que está tudo bem
-                let aviso = "";
-
-                if (p.validade) {
-                    const dataObj = new Date(p.validade);
-                    // Ajuste de fuso
-                    const dataUser = new Date(dataObj.getUTCFullYear(), dataObj.getUTCMonth(), dataObj.getUTCDate());
-                    textoValidade = dataUser.toLocaleDateString('pt-BR');
-
-                    // Verifica se venceu
-                    if (dataUser < hoje) {
-                        classeStatus = "status-vencido"; // Fica vermelho
-                        qtdVencidos++;
-                        aviso = "⚠️ VENCIDO";
-                    } 
-                    // Verifica se vence nos próximos 30 dias
-                    else if ((dataUser - hoje) / (1000 * 60 * 60 * 24) < 30) {
-                        classeStatus = "status-atencao"; // Fica amarelo
-                        aviso = "⚠️ Vence logo";
-                    }
-                }
+            try {
+                const resposta = await fetch(API);
+                const produtos = await resposta.json();
                 
-                // Desenha o Item na Lista
-                divLista.innerHTML += `
-                <div class="item ${classeStatus}">
-                    <div>
-                        <strong>${p.nome}</strong> <small style="color:red; font-weight:bold;">${aviso}</small><br>
-                        <span style="color: #555;">R$ ${p.preco} | Qtd: ${p.estoque}</span>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="font-size:12px; font-weight:bold;">📅 ${textoValidade}</span>
-                        <div style="margin-top: 5px;">
-                            <button class="btn-mini" style="background:#2196F3;" onclick="editarProduto(${p.id}, '${p.preco}', '${p.estoque}')">✏️</button>
-                            <button class="btn-mini" style="background:#ff4444;" onclick="deletarProduto(${p.id})">🗑️</button>
-                        </div>
-                    </div>
-                </div>`;
-            });
+                const divLista = document.getElementById('lista');
+                divLista.innerHTML = '';
 
-            // ATUALIZA O DASHBOARD LÁ EM CIMA
-            document.getElementById('dash-qtd').innerText = totalItens;
-            document.getElementById('dash-valor').innerText = Number(valorTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            document.getElementById('dash-vencidos').innerText = qtdVencidos;
+                // Variáveis para o Dashboard
+                let totalItens = 0;
+                let valorTotal = 0;
+                let qtdVencidos = 0;
+                const hoje = new Date(); // Data de hoje
+                
+                produtos.forEach(p => {
+                    // Cálculos Matemáticos
+                    totalItens += 1;
+                    // Garante que o preço seja tratado como número
+                    const precoNum = parseFloat(p.preco);
+                    valorTotal += (precoNum * p.estoque);
+
+                    // Lógica da Data (Vencido ou não?)
+                    let textoValidade = "Sem data";
+                    let classeStatus = "status-ok"; 
+                    let aviso = "";
+
+                    if (p.validade) {
+                        const dataObj = new Date(p.validade);
+                        const dataUser = new Date(dataObj.getUTCFullYear(), dataObj.getUTCMonth(), dataObj.getUTCDate());
+                        textoValidade = dataUser.toLocaleDateString('pt-PT');
+
+                        if (dataUser < hoje) {
+                            classeStatus = "status-vencido";
+                            qtdVencidos++;
+                            aviso = "⚠️ VENCIDO";
+                        } 
+                        else if ((dataUser - hoje) / (1000 * 60 * 60 * 24) < 30) {
+                            classeStatus = "status-atencao";
+                            aviso = "⚠️ Vence logo";
+                        }
+                    }
+                    
+                    // Desenha o Item na Lista (AGORA COM EURO)
+                    divLista.innerHTML += `
+                    <div class="item ${classeStatus}">
+                        <div>
+                            <strong>${p.nome}</strong> <small style="color:red; font-weight:bold;">${aviso}</small><br>
+                            <span style="color: #555;">€ ${precoNum.toFixed(2)} | Qtd: ${p.estoque}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size:12px; font-weight:bold;">📅 ${textoValidade}</span>
+                            <div style="margin-top: 5px;">
+                                <button class="btn-mini" style="background:#2196F3;" onclick="editarProduto(${p.id}, '${p.preco}', '${p.estoque}')">✏️</button>
+                                <button class="btn-mini" style="background:#ff4444;" onclick="deletarProduto(${p.id})">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                // ATUALIZA O DASHBOARD COM EURO
+                document.getElementById('dash-qtd').innerText = totalItens;
+                // Formatação Portuguesa de Portugal para Euro
+                document.getElementById('dash-valor').innerText = Number(valorTotal).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+                document.getElementById('dash-vencidos').innerText = qtdVencidos;
+
+            } catch (erro) {
+                console.error(erro);
+                document.getElementById('lista').innerHTML = '<p style="color:red">Erro ao conectar com o servidor. Tente recarregar.</p>';
+            }
         }
 
         async function salvarProduto() {
@@ -170,7 +177,7 @@
         }
 
         async function editarProduto(id, precoAtual, estoqueAtual) {
-            const novoPreco = prompt("Novo Preço:", precoAtual);
+            const novoPreco = prompt("Novo Preço (€):", precoAtual);
             if (novoPreco === null) return;
             const novoEstoque = prompt("Novo Estoque:", estoqueAtual);
             if (novoEstoque === null) return;
