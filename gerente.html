@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Painel do Gerente | Beleza & Cia</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #fff0f5; }
         
@@ -25,7 +26,7 @@
         .btn-add { background: #d63384; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s;}
         .btn-add:hover { background: #c2185b; }
 
-        /* LISTA DE PRODUTOS */
+        /* LISTA */
         .item { background: white; padding: 15px; margin-top: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
         
         .status-ok { border-left-color: #28a745; }
@@ -37,23 +38,26 @@
 </head>
 <body>
 
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h1 style="color: #d63384;">💄 Área do Gerente</h1>
-        <a href="index.html" style="text-decoration:none; color:#d63384; font-weight:bold;">Ir para a Loja ➔</a>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+        <h1 style="color: #d63384; margin:0;">💄 Área do Gerente</h1>
+        <div>
+            <a href="index.html" style="text-decoration:none; color:#d63384; font-weight:bold; margin-right: 15px;">Ir para a Loja</a>
+            <button onclick="sair()" style="background:#666; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Sair 🔒</button>
+        </div>
     </div>
 
     <div class="dashboard">
         <div class="card-dash borda-rosa">
             <h3>Produtos</h3>
-            <p id="dash-qtd">0</p>
+            <p id="dash-qtd">...</p>
         </div>
         <div class="card-dash borda-verde">
             <h3>Valor em Estoque</h3>
-            <p id="dash-valor">€ 0,00</p>
+            <p id="dash-valor">€ ...</p>
         </div>
         <div class="card-dash borda-vermelha">
-            <h3>Vencidos / Alerta</h3>
-            <p id="dash-vencidos">0</p>
+            <h3>Vencidos</h3>
+            <p id="dash-vencidos">...</p>
         </div>
     </div>
     
@@ -77,10 +81,35 @@
     </div>
 
     <h3 style="color: #555;">📦 Inventário Detalhado</h3>
-    <div id="lista">Carregando...</div>
+    <div id="lista">Carregando segurança...</div>
 
     <script>
-        // --- CONEXÃO COM O SERVIDOR ---
+        // --- 🔐 SEGURANÇA: VERIFICAÇÃO DE LOGIN ---
+        const SUPABASE_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function verificarAcesso() {
+            const { data } = await supabase.auth.getSession();
+            if (!data.session) {
+                // Se não estiver logado, MANDA EMBORA para o login
+                window.location.href = 'login.html';
+            } else {
+                // Se estiver logado, carrega a lista
+                carregarLista();
+            }
+        }
+
+        async function sair() {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
+        
+        // Inicia verificação
+        verificarAcesso();
+
+        // --- SISTEMA DE GESTÃO (RENDER) ---
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
         async function carregarLista() {
@@ -168,7 +197,7 @@
         async function deletarProduto(id) {
             if (confirm("Tem certeza que deseja apagar?")) {
                 await fetch(`${API}/${id}`, { method: 'DELETE' });
-                carregarLista();
+                carregarLista(); // Recarrega a lista sem refresh total
             }
         }
 
@@ -185,8 +214,6 @@
             });
             carregarLista();
         }
-
-        carregarLista();
     </script>
 </body>
 </html>
