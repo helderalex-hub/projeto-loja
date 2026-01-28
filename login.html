@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Gerente | Beleza & Cia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fff0f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        h2 { color: #d63384; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #d63384; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background: #b02a6b; }
+        .error { color: red; font-size: 13px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>🔒 Acesso Restrito</h2>
+        <input type="email" id="email" placeholder="Email do Gerente">
+        <input type="password" id="senha" placeholder="Palavra-passe">
+        <button onclick="fazerLogin()" id="btn-login">ENTRAR</button>
+        <p class="error" id="msg-erro">Email ou senha incorretos.</p>
+    </div>
+
+    <script>
+        // CONFIGURAÇÕES DO SUPABASE (JÁ PREENCHIDAS)
+        const SUPABASE_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function fazerLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('senha').value;
+            const btn = document.getElementById('btn-login');
+            const erro = document.getElementById('msg-erro');
+
+            btn.innerText = "Verificando...";
+            erro.style.display = 'none';
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                console.error(error);
+                erro.style.display = 'block';
+                erro.innerText = "Erro: " + error.message; // Mostra erro se senha estiver errada
+                btn.innerText = "ENTRAR";
+            } else {
+                // Sucesso! Vai para o painel
+                window.location.href = 'gerente.html';
+            }
+        }
+
+        // Verifica se já está logado
+        async function verificarSessao() {
+            const { data } = await supabase.auth.getSession();
+            if (data.session) {
+                window.location.href = 'gerente.html';
+            }
+        }
+        verificarSessao();
+    </script>
+
+</body>
+</html>
