@@ -5,41 +5,41 @@
     <title>Gerente | Beleza & Cia</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #fff0f5; }
+        body { font-family: sans-serif; padding: 20px; background: #fff0f5; }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
         input { display: block; width: 100%; margin: 10px 0; padding: 10px; box-sizing: border-box; }
-        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        button { padding: 10px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
         .btn-add { background: #d63384; color: white; width: 100%; }
-        .btn-sair { background: #666; color: white; float: right; }
-        .item { background: white; padding: 15px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #d63384; display: flex; justify-content: space-between; align-items: center; }
+        .item { background: white; padding: 15px; margin-top: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #d63384; }
     </style>
 </head>
 <body>
 
-    <button class="btn-sair" onclick="sair()">Sair 🔒</button>
-    <h1 style="color: #d63384;">💄 Painel de Gestão</h1>
+    <button onclick="sair()" style="float:right;">Sair 🔒</button>
+    <h1>💄 Gestão de Stock</h1>
 
     <div class="card">
-        <h3>Novo Produto</h3>
         <input type="text" id="nome" placeholder="Nome do Produto">
-        <input type="number" id="preco" placeholder="Preço (€)" step="0.01">
-        <input type="number" id="estoque" placeholder="Quantidade em Estoque">
-        <button class="btn-add" onclick="salvarProduto()">SALVAR NO INVENTÁRIO</button>
+        <input type="number" id="preco" placeholder="Preço (€)">
+        <input type="number" id="estoque" placeholder="Quantidade">
+        <button class="btn-add" onclick="salvarProduto()">SALVAR AGORA</button>
     </div>
 
-    <h3>📦 Produtos em Stock</h3>
-    <div id="lista">Verificando acesso...</div>
+    <div id="lista">A carregar...</div>
 
     <script>
+        // Chaves Diretas
         const S_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
         const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
         const supabase = window.supabase.createClient(S_URL, S_KEY);
 
-        async function verificarAcesso() {
-            const { data } = await supabase.auth.getSession();
-            if (!data || !data.session) {
+        // 1. Verificação de Acesso imediata
+        async function verificarSessao() {
+            console.log("Checando sessão...");
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
                 window.location.href = 'login.html';
             } else {
                 carregarLista();
@@ -52,58 +52,56 @@
         }
 
         async function carregarLista() {
-            const divLista = document.getElementById('lista');
-            divLista.innerHTML = "A carregar dados...";
+            const div = document.getElementById('lista');
             try {
-                const resposta = await fetch(API);
-                const produtos = await resposta.json();
-                divLista.innerHTML = '';
-
-                produtos.forEach(p => {
-                    const preco = parseFloat(p.preco) || 0;
-                    divLista.innerHTML += `
+                const res = await fetch(API);
+                const dados = await res.json();
+                div.innerHTML = '';
+                dados.forEach(p => {
+                    div.innerHTML += `
                         <div class="item">
-                            <div>
-                                <strong>${p.nome}</strong><br>
-                                <span>€ ${preco.toFixed(2)} | Stock: ${p.estoque}</span>
-                            </div>
-                            <div>
-                                <button style="background:#ff4444; color:white;" onclick="deletarProduto(${p.id})">🗑️</button>
-                            </div>
+                            <span>${p.nome} - €${p.preco} (Stock: ${p.estoque})</span>
+                            <button onclick="deletar(${p.id})" style="background:red; color:white;">X</button>
                         </div>`;
                 });
-            } catch (e) {
-                divLista.innerHTML = "Erro ao conectar ao servidor. Verifique se o Render está ativo.";
+            } catch (err) {
+                div.innerHTML = "Erro ao carregar produtos. O Render está acordado?";
             }
         }
 
         async function salvarProduto() {
-            const nome = document.getElementById('nome').value;
-            const preco = document.getElementById('preco').value;
-            const estoque = document.getElementById('estoque').value;
+            const n = document.getElementById('nome').value;
+            const p = document.getElementById('preco').value;
+            const e = document.getElementById('estoque').value;
 
-            if(!nome || !preco) return alert("Preencha os campos!");
+            if(!n || !p) return alert("Preencha Nome e Preço!");
 
-            await fetch(API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, preco, estoque })
-            });
-            
-            document.getElementById('nome').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('estoque').value = '';
-            carregarLista();
+            try {
+                const res = await fetch(API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ nome: n, preco: p, estoque: e })
+                });
+                if(res.ok) {
+                    document.getElementById('nome').value = '';
+                    document.getElementById('preco').value = '';
+                    document.getElementById('estoque').value = '';
+                    carregarLista();
+                }
+            } catch (err) {
+                alert("Erro ao salvar.");
+            }
         }
 
-        async function deletarProduto(id) {
-            if (confirm("Apagar produto?")) {
+        async function deletar(id) {
+            if(confirm("Apagar?")) {
                 await fetch(API + '/' + id, { method: 'DELETE' });
                 carregarLista();
             }
         }
 
-        verificarAcesso();
+        // Tenta rodar assim que carregar
+        window.onload = verificarSessao;
     </script>
 </body>
 </html>
