@@ -22,49 +22,59 @@
         <input type="email" id="email" placeholder="Email do Gerente">
         <input type="password" id="senha" placeholder="Palavra-passe">
         <button onclick="fazerLogin()" id="btn-login">ENTRAR</button>
-        <p class="error" id="msg-erro">Email ou senha incorretos.</p>
+        <p class="error" id="msg-erro"></p>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
+        // Configurações (Apenas uma declaração agora!)
+        const S_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
+        const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(S_URL, S_KEY);
 
         async function fazerLogin() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('senha').value;
             const btn = document.getElementById('btn-login');
-            const erro = document.getElementById('msg-erro');
+            const erroMsg = document.getElementById('msg-erro');
 
             if (!email || !password) {
-                alert("Por favor, preencha todos os campos.");
+                alert("Preencha email e senha.");
                 return;
             }
 
-            btn.innerText = "Verificando...";
+            btn.innerText = "A entrar...";
             btn.disabled = true;
-            erro.style.display = 'none';
+            erroMsg.style.display = 'none';
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: email,
                     password: password,
                 });
 
                 if (error) throw error;
 
-                // Se chegou aqui, logou!
+                // Se logar com sucesso, vai para o gerente
                 window.location.href = 'gerente.html';
 
             } catch (err) {
-                console.error("Erro completo:", err);
-                erro.style.display = 'block';
-                erro.innerText = "Falha no login: " + err.message;
+                console.error("Erro no Login:", err.message);
+                erroMsg.style.display = 'block';
+                erroMsg.innerText = "Erro: " + err.message;
                 btn.innerText = "ENTRAR";
                 btn.disabled = false;
             }
         }
+
+        // Verifica se já está logado para não pedir senha de novo
+        async function checarSessao() {
+            const { data } = await supabaseClient.auth.getSession();
+            if (data.session) {
+                window.location.href = 'gerente.html';
+            }
+        }
+        checarSessao();
     </script>
 </body>
 </html>
