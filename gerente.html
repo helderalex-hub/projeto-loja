@@ -2,58 +2,106 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Gerente Direto | Beleza & Cia</title>
+    <title>Gerente | Beleza & Cia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: -apple-system, sans-serif; padding: 20px; background: #fff0f5; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { color: #d63384; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; display: block; box-sizing: border-box; }
-        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-add { background: #d63384; color: white; margin-top: 10px; }
-        .btn-add:hover { background: #b02a6b; }
-        .item { background: white; padding: 15px; margin-top: 10px; border-radius: 10px; border-left: 6px solid #d63384; display: flex; justify-content: space-between; align-items: center; }
-        #status-server { text-align: center; font-size: 12px; margin-bottom: 10px; color: #666; }
+        body { font-family: sans-serif; padding: 20px; background: #fff0f5; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        input { display: block; width: 100%; margin: 10px 0; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 12px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; background: #d63384; color: white; }
+        .item { background: white; padding: 15px; margin-top: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #d63384; max-width: 500px; margin-left: auto; margin-right: auto; }
+        #status-server { text-align: center; font-weight: bold; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>💄 Gestão de Stock (Acesso Direto)</h1>
-        <div id="status-server">A verificar ligação ao servidor...</div>
+    <h1 style="text-align: center; color: #d63384;">💄 Gestão de Stock</h1>
+    <div id="status-server" style="color: orange;">Iniciando sistema...</div>
 
-        <div class="card">
-            <input type="text" id="nome" placeholder="Nome do Produto">
-            <input type="number" id="preco" placeholder="Preço (€)" step="0.01">
-            <input type="number" id="estoque" placeholder="Quantidade">
-            <button class="btn-add" onclick="salvarProduto()">ADICIONAR AO INVENTÁRIO</button>
-        </div>
-
-        <h3>📦 Inventário</h3>
-        <div id="lista">A carregar produtos...</div>
+    <div class="card">
+        <input type="text" id="nome" placeholder="Nome do Produto">
+        <input type="number" id="preco" placeholder="Preço (€)" step="0.01">
+        <input type="number" id="estoque" placeholder="Quantidade">
+        <button onclick="salvarProduto()">ADICIONAR PRODUTO</button>
     </div>
 
+    <div id="lista" style="text-align: center;">Aguardando comando...</div>
+
     <script>
-        // Link direto do seu servidor no Render
+        // URL DO TEU RENDER
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
-        // 1. CARREGAR PRODUTOS
+        // 1. FUNÇÃO PARA CARREGAR (COM TIMEOUT PARA NÃO TRAVAR)
         async function carregarLista() {
-            const divLista = document.getElementById('lista');
             const status = document.getElementById('status-server');
+            const lista = document.getElementById('lista');
+            
+            status.innerText = "📡 Conectando ao Render...";
             
             try {
-                const resposta = await fetch(API);
-                if (!resposta.ok) throw new Error();
+                const res = await fetch(API);
+                if (!res.ok) throw new Error("Erro no servidor");
                 
-                const produtos = await resposta.json();
-                status.innerText = "● Servidor Online";
+                const produtos = await res.json();
+                
+                status.innerText = "● ONLINE";
                 status.style.color = "green";
                 
-                divLista.innerHTML = '';
+                lista.innerHTML = '';
                 if (produtos.length === 0) {
-                    divLista.innerHTML = "Nenhum produto encontrado.";
-                    return;
+                    lista.innerHTML = "Inventário vazio.";
+                } else {
+                    produtos.forEach(p => {
+                        lista.innerHTML += `
+                            <div class="item">
+                                <span><strong>${p.nome}</strong><br>€${p.preco} | Qtd: ${p.estoque}</span>
+                                <button onclick="deletar(${p.id})" style="width: auto; background: red; padding: 5px 10px;">X</button>
+                            </div>`;
+                    });
                 }
+            } catch (err) {
+                console.error(err);
+                status.innerText = "🔴 OFFLINE (Acorde o Render)";
+                status.style.color = "red";
+                lista.innerHTML = "<button onclick='location.reload()'>Tentar Novamente</button>";
+            }
+        }
 
-                produtos.
+        // 2. FUNÇÃO PARA SALVAR
+        async function salvarProduto() {
+            const n = document.getElementById('nome').value;
+            const p = document.getElementById('preco').value;
+            const e = document.getElementById('estoque').value;
+
+            if(!n || !p) { alert("Preencha Nome e Preço!"); return; }
+
+            try {
+                const res = await fetch(API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ nome: n, preco: p, estoque: e })
+                });
+                if(res.ok) {
+                    document.getElementById('nome').value = '';
+                    document.getElementById('preco').value = '';
+                    document.getElementById('estoque').value = '';
+                    carregarLista();
+                }
+            } catch (err) {
+                alert("Erro ao salvar. Verifique a conexão.");
+            }
+        }
+
+        // 3. FUNÇÃO PARA DELETAR
+        async function deletar(id) {
+            if(!confirm("Apagar produto?")) return;
+            await fetch(API + '/' + id, { method: 'DELETE' });
+            carregarLista();
+        }
+
+        // DISPARO AUTOMÁTICO
+        console.log("Script carregado. Iniciando fetch...");
+        carregarLista();
+    </script>
+</body>
+</html>
