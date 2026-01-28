@@ -2,195 +2,165 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Gestão Loja Cosméticos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beleza & Cia | Loja Online</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #fff0f5; }
+        body { font-family: 'Helvetica Neue', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
         
-        /* DASHBOARD (Os cartões do topo) */
-        .dashboard { display: flex; gap: 15px; margin-bottom: 25px; }
-        .card-dash { flex: 1; background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-bottom: 4px solid #ddd; }
-        .card-dash h3 { margin: 0; color: #666; font-size: 14px; text-transform: uppercase; }
-        .card-dash p { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #333; }
-        
-        /* Cores específicas do Dashboard */
-        .borda-rosa { border-color: #d63384; color: #d63384; }
-        .borda-verde { border-color: #28a745; color: #28a745; }
-        .borda-vermelha { border-color: #dc3545; color: #dc3545; }
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { color: #d63384; margin-bottom: 5px; }
+        p.subtitle { color: #666; }
 
-        /* Formulário */
-        .card-form { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 30px;}
-        input { display: block; margin: 5px 0 15px 0; padding: 12px; width: 100%; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        label { font-weight: bold; font-size: 13px; color: #555; }
+        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
         
-        .btn-add { background: #d63384; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s;}
-        .btn-add:hover { background: #c2185b; }
-
-        /* Lista */
-        .item { background: white; padding: 15px; margin-top: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        /* Card do Produto */
+        .produto { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .produto:hover { transform: translateY(-5px); }
         
-        /* Status de validade */
-        .status-ok { border-left-color: #28a745; }
-        .status-atencao { border-left-color: #ffc107; background-color: #fff9e6; } /* Amarelo */
-        .status-vencido { border-left-color: #dc3545; background-color: #ffe6e6; } /* Vermelho */
+        .emoji { font-size: 60px; margin: 10px 0; display: block; }
+        .nome { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; }
+        .preco { font-size: 22px; color: #28a745; font-weight: bold; margin-bottom: 15px; }
+        .estoque { font-size: 12px; color: #999; margin-bottom: 15px; }
 
-        .btn-mini { padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 12px; margin-left: 5px; color: white; }
+        button { background-color: #d63384; color: white; border: none; padding: 12px; width: 100%; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #b02a6b; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* Carrinho Flutuante */
+        #carrinho-bar { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: none; align-items: center; gap: 15px; cursor: pointer; z-index: 100; }
+        #carrinho-bar:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
 
-    <h1 style="color: #d63384; text-align: center;">💄 Painel do Gerente (Euro)</h1>
+    <header>
+        <h1>✨ Beleza & Cia</h1>
+        <p class="subtitle">Os melhores produtos, agora em Euros.</p>
+    </header>
 
-    <div class="dashboard">
-        <div class="card-dash borda-rosa">
-            <h3>Produtos</h3>
-            <p id="dash-qtd">0</p>
-        </div>
-        <div class="card-dash borda-verde">
-            <h3>Valor em Estoque</h3>
-            <p id="dash-valor">€ 0,00</p>
-        </div>
-        <div class="card-dash borda-vermelha">
-            <h3>Vencidos / Alerta</h3>
-            <p id="dash-vencidos">0</p>
-        </div>
-    </div>
-    
-    <div class="card-form">
-        <label>Nome do Produto:</label>
-        <input type="text" id="nome" placeholder="Ex: Base Líquida" />
-        <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <label>Preço (€):</label>
-                <input type="number" id="preco" placeholder="0.00" step="0.01" />
-            </div>
-            <div style="flex: 1;">
-                <label>Qtd:</label>
-                <input type="number" id="estoque" placeholder="0" />
-            </div>
-        </div>
-        <label>Data de Validade:</label>
-        <input type="date" id="validade" />
-        
-        <button class="btn-add" onclick="salvarProduto()">SALVAR PRODUTO</button>
+    <div class="container" id="lista-produtos">
+        <p style="text-align:center; width:100%;">Carregando produtos...</p>
     </div>
 
-    <h3 style="color: #555;">📦 Inventário Detalhado</h3>
-    <div id="lista">Carregando...</div>
+    <div id="carrinho-bar" onclick="finalizarCompra()">
+        <span>🛒 <b id="qtd-carrinho">0</b> itens</span>
+        <span style="border-left: 1px solid #555; padding-left: 15px;">Ir para Pagamento ➔</span>
+    </div>
 
     <script>
-        // SEU ENDEREÇO DO RENDER
-        const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
+        // SEU BACKEND NO RENDER
+        const API_URL = 'https://projeto-loja-dzqv.onrender.com';
+        
+        let carrinho = [];
+        let produtosGlobais = [];
 
-        async function carregarLista() {
+        async function carregarLoja() {
             try {
-                const resposta = await fetch(API);
-                const produtos = await resposta.json();
-                
-                const divLista = document.getElementById('lista');
-                divLista.innerHTML = '';
+                const response = await fetch(`${API_URL}/produtos`);
+                produtosGlobais = await response.json();
+                renderizar(produtosGlobais);
+            } catch (error) {
+                console.error("Erro ao carregar:", error);
+                document.getElementById('lista-produtos').innerHTML = '<p>Erro ao carregar loja. Tente novamente.</p>';
+            }
+        }
 
-                // Variáveis para o Dashboard
-                let totalItens = 0;
-                let valorTotal = 0;
-                let qtdVencidos = 0;
-                const hoje = new Date(); // Data de hoje
-                
-                produtos.forEach(p => {
-                    // Cálculos Matemáticos
-                    totalItens += 1;
-                    // Garante que o preço seja tratado como número
-                    const precoNum = parseFloat(p.preco);
-                    valorTotal += (precoNum * p.estoque);
+        function renderizar(lista) {
+            const div = document.getElementById('lista-produtos');
+            div.innerHTML = '';
 
-                    // Lógica da Data (Vencido ou não?)
-                    let textoValidade = "Sem data";
-                    let classeStatus = "status-ok"; 
-                    let aviso = "";
+            lista.forEach(prod => {
+                const precoNum = parseFloat(prod.preco);
+                const semEstoque = prod.estoque <= 0;
 
-                    if (p.validade) {
-                        const dataObj = new Date(p.validade);
-                        const dataUser = new Date(dataObj.getUTCFullYear(), dataObj.getUTCMonth(), dataObj.getUTCDate());
-                        textoValidade = dataUser.toLocaleDateString('pt-PT');
+                // IMPORTANTE: Aqui garantimos que o ID é passado corretamente no clique
+                div.innerHTML += `
+                    <div class="produto">
+                        <span class="emoji">💄</span>
+                        <div class="nome">${prod.nome}</div>
+                        <div class="preco">€ ${precoNum.toFixed(2)}</div>
+                        <div class="estoque">${semEstoque ? 'ESGOTADO' : 'Restam: ' + prod.estoque}</div>
+                        <button onclick="adicionarAoCarrinho(${prod.id})" ${semEstoque ? 'disabled' : ''}>
+                            ${semEstoque ? 'Indisponível' : 'Adicionar ao Carrinho'}
+                        </button>
+                    </div>
+                `;
+            });
+        }
 
-                        if (dataUser < hoje) {
-                            classeStatus = "status-vencido";
-                            qtdVencidos++;
-                            aviso = "⚠️ VENCIDO";
-                        } 
-                        else if ((dataUser - hoje) / (1000 * 60 * 60 * 24) < 30) {
-                            classeStatus = "status-atencao";
-                            aviso = "⚠️ Vence logo";
-                        }
-                    }
-                    
-                    // Desenha o Item na Lista (AGORA COM EURO)
-                    divLista.innerHTML += `
-                    <div class="item ${classeStatus}">
-                        <div>
-                            <strong>${p.nome}</strong> <small style="color:red; font-weight:bold;">${aviso}</small><br>
-                            <span style="color: #555;">€ ${precoNum.toFixed(2)} | Qtd: ${p.estoque}</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="font-size:12px; font-weight:bold;">📅 ${textoValidade}</span>
-                            <div style="margin-top: 5px;">
-                                <button class="btn-mini" style="background:#2196F3;" onclick="editarProduto(${p.id}, '${p.preco}', '${p.estoque}')">✏️</button>
-                                <button class="btn-mini" style="background:#ff4444;" onclick="deletarProduto(${p.id})">🗑️</button>
-                            </div>
-                        </div>
-                    </div>`;
+        function adicionarAoCarrinho(id) {
+            // Procura o produto na lista original
+            const produtoOriginal = produtosGlobais.find(p => p.id === id);
+            
+            if (!produtoOriginal) {
+                alert("Erro: Produto não encontrado!");
+                return;
+            }
+
+            // CRIA UM NOVO OBJETO LIMPO PARA O CARRINHO
+            // Isso garante que estamos a enviar APENAS o necessário e que o ID está lá
+            const itemDoCarrinho = {
+                id: produtoOriginal.id,
+                nome: produtoOriginal.nome,
+                preco: produtoOriginal.preco
+            };
+
+            // Verificação de Segurança
+            if (!itemDoCarrinho.id) {
+                alert("ERRO GRAVE: Este produto está sem ID no sistema. O estoque não funcionará.");
+                return;
+            }
+
+            carrinho.push(itemDoCarrinho);
+            atualizarBarraCarrinho();
+        }
+
+        function atualizarBarraCarrinho() {
+            const barra = document.getElementById('carrinho-bar');
+            const qtd = document.getElementById('qtd-carrinho');
+            qtd.innerText = carrinho.length;
+            
+            if (carrinho.length > 0) {
+                barra.style.display = 'flex';
+            } else {
+                barra.style.display = 'none';
+            }
+        }
+
+        async function finalizarCompra() {
+            if(carrinho.length === 0) return;
+
+            const btn = document.getElementById('carrinho-bar');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = 'Processando... ⏳';
+
+            try {
+                // LOG DE DEBUG PARA VOCÊ VER NO CONSOLE DO NAVEGADOR
+                console.log("Enviando carrinho para o servidor:", carrinho);
+
+                const resposta = await fetch(`${API_URL}/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itens: carrinho })
                 });
 
-                // ATUALIZA O DASHBOARD COM EURO
-                document.getElementById('dash-qtd').innerText = totalItens;
-                // Formatação Portuguesa de Portugal para Euro
-                document.getElementById('dash-valor').innerText = Number(valorTotal).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
-                document.getElementById('dash-vencidos').innerText = qtdVencidos;
-
-            } catch (erro) {
-                console.error(erro);
-                document.getElementById('lista').innerHTML = '<p style="color:red">Erro ao conectar com o servidor. Tente recarregar.</p>';
+                const dados = await resposta.json();
+                
+                if(dados.url) {
+                    window.location.href = dados.url;
+                } else {
+                    alert('Erro ao criar pagamento: ' + (dados.error || 'Erro desconhecido'));
+                    btn.innerHTML = textoOriginal;
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Erro de conexão.');
+                btn.innerHTML = textoOriginal;
             }
         }
 
-        async function salvarProduto() {
-            const nome = document.getElementById('nome').value;
-            const preco = document.getElementById('preco').value;
-            const estoque = document.getElementById('estoque').value;
-            const validade = document.getElementById('validade').value;
-
-            if(!nome || !preco) return alert("Preencha os dados!");
-
-            await fetch(API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, preco, estoque, validade })
-            });
-
-            document.location.reload();
-        }
-
-        async function deletarProduto(id) {
-            if (confirm("Apagar item?")) {
-                await fetch(`${API}/${id}`, { method: 'DELETE' });
-                carregarLista();
-            }
-        }
-
-        async function editarProduto(id, precoAtual, estoqueAtual) {
-            const novoPreco = prompt("Novo Preço (€):", precoAtual);
-            if (novoPreco === null) return;
-            const novoEstoque = prompt("Novo Estoque:", estoqueAtual);
-            if (novoEstoque === null) return;
-
-            await fetch(`${API}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ preco: novoPreco, estoque: novoEstoque })
-            });
-            carregarLista();
-        }
-
-        carregarLista();
+        carregarLoja();
     </script>
+
 </body>
 </html>
