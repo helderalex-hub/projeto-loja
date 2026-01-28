@@ -1,106 +1,119 @@
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
-// Configuração do Servidor
 const app = express();
+
+// --- 1. ROTA DO WEBHOOK (O TELEFONE VERMELHO) ---
+// Esta rota precisa vir ANTES das configurações normais
+// Ela recebe o aviso do Stripe e verifica a assinatura de segurança
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+        // Verifica se o aviso veio mesmo do Stripe usando a chave que você salvou no Render
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.error(`⚠️ Erro de Webhook: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Se o evento for "Compra Concluída com Sucesso"
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        console.log("💰 Pagamento aprovado! Sessão:", session.id);
+
+        // Pede ao Stripe a lista do que foi comprado nessa sessão
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+            expand: ['data.price.product'],
+        });
+
+        // Para cada item comprado, baixa o estoque
+        for (const item of lineItems.data) {
+            // Recupera o ID do produto que escondemos na hora do checkout
+            const produtoId = item.price.product.metadata.id_supabase;
+            
+            if (produtoId) {
+                await baixarEstoque(produtoId);
+            }
+        }
+    }
+
+    res.send(); // Responde "OK" para o Stripe
+});
+
+// --- FUNÇÃO PARA BAIXAR ESTOQUE ---
+async function baixarEstoque(id) {
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
+    // 1. Pega o estoque atual
+    const { data: produto } = await supabase
+        .from('produtos')
+        .select('estoque')
+        .eq('id', id)
+        .single();
+
+    if (produto) {
+        const novoEstoque = produto.estoque - 1;
+        // 2. Salva o novo estoque
+        await supabase
+            .from('produtos')
+            .update({ estoque: novoEstoque })
+            .eq('id', id);
+        console.log(`📉 Produto ${id}: Estoque baixou para ${novoEstoque}`);
+    }
+}
+
+// --- CONFIGURAÇÕES PADRÃO ---
 app.use(express.json());
 app.use(cors());
 
-// --- CONEXÃO 1: FINANCEIRO (STRIPE) ---
-// Pega a chave do cofre do Render
-const stripe = require('stripe')(process.env.STRIPE_KEY);
+// Conexão Supabase Geral
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- CONEXÃO 2: BANCO DE DADOS (SUPABASE) ---
-// Pega as chaves do cofre do Render
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// --- ROTAS DO SITE (PRODUTOS) ---
 
-// ==========================================
-//  ROTAS DO GERENTE (CRUD DE PRODUTOS)
-// ==========================================
-
-// 1. LISTAR PRODUTOS (Serve tanto para a Loja quanto para o Gerente)
 app.get('/produtos', async (req, res) => {
-    try {
-        // Busca no Supabase ordenando pelo ID
-        const { data, error } = await supabase
-            .from('produtos')
-            .select('*')
-            .order('id', { ascending: true });
-
-        if (error) throw error;
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
 });
 
-// 2. CRIAR PRODUTO (Gerente)
 app.post('/produtos', async (req, res) => {
-    try {
-        const novoProduto = req.body;
-        const { data, error } = await supabase
-            .from('produtos')
-            .insert([novoProduto])
-            .select(); // Retorna o produto criado
-
-        if (error) throw error;
-        res.status(201).json(data[0]);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    const { data, error } = await supabase.from('produtos').insert([req.body]).select();
+    if (error) return res.status(500).json({ error: error.message });
+    res.status(201).json(data[0]);
 });
 
-// 3. ATUALIZAR PRODUTO (Gerente)
 app.put('/produtos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const dadosNovos = req.body;
-        
-        const { data, error } = await supabase
-            .from('produtos')
-            .update(dadosNovos)
-            .eq('id', id);
-
-        if (error) throw error;
-        res.json({ message: "Produto atualizado!" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    const { error } = await supabase.from('produtos').update(req.body).eq('id', req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Atualizado" });
 });
 
-// 4. DELETAR PRODUTO (Gerente)
 app.delete('/produtos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { error } = await supabase
-            .from('produtos')
-            .delete()
-            .eq('id', id);
-
-        if (error) throw error;
-        res.json({ message: "Produto deletado!" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    const { error } = await supabase.from('produtos').delete().eq('id', req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Deletado" });
 });
 
-// ==========================================
-//  ROTA DA LOJA (PAGAMENTO)
-// ==========================================
-
+// --- ROTA DE CHECKOUT (ATUALIZADA) ---
 app.post('/checkout', async (req, res) => {
     try {
-        console.log("Iniciando pagamento..."); 
         const itensCarrinho = req.body.itens;
-
         const line_items = itensCarrinho.map(item => {
             return {
                 price_data: {
                     currency: 'eur',
-                    product_data: { name: item.nome },
+                    product_data: { 
+                        name: item.nome,
+                        // AQUI ESTÁ O SEGREDO: Escondemos o ID do produto aqui
+                        metadata: { 
+                            id_supabase: item.id 
+                        }
+                    },
                     unit_amount: Math.round(item.preco * 100), 
                 },
                 quantity: 1,
@@ -116,15 +129,12 @@ app.post('/checkout', async (req, res) => {
         });
 
         res.json({ url: session.url });
-
     } catch (error) {
-        console.error("ERRO NO STRIPE:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Inicia o Servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor Conectado (Stripe + Supabase) na porta ${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
