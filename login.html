@@ -26,7 +26,6 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES DO SUPABASE (JÁ PREENCHIDAS)
         const SUPABASE_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
 
@@ -38,34 +37,34 @@
             const btn = document.getElementById('btn-login');
             const erro = document.getElementById('msg-erro');
 
+            if (!email || !password) {
+                alert("Por favor, preencha todos os campos.");
+                return;
+            }
+
             btn.innerText = "Verificando...";
+            btn.disabled = true;
             erro.style.display = 'none';
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
 
-            if (error) {
-                console.error(error);
+                if (error) throw error;
+
+                // Se chegou aqui, logou!
+                window.location.href = 'gerente.html';
+
+            } catch (err) {
+                console.error("Erro completo:", err);
                 erro.style.display = 'block';
-                erro.innerText = "Erro: " + error.message; // Mostra erro se senha estiver errada
+                erro.innerText = "Falha no login: " + err.message;
                 btn.innerText = "ENTRAR";
-            } else {
-                // Sucesso! Vai para o painel
-                window.location.href = 'gerente.html';
+                btn.disabled = false;
             }
         }
-
-        // Verifica se já está logado
-        async function verificarSessao() {
-            const { data } = await supabase.auth.getSession();
-            if (data.session) {
-                window.location.href = 'gerente.html';
-            }
-        }
-        verificarSessao();
     </script>
-
 </body>
 </html>
