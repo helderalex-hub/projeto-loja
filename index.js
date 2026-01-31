@@ -8,17 +8,21 @@ const cron = require('node-cron');
 const app = express();
 app.use(cors());
 
-// --- CONFIGURAÇÃO DE E-MAIL (CORREÇÃO DE TIMEOUT) ---
+// --- CONFIGURAÇÃO DE E-MAIL (PORTA 587 - MAIS ESTÁVEL NO RENDER) ---
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false, // false para usar STARTTLS na porta 587
     auth: {
         user: 'helderalex@gmail.com',
         pass: 'frmy ugsm iyza dlrd'
     },
-    tls: { rejectUnauthorized: false },
-    connectionTimeout: 20000 
+    tls: {
+        rejectUnauthorized: false, // Evita bloqueios de certificados em nuvem
+        minVersion: 'TLSv1.2'
+    },
+    connectionTimeout: 40000, // 40 segundos para evitar Timeout
+    greetingTimeout: 30000
 });
 
 async function enviarEmail(assunto, texto) {
@@ -31,13 +35,13 @@ async function enviarEmail(assunto, texto) {
         });
         console.log("📧 E-mail enviado com sucesso.");
     } catch (err) {
-        console.error("❌ Erro ao enviar e-mail:", err);
+        console.error("❌ Erro ao enviar e-mail:", err.message);
     }
 }
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- WEBHOOK (BAIXA DE ESTOQUE PRIORITÁRIA) ---
+// --- WEBHOOK (ESTOQUE BAIXA PRIMEIRO) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -63,10 +67,9 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                     const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
                     if (p) {
                         const novoEstoque = Math.max(0, p.estoque - 1);
-                        // Atualiza o stock no Supabase
+                        // 1. Atualiza Stock
                         await supabase.from('produtos').update({ estoque: novoEstoque }).eq('id', produtoId);
-                        
-                        // Regista a venda
+                        // 2. Regista Venda
                         await supabase.from('vendas').insert([{
                             produto_nome: p.nome,
                             quantidade: 1,
@@ -78,14 +81,14 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 }
             }
 
-            // Envia o e-mail após processar o stock (sem bloquear a resposta ao Stripe)
+            // 3. Tenta enviar e-mail (sem bloquear a resposta ao Stripe)
             enviarEmail(
                 "✅ NOVO PEDIDO PAGO!", 
                 `Venda confirmada de €${(session.amount_total/100).toFixed(2)}. O stock foi atualizado.`
-            ).catch(e => console.log("Erro e-mail:", e));
+            ).catch(e => console.log("⚠️ Falha no e-mail (mas stock OK):", e.message));
 
         } catch (err) {
-            console.error("Erro no processamento pós-venda:", err);
+            console.error("❌ Erro no processamento pós-venda:", err);
         }
     }
     res.json({ received: true });
@@ -93,7 +96,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
 app.use(express.json());
 
-// --- RELATÓRIO DIÁRIO (18:00) ---
+// --- RELATÓRIO DIÁRIO (18:00 LISBOA) ---
 cron.schedule('0 18 * * *', async () => {
     console.log("⏳ Gerando relatório das 18h...");
     try {
@@ -102,7 +105,7 @@ cron.schedule('0 18 * * *', async () => {
         const total = produtos.reduce((acc, p) => acc + (p.preco * p.estoque), 0);
 
         const texto = `📊 RELATÓRIO DIÁRIO\n\n⚠️ STOCK BAIXO:\n${stockBaixo || 'Tudo OK'}\n\n💰 VALOR TOTAL EM STOCK: €${total.toFixed(2)}`;
-        await enviarEmail("📊 Relatório de Stock Diário", texto);
+        await enviarEmail("📊 Relatório de Stock Diário", texto).catch(e => console.log("Erro e-mail relatório:", e.message));
     } catch (err) {
         console.error("Erro no cron:", err);
     }
