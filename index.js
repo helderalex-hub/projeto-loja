@@ -170,4 +170,14 @@ cron.schedule('0 18 * * *', async () => {
                       `💰 VALOR TOTAL (PVP): €${totalVenda.toFixed(2)}\n\n` +
                       `Equipa Beleza & Cia.`;
 
-        await enviarEmail("📊 Relatório de Inventário Diário
+        await enviarEmail("📊 Relatório de Inventário Diário", texto);
+    } catch (err) {
+        console.error("Erro no cron:", err);
+    }
+}, { timezone: "Europe/Lisbon" });
+
+// --- 7. INICIALIZAÇÃO ---
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 SERVIDOR VIP ON - Porta ${PORT}`);
+});
