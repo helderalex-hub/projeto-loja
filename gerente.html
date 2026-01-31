@@ -3,153 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Gerente - Beleza & Cia</title>
+    <title>Gerente - Beleza & Cia</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { color: #d63384; border-bottom: 2px solid #d63384; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-        label { font-weight: bold; margin-bottom: 5px; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
-        .btn-add { background: #28a745; color: white; margin-top: 10px; }
-        .btn-edit { background: #ffc107; color: black; margin-right: 5px; }
-        .btn-delete { background: #dc3545; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #d63384; color: white; }
-        tr:nth-child(even) { background: #f9f9f9; }
+        body { font-family: Arial, sans-serif; background: #fdf2f8; color: #333; padding: 20px; }
+        h1 { color: #d63384; text-align: center; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; margin: 20px auto; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #d63384; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        button:hover { background: #b82a6e; }
+        .lista { max-width: 800px; margin: 20px auto; }
+        .item-produto { background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .info { flex-grow: 1; }
+        .info b { color: #d63384; font-size: 18px; }
+        .acoes button { width: auto; padding: 8px 12px; margin-left: 5px; font-size: 14px; }
+        .btn-delete { background: #ff4d4d; }
+        .btn-edit { background: #4da3ff; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🛠️ Gestão de Inventário</h2>
-    
-    <div id="formulario">
-        <input type="hidden" id="prodId">
-        <div class="form-group">
-            <label>Nome do Produto:</label>
-            <input type="text" id="nome" placeholder="Ex: Batom Matte">
-        </div>
-        <div class="form-group">
-            <label>Preço de Venda (€):</label>
-            <input type="number" id="preco" step="0.01">
-        </div>
-        <div class="form-group">
-            <label>Preço de Entrada (€):</label>
-            <input type="number" id="preco_entrada" step="0.01">
-        </div>
-        <div class="form-group">
-            <label>Stock Atual:</label>
-            <input type="number" id="estoque">
-        </div>
-        <div class="form-group">
-            <label>Validade:</label>
-            <input type="date" id="validade">
-        </div>
-        <button class="btn-add" onclick="salvarProduto()">Guardar Produto</button>
-        <button onclick="limparFormulario()" style="background:#6c757d; color:white;">Cancelar</button>
+    <h1>🌸 Painel Administrativo</h1>
+
+    <div class="card">
+        <h3 id="titulo-form">Adicionar Novo Produto</h3>
+        <input type="hidden" id="prod-id">
+        <input type="text" id="nome" placeholder="Nome do Produto">
+        <input type="number" id="preco" placeholder="Preço de Venda (€)" step="0.01">
+        <input type="number" id="preco_entrada" placeholder="Preço de Custo (€)" step="0.01">
+        <input type="number" id="estoque" placeholder="Quantidade em Stock">
+        <label style="font-size: 12px; color: #666;">Data de Validade:</label>
+        <input type="date" id="validade">
+        <button onclick="salvar()">Guardar Alterações</button>
+        <button onclick="limpar()" style="background: #ccc; margin-top: 5px; color: #333;">Limpar / Novo</button>
     </div>
 
-    <table id="tabelaProdutos">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Preço</th>
-                <th>Stock</th>
-                <th>Validade</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
-</div>
+    <div class="lista" id="lista-produtos">
+        </div>
 
-<script>
-    const API_URL = "https://projeto-loja-beleza-cia.onrender.com";
+    <script>
+        const API_URL = "https://projeto-loja-beleza-cia.onrender.com";
 
-    async function carregarProdutos() {
-        const res = await fetch(`${API_URL}/produtos`);
-        const produtos = await res.json();
-        const corpoTabela = document.querySelector("#tabelaProdutos tbody");
-        corpoTabela.innerHTML = "";
+        async function carregarProdutos() {
+            const res = await fetch(`${API_URL}/produtos`);
+            const produtos = await res.json();
+            const lista = document.getElementById("lista-produtos");
+            lista.innerHTML = "";
 
-        produtos.forEach(p => {
-            // Formatar data de validade para exibição (DD/MM/AAAA)
-            const dataFormatada = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : "N/A";
-            
-            corpoTabela.innerHTML += `
-                <tr>
-                    <td>${p.nome}</td>
-                    <td>€${p.preco.toFixed(2)}</td>
-                    <td>${p.estoque}</td>
-                    <td>${dataFormatada}</td>
-                    <td>
-                        <button class="btn-edit" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
-                        <button class="btn-delete" onclick="eliminarProduto(${p.id})">🗑️</button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    function prepararEdicao(p) {
-        document.getElementById("prodId").value = p.id;
-        document.getElementById("nome").value = p.nome;
-        document.getElementById("preco").value = p.preco;
-        document.getElementById("preco_entrada").value = p.preco_entrada || "";
-        document.getElementById("estoque").value = p.estoque;
-        document.getElementById("validade").value = p.validade || "";
-        window.scrollTo(0,0);
-    }
-
-    async function salvarProduto() {
-        const id = document.getElementById("prodId").value;
-        const produto = {
-            nome: document.getElementById("nome").value,
-            preco: parseFloat(document.getElementById("preco").value),
-            preco_entrada: parseFloat(document.getElementById("preco_entrada").value),
-            estoque: parseInt(document.getElementById("estoque").value),
-            validade: document.getElementById("validade").value
-        };
-
-        const metodo = id ? "PUT" : "POST";
-        const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
-
-        const res = await fetch(url, {
-            method: metodo,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(produto)
-        });
-
-        if (res.ok) {
-            alert("Sucesso!");
-            limparFormulario();
-            carregarProdutos();
-        } else {
-            alert("Erro ao salvar.");
+            produtos.forEach(p => {
+                const dataValidade = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : "---";
+                lista.innerHTML += `
+                    <div class="item-produto">
+                        <div class="info">
+                            <b>${p.nome}</b><br>
+                            Preço: €${p.preco.toFixed(2)} | Stock: ${p.estoque}<br>
+                            <small>Validade: ${dataValidade}</small>
+                        </div>
+                        <div class="acoes">
+                            <button class="btn-edit" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
+                            <button class="btn-delete" onclick="eliminar(${p.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
         }
-    }
 
-    async function eliminarProduto(id) {
-        if (!confirm("Deseja eliminar este produto?")) return;
-        await fetch(`${API_URL}/produtos/${id}`, { method: "DELETE" });
+        function prepararEdicao(p) {
+            document.getElementById("titulo-form").innerText = "Editar Produto";
+            document.getElementById("prod-id").value = p.id;
+            document.getElementById("nome").value = p.nome;
+            document.getElementById("preco").value = p.preco;
+            document.getElementById("preco_entrada").value = p.preco_entrada || "";
+            document.getElementById("estoque").value = p.estoque;
+            document.getElementById("validade").value = p.validade || "";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function salvar() {
+            const id = document.getElementById("prod-id").value;
+            const produto = {
+                nome: document.getElementById("nome").value,
+                preco: parseFloat(document.getElementById("preco").value),
+                preco_entrada: parseFloat(document.getElementById("preco_entrada").value),
+                estoque: parseInt(document.getElementById("estoque").value),
+                validade: document.getElementById("validade").value
+            };
+
+            const metodo = id ? "PUT" : "POST";
+            const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
+
+            await fetch(url, {
+                method: metodo,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(produto)
+            });
+
+            limpar();
+            carregarProdutos();
+        }
+
+        async function eliminar(id) {
+            if(confirm("Eliminar este produto?")) {
+                await fetch(`${API_URL}/produtos/${id}`, { method: "DELETE" });
+                carregarProdutos();
+            }
+        }
+
+        function limpar() {
+            document.getElementById("titulo-form").innerText = "Adicionar Novo Produto";
+            document.getElementById("prod-id").value = "";
+            document.getElementById("nome").value = "";
+            document.getElementById("preco").value = "";
+            document.getElementById("preco_entrada").value = "";
+            document.getElementById("estoque").value = "";
+            document.getElementById("validade").value = "";
+        }
+
         carregarProdutos();
-    }
-
-    function limparFormulario() {
-        document.getElementById("prodId").value = "";
-        document.getElementById("nome").value = "";
-        document.getElementById("preco").value = "";
-        document.getElementById("preco_entrada").value = "";
-        document.getElementById("estoque").value = "";
-        document.getElementById("validade").value = "";
-    }
-
-    carregarProdutos();
-</script>
-
+    </script>
 </body>
 </html>
