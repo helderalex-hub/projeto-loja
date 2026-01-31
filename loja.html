@@ -7,76 +7,34 @@
     <style>
         :root { --dark: #0a0a0a; --card: #161616; --rosa: #d63384; --rosa-claro: #ffb6c1; --texto: #f5f5f5; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 0; }
-        
         header { background: #000; padding: 30px 20px; text-align: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
-        header h1 { margin: 0; color: var(--rosa); text-transform: uppercase; letter-spacing: 5px; font-size: 26px; font-weight: 300; }
-
+        header h1 { margin: 0; color: var(--rosa); text-transform: uppercase; letter-spacing: 5px; font-size: 26px; }
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
-        
-        /* CARD DO PRODUTO */
-        .produto-card { 
-            background: var(--card); border-radius: 20px; overflow: hidden; 
-            border: 1px solid #222; transition: all 0.4s ease; position: relative;
-            display: flex; flex-direction: column;
-        }
-
-        /* ESTILO SEM STOCK (Marca d'água) */
+        .produto-card { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid #222; transition: 0.4s; position: relative; display: flex; flex-direction: column; }
         .produto-card.sem-estoque { opacity: 0.7; }
         .produto-card.sem-estoque img { filter: grayscale(100%) blur(1px); }
         .produto-card.sem-estoque .btn-comprar { display: none; }
-        
         .img-container { width: 100%; height: 320px; background: #000; position: relative; overflow: hidden; }
-        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        
-        .overlay-indisponivel {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.85); color: white; padding: 12px 24px;
-            border-radius: 8px; font-weight: bold; text-transform: uppercase;
-            letter-spacing: 2px; border: 1px solid #444; pointer-events: none;
-            display: none; z-index: 5;
-        }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .overlay-indisponivel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; text-transform: uppercase; display: none; z-index: 5; }
         .sem-estoque .overlay-indisponivel { display: block; }
-
         .info { padding: 25px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .info h3 { margin: 0 0 10px; font-size: 18px; color: var(--rosa-claro); font-weight: 400; }
-        
+        .info h3 { margin: 0 0 10px; font-size: 18px; color: var(--rosa-claro); }
         .preco { font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 20px; }
         .msg-indisponivel { color: #888; font-size: 14px; margin-bottom: 20px; font-style: italic; }
-
-        .btn-comprar { 
-            background: transparent; color: var(--rosa); border: 2px solid var(--rosa); 
-            padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; 
-            text-transform: uppercase; transition: 0.3s;
-        }
+        .btn-comprar { background: transparent; color: var(--rosa); border: 2px solid var(--rosa); padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         .btn-comprar:hover { background: var(--rosa); color: white; }
-
-        /* CARRINHO */
-        #btn-carrinho { 
-            position: fixed; bottom: 30px; right: 30px; background: var(--rosa); 
-            color: white; padding: 18px 28px; border-radius: 50px; font-weight: bold; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; z-index: 1000; border: none;
-            transition: 0.3s;
-        }
-        #btn-carrinho:hover { transform: scale(1.05); }
-        #btn-carrinho:disabled { background: #444; cursor: not-allowed; }
+        #btn-carrinho { position: fixed; bottom: 30px; right: 30px; background: var(--rosa); color: white; padding: 18px 28px; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 1000; border: none; }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>💎 Beleza & Companhia</h1>
-    </header>
-
-    <div class="container">
-        <div id="vitrine" class="vitrine">A carregar coleção...</div>
-    </div>
-
-    <button id="btn-carrinho" onclick="finalizarCompra()">
-        🛒 Finalizar Compra (<span id="cart-count">0</span>)
-    </button>
+    <header><h1>💎 Beleza & Companhia</h1></header>
+    <div class="container"><div id="vitrine" class="vitrine">A carregar...</div></div>
+    <button id="btn-carrinho" onclick="finalizarCompra()">🛒 Finalizar Compra (<span id="cart-count">0</span>)</button>
 
     <script>
+        // URL DA SUA API NO RENDER
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let carrinho = [];
 
@@ -86,34 +44,22 @@
                 const produtos = await res.json();
                 const vitrine = document.getElementById('vitrine');
                 vitrine.innerHTML = '';
-
                 produtos.forEach(p => {
                     const emStock = p.estoque > 0;
-                    
                     vitrine.innerHTML += `
                         <div class="produto-card ${!emStock ? 'sem-estoque' : ''}">
                             <div class="img-container">
                                 <div class="overlay-indisponivel">Indisponível</div>
-                                <img src="${p.imagem || 'https://via.placeholder.com/400x500?text=Sem+Foto'}" 
-                                     onerror="this.src='https://via.placeholder.com/400x500?text=Imagem+Erro'">
+                                <img src="${p.imagem || ''}" onerror="this.src='https://via.placeholder.com/400x500?text=Sem+Foto'">
                             </div>
                             <div class="info">
                                 <h3>${p.nome}</h3>
-                                ${emStock 
-                                    ? `<div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>`
-                                    : `<div class="msg-indisponivel">Produto sem stock no momento</div>`
-                                }
-                                <button class="btn-comprar" 
-                                        onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">
-                                    Adicionar ao Carrinho
-                                </button>
+                                ${emStock ? `<div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>` : `<div class="msg-indisponivel">Sem stock</div>`}
+                                <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">Comprar</button>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
-            } catch (e) {
-                document.getElementById('vitrine').innerHTML = "Erro ao carregar vitrine.";
-            }
+            } catch (e) { console.error(e); }
         }
 
         function addCarrinho(id, nome, preco) {
@@ -122,34 +68,31 @@
         }
 
         async function finalizarCompra() {
-            if (carrinho.length === 0) return alert("O seu carrinho está vazio!");
-
+            if (carrinho.length === 0) return alert("Carrinho vazio!");
             const btn = document.getElementById('btn-carrinho');
-            btn.innerText = "A Redirecionar para Pagamento...";
+            btn.innerText = "A ligar ao Stripe...";
             btn.disabled = true;
 
             try {
+                // ESTA PARTE É A QUE FOI CORRIGIDA:
                 const res = await fetch(`${API}/checkout`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ itens: carrinho })
                 });
-                
                 const data = await res.json();
-                
                 if (data.url) {
-                    window.location.href = data.url; // Aqui volta a enviar para o Stripe
+                    window.location.href = data.url; // REDIRECIONA PARA O STRIPE
                 } else {
-                    alert("Erro ao processar o checkout.");
-                    btn.innerText = `🛒 Finalizar Compra (${carrinho.length})`;
+                    alert("Erro no servidor.");
                     btn.disabled = false;
+                    btn.innerText = "Finalizar Compra";
                 }
             } catch (e) {
-                alert("Erro de conexão com o servidor.");
+                alert("Erro de ligação.");
                 btn.disabled = false;
             }
         }
-
         window.onload = carregarProdutos;
     </script>
 </body>
