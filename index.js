@@ -6,37 +6,11 @@ const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 
 const app = express();
+
+// 1. CONFIGURAÇÃO DE SEGURANÇA E ACESSO
 app.use(cors());
 
-// --- CONFIGURAÇÃO DE E-MAIL (Porta 587) ---
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: { rejectUnauthorized: false }
-});
-
-async function enviarEmail(assunto, texto) {
-    try {
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: process.env.EMAIL_USER,
-            subject: assunto,
-            text: texto
-        });
-        console.log("📧 E-mail enviado com sucesso.");
-    } catch (err) {
-        console.error("❌ Erro e-mail:", err.message);
-    }
-}
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-
-// --- ROTA WEBHOOK (Prioridade para o Stripe) ---
+// 2. WEBHOOK DO STRIPE (Deve ser a primeira rota e usar express.raw)
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -48,81 +22,125 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
+        console.log("💳 Pagamento confirmado! Processando baixa de stock e venda...");
+
         try {
-            const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { expand: ['data.price.product'] });
+            const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { 
+                expand: ['data.price.product'] 
+            });
+
             for (const item of lineItems.data) {
                 const produtoId = item.price.product.metadata.id_supabase;
                 if (produtoId) {
                     const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
                     if (p) {
-                        await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - 1) }).eq('id', produtoId);
+                        // Baixa de Stock
+                        const novoEstoque = Math.max(0, p.estoque - 1);
+                        await supabase.from('produtos').update({ estoque: novoEstoque }).eq('id', produtoId);
+                        
+                        // Registro de Venda com Cálculo de Lucro
                         await supabase.from('vendas').insert([{
-                            produto_nome: p.nome, quantidade: 1, valor_pago: p.preco,
+                            produto_nome: p.nome,
+                            quantidade: 1,
+                            valor_pago: p.preco,
                             lucro_real: p.preco - (p.preco_entrada || 0)
                         }]);
+                        console.log(`✅ Stock atualizado e venda registrada: ${p.nome}`);
                     }
                 }
             }
-            enviarEmail("✅ NOVA VENDA!", `Valor: €${(session.amount_total/100).toFixed(2)}`).catch(e => {});
-        } catch (err) { console.error("Erro pós-venda:", err); }
+
+            enviarEmail(
+                "✅ NOVA VENDA CONFIRMADA!", 
+                `Uma venda de €${(session.amount_total / 100).toFixed(2)} foi processada com sucesso. O stock foi atualizado.`
+            ).catch(e => console.log("Erro e-mail venda:", e.message));
+
+        } catch (err) {
+            console.error("Erro no processamento pós-venda:", err);
+        }
     }
     res.json({ received: true });
 });
 
-// --- ATIVAÇÃO DE JSON PARA O GERENTE ---
+// 3. MIDDLEWARES PARA AS ROTAS RESTANTES (JSON Ativado)
 app.use(express.json());
 
-// --- ROTAS DO GERENTE (RESTAURADAS E TESTADAS) ---
+// 4. CLIENTES E TRANSPORTADORES
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Listar todos os produtos
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 30000
+});
+
+async function enviarEmail(assunto, texto) {
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER, // Envia para si mesmo
+            subject: assunto,
+            text: texto
+        });
+        console.log("📧 Notificação enviada.");
+    } catch (err) {
+        console.error("❌ Erro ao enviar e-mail:", err.message);
+    }
+}
+
+// 5. ROTAS DA API (COERENTES COM O GERENTE DARK MODE)
+
+// Listar Produtos
 app.get('/produtos', async (req, res) => {
     const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
-    if (error) return res.status(400).json(error);
+    if (error) return res.status(500).json(error);
     res.json(data || []);
 });
 
-// Criar novo produto (Incluindo validade)
+// Criar Novo Produto (POST)
 app.post('/produtos', async (req, res) => {
-    console.log("Cadastrando:", req.body);
+    console.log("📥 Recebido novo cadastro:", req.body);
     const { data, error } = await supabase.from('produtos').insert([req.body]).select();
     if (error) return res.status(400).json(error);
     res.status(201).json(data[0]);
 });
 
-// Editar produto (Incluindo validade)
+// Editar Produto Existente (PUT)
 app.put('/produtos/:id', async (req, res) => {
-    console.log("Editando ID:", req.params.id, "Dados:", req.body);
-    // Removemos o ID do corpo para o Supabase não tentar atualizar a chave primária
-    const dadosParaAtualizar = { ...req.body };
-    delete dadosParaAtualizar.id;
-    delete dadosParaAtualizar.created_at;
-
-    const { error } = await supabase.from('produtos').update(dadosParaAtualizar).eq('id', req.params.id);
-    if (error) {
-        console.error("Erro Supabase Edit:", error);
-        return res.status(400).json(error);
-    }
-    res.json({ message: "Atualizado com sucesso" });
+    console.log("✏️ Editando produto ID:", req.params.id);
+    const { error } = await supabase.from('produtos').update(req.body).eq('id', req.params.id);
+    if (error) return res.status(400).json(error);
+    res.json({ message: "Produto atualizado com sucesso" });
 });
 
-// Eliminar produto
+// Eliminar Produto (DELETE)
 app.delete('/produtos/:id', async (req, res) => {
     const { error } = await supabase.from('produtos').delete().eq('id', req.params.id);
     if (error) return res.status(400).json(error);
-    res.json({ message: "Eliminado" });
+    res.json({ message: "Produto eliminado" });
 });
 
-// --- ROTA DE CHECKOUT ---
+// Gerar Sessão de Checkout do Stripe
 app.post('/checkout', async (req, res) => {
     try {
         const line_items = req.body.itens.map(item => ({
             price_data: {
                 currency: 'eur',
-                product_data: { name: item.nome, metadata: { id_supabase: item.id } },
+                product_data: { 
+                    name: item.nome, 
+                    metadata: { id_supabase: item.id } 
+                },
                 unit_amount: Math.round(item.preco * 100),
             },
             quantity: 1,
         }));
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items,
@@ -131,18 +149,33 @@ app.post('/checkout', async (req, res) => {
             cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
         });
         res.json({ url: session.url });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// --- CRON RELATÓRIO 18:00 ---
+// 6. AUTOMAÇÃO DE RELATÓRIO (DIÁRIO ÀS 18:00)
 cron.schedule('0 18 * * *', async () => {
+    console.log("⏳ Iniciando relatório diário das 18h...");
     try {
         const { data: produtos } = await supabase.from('produtos').select('*');
         const stockBaixo = produtos.filter(p => p.estoque <= 5).map(p => `- ${p.nome}: ${p.estoque}`).join('\n');
-        const total = produtos.reduce((acc, p) => acc + (p.preco * p.estoque), 0);
-        await enviarEmail("📊 Relatório Diário", `⚠️ STOCK BAIXO:\n${stockBaixo || 'Nenhum'}\n\n💰 VALOR TOTAL: €${total.toFixed(2)}`);
-    } catch (err) {}
+        const totalPVP = produtos.reduce((acc, p) => acc + (p.preco * p.estoque), 0);
+
+        const corpoRelatorio = `📊 RELATÓRIO DE STOCK E INVENTÁRIO\n\n` +
+                               `⚠️ ITENS COM STOCK BAIXO (≤ 5):\n${stockBaixo || 'Tudo em ordem!'}\n\n` +
+                               `💰 VALOR TOTAL EM LOJA (PVP): €${totalPVP.toFixed(2)}\n\n` +
+                               `Equipa Beleza & Cia Hub.`;
+
+        await enviarEmail("📊 Relatório de Inventário Diário", corpoRelatorio);
+    } catch (err) {
+        console.error("Erro ao gerar relatório:", err);
+    }
 }, { timezone: "Europe/Lisbon" });
 
+// 7. INICIALIZAÇÃO DO SERVIDOR
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor ON - Gerente e Vendas Ativos`));
+app.listen(PORT, () => {
+    console.log(`🚀 SERVIDOR OPERACIONAL NA PORTA ${PORT}`);
+    console.log(`🔗 ROTA DE PRODUTOS: /produtos`);
+});
