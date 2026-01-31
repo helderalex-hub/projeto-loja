@@ -13,7 +13,6 @@
 
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
 
-        /* Grade de Produtos */
         .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
         
         .produto-card { 
@@ -21,38 +20,45 @@
             border: 1px solid #222; transition: all 0.4s ease; position: relative;
             display: flex; flex-direction: column;
         }
-        .produto-card:hover { transform: translateY(-10px); border-color: var(--rosa); box-shadow: 0 10px 30px rgba(214, 51, 132, 0.2); }
+
+        /* Efeito de Marca D'água para produtos sem stock */
+        .produto-card.sem-estoque { opacity: 0.7; border-color: #333; }
+        .produto-card.sem-estoque img { filter: grayscale(100%) blur(1px); }
+        .produto-card.sem-estoque .btn-comprar { display: none; }
         
-        .img-container { width: 100%; height: 320px; background: #000; position: relative; }
+        .img-container { width: 100%; height: 320px; background: #000; position: relative; overflow: hidden; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .produto-card:hover .img-container img { transform: scale(1.08); }
         
+        /* Overlay de Indisponível sobre a foto */
+        .overlay-indisponivel {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 10px 20px;
+            border-radius: 5px; font-weight: bold; text-transform: uppercase;
+            letter-spacing: 2px; border: 1px solid #444; pointer-events: none;
+            display: none;
+        }
+        .sem-estoque .overlay-indisponivel { display: block; }
+
         .info { padding: 25px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .info h3 { margin: 0 0 10px; font-size: 18px; font-weight: 400; color: var(--rosa-claro); letter-spacing: 1px; }
+        .info h3 { margin: 0 0 10px; font-size: 18px; font-weight: 400; color: var(--rosa-claro); }
+        
         .preco { font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 20px; display: block; }
         
+        /* Texto que substitui o preço */
+        .msg-indisponivel { color: #888; font-size: 14px; margin-bottom: 20px; font-style: italic; }
+
         .btn-comprar { 
             background: transparent; color: var(--rosa); border: 2px solid var(--rosa); 
             padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; 
-            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
+            text-transform: uppercase; transition: 0.3s;
         }
         .btn-comprar:hover { background: var(--rosa); color: white; }
-        .btn-comprar:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 
-        /* Selos de Status */
-        .badge { position: absolute; top: 15px; right: 15px; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; z-index: 10; }
-        .esgotado { background: #333; color: #888; }
-        .promo { background: var(--rosa); color: white; }
-
-        /* Carrinho Flutuante */
         #btn-carrinho { 
             position: fixed; bottom: 30px; right: 30px; background: var(--rosa); 
             color: white; padding: 18px 28px; border-radius: 50px; font-weight: bold; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; z-index: 1000; border: none;
-            display: flex; align-items: center; gap: 10px; transition: 0.3s;
         }
-        #btn-carrinho:hover { transform: scale(1.1); background: #b02a6a; }
-        .cart-count { background: white; color: var(--rosa); padding: 2px 8px; border-radius: 10px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -62,11 +68,11 @@
     </header>
 
     <div class="container">
-        <div id="vitrine" class="vitrine">A preparar a sua experiência de beleza...</div>
+        <div id="vitrine" class="vitrine">A carregar coleção...</div>
     </div>
 
     <button id="btn-carrinho" onclick="finalizarCompra()">
-        🛒 Finalizar Compra <span class="cart-count" id="cart-count">0</span>
+        🛒 Finalizar Compra <span id="cart-count">0</span>
     </button>
 
     <script>
@@ -80,73 +86,43 @@
                 const vitrine = document.getElementById('vitrine');
                 vitrine.innerHTML = '';
 
-                if (produtos.length === 0) {
-                    vitrine.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>A nossa nova coleção chega em breve!</p>";
-                    return;
-                }
-
                 produtos.forEach(p => {
                     const emStock = p.estoque > 0;
+                    
                     vitrine.innerHTML += `
-                        <div class="produto-card">
-                            ${!emStock ? '<div class="badge esgotado">ESGOTADO</div>' : ''}
+                        <div class="produto-card ${!emStock ? 'sem-estoque' : ''}">
                             <div class="img-container">
-                                <img src="${p.imagem || 'https://via.placeholder.com/400x500?text=Beleza+%26+Cia'}" 
-                                     alt="${p.nome}"
+                                <div class="overlay-indisponivel">Indisponível</div>
+                                <img src="${p.imagem || 'https://via.placeholder.com/400x500?text=S/F'}" 
                                      onerror="this.src='https://via.placeholder.com/400x500?text=Imagem+Indisponível'">
                             </div>
                             <div class="info">
                                 <h3>${p.nome}</h3>
-                                <span class="preco">€${parseFloat(p.preco).toFixed(2)}</span>
-                                <button class="btn-comprar" ${!emStock ? 'disabled' : ''} 
+                                ${emStock 
+                                    ? `<span class="preco">€${parseFloat(p.preco).toFixed(2)}</span>`
+                                    : `<span class="msg-indisponivel">Produto sem stock no momento</span>`
+                                }
+                                <button class="btn-comprar" 
                                         onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">
-                                    ${emStock ? 'Adicionar ao Carrinho' : 'Brevemente'}
+                                    Adicionar ao Carrinho
                                 </button>
                             </div>
                         </div>
                     `;
                 });
             } catch (e) {
-                document.getElementById('vitrine').innerHTML = "Ocorreu um erro ao carregar a vitrine.";
+                document.getElementById('vitrine').innerHTML = "Erro ao carregar vitrine.";
             }
         }
 
         function addCarrinho(id, nome, preco) {
             carrinho.push({ id, nome, preco });
             document.getElementById('cart-count').innerText = carrinho.length;
-            // Efeito visual simples de confirmação
-            const btn = document.getElementById('btn-carrinho');
-            btn.style.transform = 'scale(1.2)';
-            setTimeout(() => btn.style.transform = 'scale(1)', 200);
         }
 
         async function finalizarCompra() {
-            if (carrinho.length === 0) return alert("O seu carrinho está vazio!");
-
-            const btn = document.getElementById('btn-carrinho');
-            const originalText = btn.innerHTML;
-            btn.innerText = "A Redirecionar...";
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API}/checkout`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ itens: carrinho })
-                });
-                const data = await res.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert("Erro no checkout.");
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                alert("Erro de conexão.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+            if (carrinho.length === 0) return alert("Carrinho vazio!");
+            window.location.href = `https://wa.me/SEUNUMERO?text=Olá, desejo comprar: ${carrinho.map(i => i.nome).join(', ')}`;
         }
 
         window.onload = carregarProdutos;
