@@ -8,157 +8,155 @@
         :root {
             --bg-dark: #0f172a; --card-dark: #1e293b; --accent: #d63384;
             --text-main: #f8fafc; --text-dim: #94a3b8; --money: #22c55e;
+            --danger: #ef4444; --info: #3b82f6;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; }
-
-        /* DASHBOARD FINANCEIRO */
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--card-dark); padding: 20px; border-radius: 12px; border-bottom: 4px solid var(--accent); }
-        .stat-card h3 { margin: 0; font-size: 13px; color: var(--text-dim); text-transform: uppercase; }
-        .stat-card p { margin: 10px 0 0; font-size: 22px; font-weight: bold; }
-        .lucro { color: var(--money); }
-
-        /* FORMULÁRIO */
-        .form-card { background: var(--card-dark); padding: 25px; border-radius: 15px; margin-bottom: 40px; border: 1px solid #334155; }
-        .grid-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .photo-input-area { grid-row: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #475569; border-radius: 12px; cursor: pointer; transition: 0.3s; }
-        .photo-input-area:hover { border-color: var(--accent); background: #334155; }
-        .photo-input-area img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 5px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         
-        input { background: #334155; border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; }
-        .btn-main { background: var(--accent); color: white; padding: 15px; width: 100%; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        h1, h2 { color: var(--accent); margin-top: 0; }
+        header { grid-column: span 2; display: flex; justify-content: space-between; align-items: center; }
 
-        /* TABELA DE PRODUTOS */
-        .product-item { background: var(--card-dark); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 20px; margin-bottom: 10px; border: 1px solid transparent; }
-        .product-item:hover { border-color: var(--accent); }
-        .img-table { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; cursor: pointer; background: #0f172a; }
-        .info { flex-grow: 1; }
+        /* ÁREA 1: DASHBOARDS */
+        .area-dash { grid-column: span 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-card { background: var(--card-dark); padding: 20px; border-radius: 12px; border-bottom: 4px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .stat-card h3 { margin: 0; font-size: 13px; color: var(--text-dim); text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; }
+
+        /* ÁREA 2: RELATÓRIOS */
+        .area-reports { background: var(--card-dark); padding: 20px; border-radius: 15px; border: 1px solid #334155; }
+        .report-item { background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; border-left: 3px solid var(--info); }
+
+        /* ÁREA 3: CADASTRO */
+        .area-form { background: var(--card-dark); padding: 20px; border-radius: 15px; border: 1px solid #334155; }
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .photo-zone { grid-column: span 2; height: 100px; border: 2px dashed #475569; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
+        .photo-zone img { height: 100%; object-fit: cover; }
+        input { background: #334155; border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        .btn-main { background: var(--accent); color: white; padding: 12px; width: 100%; margin-top: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* ÁREA 4: LISTA DE PRODUTOS */
+        .area-list { grid-column: span 2; background: var(--card-dark); padding: 20px; border-radius: 15px; border: 1px solid #334155; }
+        .product-row { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #334155; transition: 0.2s; }
+        .product-row:hover { background: rgba(255,255,255,0.03); }
+        .img-table { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; cursor: pointer; background: #0f172a; }
+        .product-info { flex-grow: 1; }
         .actions { display: flex; gap: 8px; }
-        .btn-action { background: #334155; border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .btn-icon { background: #334155; border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .area-dash { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1>👑 Gestão Financeira & Stock</h1>
-        <button onclick="carregar()" style="background:none; border:none; color:var(--accent); font-size:24px; cursor:pointer;">🔄</button>
+    <header>
+        <h1>👑 Gestão Centralizada</h1>
+        <button onclick="carregarTudo()" style="background:none; border:none; color:var(--accent); font-size:24px; cursor:pointer;">🔄</button>
     </header>
 
-    <div class="dashboard">
-        <div class="stat-card">
-            <h3>Custo Total Stock</h3>
-            <p id="dash-custo">€ 0.00</p>
-        </div>
-        <div class="stat-card">
-            <h3>Venda Total Esperada</h3>
-            <p id="dash-venda">€ 0.00</p>
-        </div>
-        <div class="stat-card">
-            <h3>Lucro Estimado</h3>
-            <p id="dash-lucro" class="lucro">€ 0.00</p>
-        </div>
-    </div>
+    <section class="area-dash">
+        <div class="stat-card"><h3>Investimento (Custo)</h3><p id="dash-custo">€ 0.00</p></div>
+        <div class="stat-card"><h3>Faturamento (Venda)</h3><p id="dash-venda">€ 0.00</p></div>
+        <div class="stat-card"><h3>Lucro Projetado</h3><p id="dash-lucro" style="color:var(--money)">€ 0.00</p></div>
+    </section>
 
-    <div class="form-card">
+    <section class="area-reports">
+        <h2>📊 Alertas e Relatórios</h2>
+        <div id="relatorios-box">
+            <div class="report-item"><span>Stock Crítico</span><b id="rep-critico" style="color:var(--danger)">0</b></div>
+            <div class="report-item"><span>Valor Médio Item</span><b id="rep-media">€ 0.00</b></div>
+            <div class="report-item"><span>Variedade Mix</span><b id="rep-mix">0</b></div>
+        </div>
+    </section>
+
+    <section class="area-form">
+        <h2 id="form-title">📝 Cadastro / Edição</h2>
         <input type="hidden" id="prod-id">
         <input type="hidden" id="imagem-url">
         
-        <div class="grid-inputs">
-            <div class="photo-input-area" onclick="alterarFotoManual('formulario')">
-                <img id="preview-form" src="https://via.placeholder.com/100?text=FOTO">
-                <small id="txt-foto">Clique para Link</small>
-            </div>
-            
-            <div style="grid-column: span 2;">
-                <label style="font-size:12px; color:var(--text-dim)">Nome do Produto</label>
-                <input type="text" id="nome" placeholder="Nome do Produto">
-            </div>
-            
-            <div>
-                <label style="font-size:12px; color:var(--text-dim)">Preço Custo (€)</label>
-                <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
-            </div>
-            <div>
-                <label style="font-size:12px; color:var(--text-dim)">Preço Venda (€)</label>
-                <input type="number" id="preco" step="0.01" placeholder="0.00">
-            </div>
-            <div>
-                <label style="font-size:12px; color:var(--text-dim)">Quantidade</label>
-                <input type="number" id="estoque" placeholder="0">
-            </div>
-            <div style="grid-column: span 2;">
-                <label style="font-size:12px; color:var(--text-dim)">Validade</label>
-                <input type="date" id="validade">
-            </div>
+        <div class="photo-zone" onclick="definirFoto()" id="drop-area">
+            <img id="preview-form" src="" style="display:none">
+            <span id="txt-photo">📷 Clique para Link da Foto</span>
         </div>
-        
-        <button class="btn-main" onclick="salvar()">GRAVAR ALTERAÇÕES</button>
-        <button onclick="limpar()" style="background:none; color:var(--text-dim); width:100%; margin-top:10px; border:none; cursor:pointer;">Novo Cadastro</button>
-    </div>
 
-    <div id="lista"></div>
+        <div class="grid-inputs" style="margin-top:10px">
+            <div style="grid-column: span 2;"><input type="text" id="nome" placeholder="Nome do Produto"></div>
+            <input type="number" id="preco_entrada" step="0.01" placeholder="Custo (€)">
+            <input type="number" id="preco" step="0.01" placeholder="Venda (€)">
+            <input type="number" id="estoque" placeholder="Stock">
+            <input type="date" id="validade">
+        </div>
+        <button class="btn-main" onclick="salvar()">GRAVAR DADOS</button>
+        <button onclick="limpar()" style="background:none; color:var(--text-dim); border:none; width:100%; margin-top:10px; cursor:pointer">Limpar/Novo</button>
+    </section>
+
+    <section class="area-list">
+        <h2>📦 Inventário de Produtos</h2>
+        <div id="lista-corpo">
+            </div>
+    </section>
 </div>
 
 <script>
     const API_URL = "https://projeto-loja-beleza-cia.onrender.com";
 
-    async function carregar() {
+    async function carregarTudo() {
         const res = await fetch(`${API_URL}/produtos`);
         const dados = await res.json();
         
-        let totalCusto = 0, totalVenda = 0;
-        const lista = document.getElementById("lista");
+        let custoT = 0, vendaT = 0, criticos = 0;
+        const lista = document.getElementById("lista-corpo");
         lista.innerHTML = "";
 
         dados.forEach(p => {
-            const custoItem = (p.preco_entrada || 0) * p.estoque;
-            const vendaItem = p.preco * p.estoque;
-            totalCusto += custoItem;
-            totalVenda += vendaItem;
+            custoT += (p.preco_entrada || 0) * p.estoque;
+            vendaT += p.preco * p.estoque;
+            if(p.estoque <= 5) criticos++;
 
             lista.innerHTML += `
-                <div class="product-item">
-                    <img src="${p.imagem || 'https://via.placeholder.com/60'}" 
-                         class="img-table" 
-                         onclick="alterarFotoNaLinha(${p.id}, '${p.nome}')"
-                         title="Clique para mudar a foto">
-                    <div class="info">
-                        <h4>${p.nome}</h4>
+                <div class="product-row">
+                    <img src="${p.imagem || ''}" class="img-table" onclick="updateFoto(${p.id}, '${p.nome}')" onerror="this.src='https://via.placeholder.com/50?text=IMG'">
+                    <div class="product-info">
+                        <b>${p.nome}</b><br>
                         <small>Custo: €${(p.preco_entrada || 0).toFixed(2)} | Venda: €${p.preco.toFixed(2)} | Stock: ${p.estoque}</small>
                     </div>
                     <div class="actions">
-                        <button class="btn-action" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
-                        <button class="btn-action" style="color:#ef4444" onclick="eliminar(${p.id})">🗑️</button>
+                        <button class="btn-icon" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
+                        <button class="btn-icon" style="color:var(--danger)" onclick="eliminar(${p.id})">🗑️</button>
                     </div>
                 </div>
             `;
         });
 
-        document.getElementById("dash-custo").innerText = `€ ${totalCusto.toFixed(2)}`;
-        document.getElementById("dash-venda").innerText = `€ ${totalVenda.toFixed(2)}`;
-        document.getElementById("dash-lucro").innerText = `€ ${(totalVenda - totalCusto).toFixed(2)}`;
+        // Atualizar Áreas
+        document.getElementById("dash-custo").innerText = `€ ${custoT.toFixed(2)}`;
+        document.getElementById("dash-venda").innerText = `€ ${vendaT.toFixed(2)}`;
+        document.getElementById("dash-lucro").innerText = `€ ${(vendaT - custoT).toFixed(2)}`;
+        document.getElementById("rep-critico").innerText = criticos;
+        document.getElementById("rep-mix").innerText = dados.length;
+        document.getElementById("rep-media").innerText = `€ ${(vendaT / (dados.length || 1)).toFixed(2)}`;
     }
 
-    function alterarFotoManual(tipo) {
-        const url = prompt("Cole o link (URL) da imagem do produto:");
-        if (url) {
+    function definirFoto() {
+        const url = prompt("Link da Imagem:");
+        if(url) {
             document.getElementById("imagem-url").value = url;
             document.getElementById("preview-form").src = url;
+            document.getElementById("preview-form").style.display = "block";
+            document.getElementById("txt-photo").style.display = "none";
         }
     }
 
-    async function alterarFotoNaLinha(id, nome) {
-        const url = prompt(`Novo link de imagem para: ${nome}`);
-        if (url) {
+    async function updateFoto(id, nome) {
+        const url = prompt(`Novo link para ${nome}:`);
+        if(url) {
             await fetch(`${API_URL}/produtos/${id}`, {
                 method: "PUT",
-                headers: {"Content-Type": "application/json"},
+                headers: {"Content-Type":"application/json"},
                 body: JSON.stringify({ imagem: url })
             });
-            carregar();
+            carregarTudo();
         }
     }
 
@@ -170,13 +168,17 @@
         document.getElementById("estoque").value = p.estoque;
         document.getElementById("validade").value = p.validade || "";
         document.getElementById("imagem-url").value = p.imagem || "";
-        document.getElementById("preview-form").src = p.imagem || "https://via.placeholder.com/100";
+        if(p.imagem) {
+            document.getElementById("preview-form").src = p.imagem;
+            document.getElementById("preview-form").style.display = "block";
+            document.getElementById("txt-photo").style.display = "none";
+        }
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     async function salvar() {
         const id = document.getElementById("prod-id").value;
-        const produto = {
+        const obj = {
             nome: document.getElementById("nome").value,
             preco: parseFloat(document.getElementById("preco").value),
             preco_entrada: parseFloat(document.getElementById("preco_entrada").value) || 0,
@@ -185,22 +187,19 @@
             imagem: document.getElementById("imagem-url").value
         };
 
-        const metodo = id ? "PUT" : "POST";
-        const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
-
-        await fetch(url, {
-            method: metodo,
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(produto)
+        const res = await fetch(id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`, {
+            method: id ? "PUT" : "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(obj)
         });
-        limpar();
-        carregar();
+
+        if(res.ok) { limpar(); carregarTudo(); }
     }
 
     async function eliminar(id) {
-        if(confirm("Eliminar produto?")) {
+        if(confirm("Confirmar exclusão?")) {
             await fetch(`${API_URL}/produtos/${id}`, { method: "DELETE" });
-            carregar();
+            carregarTudo();
         }
     }
 
@@ -212,10 +211,11 @@
         document.getElementById("estoque").value = "";
         document.getElementById("validade").value = "";
         document.getElementById("imagem-url").value = "";
-        document.getElementById("preview-form").src = "https://via.placeholder.com/100?text=FOTO";
+        document.getElementById("preview-form").style.display = "none";
+        document.getElementById("txt-photo").style.display = "block";
     }
 
-    carregar();
+    carregarTudo();
 </script>
 </body>
 </html>
