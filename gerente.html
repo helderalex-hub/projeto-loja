@@ -96,7 +96,6 @@
         const fInput = document.getElementById('foto-input');
         const fPreview = document.getElementById('preview-foto-form');
 
-        // Preview da foto instantâneo (sem piscar)
         fInput.onchange = () => {
             const file = fInput.files[0];
             if (file) { fPreview.src = URL.createObjectURL(file); }
@@ -153,27 +152,43 @@
             let urlImg = "";
             const arquivo = fInput.files[0];
             if(arquivo) {
-                const nArq = Date.now() + ".jpg";
-                const { error } = await sbClient.storage.from('fotos-produtos').upload(nArq, arquivo);
-                if(!error) {
+                const nArq = `${Date.now()}-${arquivo.name.replace(/\s/g, '_')}`;
+                const { data: uploadData, error: uploadError } = await sbClient.storage
+                    .from('fotos-produtos')
+                    .upload(nArq, arquivo);
+
+                if(uploadError) {
+                    console.error("Erro no Upload:", uploadError.message);
+                    alert("Atenção: A foto não pôde ser carregada, mas tentaremos salvar os dados.");
+                } else {
                     const { data } = sbClient.storage.from('fotos-produtos').getPublicUrl(nArq);
                     urlImg = data.publicUrl;
                 }
             }
 
-            await fetch(API, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    nome,
-                    preco: parseFloat(document.getElementById('preco').value) || 0,
-                    preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0,
-                    estoque: parseInt(document.getElementById('estoque').value) || 0,
-                    validade: document.getElementById('validade').value,
-                    imagem: urlImg
-                })
-            });
-            location.reload();
+            try {
+                const res = await fetch(API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        nome,
+                        preco: parseFloat(document.getElementById('preco').value) || 0,
+                        preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0,
+                        estoque: parseInt(document.getElementById('estoque').value) || 0,
+                        validade: document.getElementById('validade').value,
+                        imagem: urlImg
+                    })
+                });
+                if(res.ok) {
+                    location.reload();
+                } else {
+                    alert("Erro ao salvar produto no servidor.");
+                }
+            } catch (err) {
+                alert("Erro de conexão com o servidor.");
+            } finally {
+                btn.disabled = false; btn.innerText = "ADICIONAR PRODUTO AO INVENTÁRIO";
+            }
         };
 
         async function editarProduto(id, nOri, vV, vC, vS, valOri, imgOri) {
