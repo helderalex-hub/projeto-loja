@@ -5,7 +5,7 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// 1. WEBHOOK (Deve estar antes do express.json)
+// 1. WEBHOOK DO STRIPE (Deve vir antes do express.json())
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -38,16 +38,22 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.send();
 });
 
+// 2. CONFIGURAÇÕES GERAIS
 app.use(express.json());
 app.use(cors());
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- ROTAS ---
+// --- ROTAS DE PRODUTOS ---
 
 app.get('/produtos', async (req, res) => {
-    const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
-    res.json(data || []);
+    try {
+        const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
+        if (error) throw error;
+        res.json(data || []);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/produtos', async (req, res) => {
@@ -55,11 +61,12 @@ app.post('/produtos', async (req, res) => {
         const { nome, preco, preco_entrada, estoque, imagem } = req.body;
         const { data, error } = await supabase.from('produtos').insert([{
             nome,
-            preco: parseFloat(preco),
+            preco: parseFloat(preco) || 0,
             preco_entrada: parseFloat(preco_entrada || 0),
             estoque: parseInt(estoque || 0),
             imagem: imagem || ""
         }]).select();
+        
         if (error) throw error;
         res.status(201).json(data[0]);
     } catch (err) {
@@ -77,8 +84,9 @@ app.put('/produtos/:id', async (req, res) => {
             estoque: parseInt(estoque || 0),
             imagem
         }).eq('id', req.params.id);
+
         if (error) throw error;
-        res.json({ message: "OK" });
+        res.json({ message: "Atualizado" });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -86,7 +94,7 @@ app.put('/produtos/:id', async (req, res) => {
 
 app.delete('/produtos/:id', async (req, res) => {
     await supabase.from('produtos').delete().eq('id', req.params.id);
-    res.json({ message: "Apagado" });
+    res.json({ message: "Deletado" });
 });
 
 app.get('/vendas', async (req, res) => {
@@ -118,4 +126,4 @@ app.post('/checkout', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Servidor ON"));
+app.listen(PORT, () => console.log(`Servidor Beleza e Companhia ON!`));
