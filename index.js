@@ -5,10 +5,7 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// --- CONFIGURAÇÕES INICIAIS ---
-app.use(cors());
-
-// Rota do Webhook (Deve vir ANTES do express.json())
+// 1. WEBHOOK (Deve estar antes do express.json)
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -42,9 +39,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 });
 
 app.use(express.json());
+app.use(cors());
+
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- ROTAS DE PRODUTOS ---
+// --- ROTAS ---
 
 app.get('/produtos', async (req, res) => {
     const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
@@ -61,7 +60,6 @@ app.post('/produtos', async (req, res) => {
             estoque: parseInt(estoque || 0),
             imagem: imagem || ""
         }]).select();
-        
         if (error) throw error;
         res.status(201).json(data[0]);
     } catch (err) {
@@ -79,9 +77,8 @@ app.put('/produtos/:id', async (req, res) => {
             estoque: parseInt(estoque || 0),
             imagem
         }).eq('id', req.params.id);
-
         if (error) throw error;
-        res.json({ message: "Atualizado" });
+        res.json({ message: "OK" });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -89,7 +86,7 @@ app.put('/produtos/:id', async (req, res) => {
 
 app.delete('/produtos/:id', async (req, res) => {
     await supabase.from('produtos').delete().eq('id', req.params.id);
-    res.json({ message: "Deletado" });
+    res.json({ message: "Apagado" });
 });
 
 app.get('/vendas', async (req, res) => {
@@ -121,4 +118,4 @@ app.post('/checkout', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor Beleza e Companhia Rodando!`));
+app.listen(PORT, () => console.log("Servidor ON"));
