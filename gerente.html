@@ -2,166 +2,193 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Gestão de Fotos | Beleza & Cia</title>
+    <title>Beleza & Companhia | Loja Oficial</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --rosa: #d63384; --rosa-escuro: #b02a6b; --fundo: #fff0f5; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--fundo); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; }
-        
-        .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .card-dash { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: bold; color: var(--rosa); }
+        :root {
+            --dark-bg: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --rosa: #d63384;
+            --rosa-hover: #b02a6b;
+            --texto: #f5f5f5;
+        }
 
-        .card-form { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        label { font-size: 12px; font-weight: bold; color: #666; display: block; margin-top: 10px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; margin-top: 5px; }
-        
-        .btn-add { background: var(--rosa); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer; }
-        
-        .item { background: white; padding: 12px; margin-top: 10px; border-radius: 10px; display: flex; align-items: center; gap: 15px; border-left: 6px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .img-preview { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #eee; }
-        .info { flex-grow: 1; }
-        .acoes button { border: none; padding: 8px; border-radius: 5px; cursor: pointer; color: white; margin-left: 5px; }
-    </style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--texto);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--rosa);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo h1 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--rosa);
+            letter-spacing: 1px;
+        }
+
+        .logo p { margin: 0; font-size: 12px; color: #888; }
+
+        .cart-icon {
+            cursor: pointer;
+            position: relative;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+        }
+
+        #cart-count {
+            background: var(--rosa);
+            border-radius: 50%;
+            padding: 2px 7px;
+            font-size: 12px;
+            position: absolute;
+            top: -10px;
+            right: -10px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .grid-produtos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .produto-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #333;
+        }
+
+        .produto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .img-container {
+            width: 100%;
+            height: 250px;
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .produto-info {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .produto-info h3 { margin: 0 0 10px; font-size: 18px; }
+
+        .produto-info .preco {
+            color: var(--rosa);
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .btn-comprar {
+            background: var(--rosa);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .btn-comprar:hover { background: var(--rosa-hover); }
+
+        /* Carrinho Lateral */
+        #carrinho-lateral {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: #222;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            transition: 0.4s;
+            z-index: 2000;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #carrinho-lateral.aberto { right: 0; }
+
+        .item-carrinho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding: 10px 0;
+        }
+
+        .btn-checkout {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: auto;
+        }
+    </script>
 </head>
 <body>
 
+    <header>
+        <div class="logo">
+            <h1>💎 Beleza & Companhia</h1>
+            <p>A sua loja de cosméticos premium</p>
+        </div>
+        <button class="cart-icon" onclick="toggleCarrinho()">
+            🛒 <span id="cart-count">0</span>
+        </button>
+    </header>
+
     <div class="container">
-        <h1 style="text-align:center; color: var(--rosa);">📸 Gestão com Fotos</h1>
-        
-        <div class="dashboard">
-            <div class="card-dash"><h3>Produtos</h3><p id="dash-qtd">0</p></div>
-            <div class="card-dash"><h3>Valor Stock</h3><p id="dash-valor">€ 0,00</p></div>
-            <div class="card-dash"><h3>Vencidos</h3><p id="dash-vencidos">0</p></div>
+        <h2 style="border-left: 5px solid var(--rosa); padding-left: 15px; margin-bottom: 30px;">Catálogo de Luxo</h2>
+        <div id="lista-produtos" class="grid-produtos">
+            <p style="text-align: center; width: 100%;">A despertar o servidor...</p>
         </div>
-
-        <div class="card-form">
-            <label>Nome do Produto</label>
-            <input type="text" id="nome" placeholder="Ex: Batom Matte">
-            
-            <div class="grid-form">
-                <div><label>Preço (€)</label><input type="number" id="preco" step="0.01"></div>
-                <div><label>Estoque</label><input type="number" id="estoque"></div>
-            </div>
-            
-            <label>Data de Validade</label>
-            <input type="date" id="validade">
-
-            <label>Foto do Produto</label>
-            <input type="file" id="foto" accept="image/*">
-            
-            <button class="btn-add" id="btnSalvar" onclick="salvarProduto()">SALVAR PRODUTO COM FOTO</button>
-        </div>
-
-        <h3>📦 Inventário Atual</h3>
-        <div id="lista">A carregar dados...</div>
     </div>
 
-    <script>
-        const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
-        const S_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
-        const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
-        
-        const supabase = window.supabase.createClient(S_URL, S_KEY);
-
-        async function carregarDados() {
-            try {
-                const res = await fetch(API);
-                const produtos = await res.json();
-                const divLista = document.getElementById('lista');
-                divLista.innerHTML = '';
-
-                let totalItens = 0, valorStock = 0, vencidos = 0;
-                const hoje = new Date();
-
-                produtos.forEach(p => {
-                    totalItens++;
-                    const precoNum = parseFloat(p.preco) || 0;
-                    valorStock += (precoNum * (p.estoque || 0));
-
-                    const dataVal = p.validade ? new Date(p.validade) : null;
-                    if (dataVal && dataVal < hoje) vencidos++;
-
-                    const imgUrl = p.imagem || 'https://via.placeholder.com/60?text=S/Foto';
-
-                    divLista.innerHTML += `
-                        <div class="item">
-                            <img src="${imgUrl}" class="img-preview">
-                            <div class="info">
-                                <strong>${p.nome}</strong><br>
-                                <small>€ ${precoNum.toFixed(2)} | Stock: ${p.estoque}</small>
-                            </div>
-                            <div class="acoes">
-                                <button style="background:#dc3545;" onclick="deletar(${p.id})">🗑️</button>
-                            </div>
-                        </div>`;
-                });
-
-                document.getElementById('dash-qtd').innerText = totalItens;
-                document.getElementById('dash-valor').innerText = valorStock.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
-                document.getElementById('dash-vencidos').innerText = vencidos;
-
-            } catch (err) { console.error(err); }
-        }
-
-        async function salvarProduto() {
-            const btn = document.getElementById('btnSalvar');
-            const nome = document.getElementById('nome').value;
-            const preco = document.getElementById('preco').value;
-            const estoque = document.getElementById('estoque').value;
-            const validade = document.getElementById('validade').value;
-            const arquivoFoto = document.getElementById('foto').files[0];
-
-            if(!nome || !preco) return alert("Preenche os campos!");
-
-            btn.innerText = "A processar...";
-            btn.disabled = true;
-
-            let urlPublica = "";
-
-            // 1. Upload para o Supabase Storage
-            if (arquivoFoto) {
-                const nomeArquivo = `${Date.now()}_${arquivoFoto.nome}`;
-                const { data, error } = await supabase.storage
-                    .from('fotos-produtos')
-                    .upload(nomeArquivo, arquivoFoto);
-
-                if (!error) {
-                    const { data: link } = supabase.storage
-                        .from('fotos-produtos')
-                        .getPublicUrl(nomeArquivo);
-                    urlPublica = link.publicUrl;
-                } else {
-                    console.error("Erro Upload:", error);
-                }
-            }
-
-            // 2. Enviar para o Render
-            try {
-                await fetch(API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, preco, estoque, validade, imagem: urlPublica })
-                });
-                location.reload();
-            } catch (err) {
-                alert("Erro ao salvar.");
-                btn.innerText = "SALVAR PRODUTO COM FOTO";
-                btn.disabled = false;
-            }
-        }
-
-        async function deletar(id) {
-            if(confirm("Apagar produto?")) {
-                await fetch(API + '/' + id, { method: 'DELETE' });
-                carregarDados();
-            }
-        }
-
-        window.onload = carregarDados;
-    </script>
-</body>
-</html>
+    <div id="carrinho-lateral">
+        <h3>🛍
