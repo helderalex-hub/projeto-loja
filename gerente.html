@@ -4,82 +4,62 @@
     <meta charset="UTF-8">
     <title>Gestão | Beleza & Companhia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --dark-bg: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --rosa: #d63384;
-            --texto: #f5f5f5;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--texto);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container { max-width: 800px; margin: 0 auto; }
-
-        h1 { color: var(--rosa); text-align: center; border-bottom: 2px solid var(--rosa); padding-bottom: 10px; }
-
-        .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .card-dash { background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #444; }
-        .card-dash p { font-size: 20px; font-weight: bold; color: var(--rosa); margin: 5px 0; }
-
-        .card-form { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid #444; margin-bottom: 30px; }
-        label { font-size: 12px; color: #aaa; display: block; margin-top: 10px; }
+        body { font-family: sans-serif; background-color: #1a1a1a; color: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { color: #d63384; text-align: center; }
+        .card-form { background: #2d2d2d; padding: 20px; border-radius: 12px; border: 1px solid #444; margin-bottom: 20px; }
         input { 
-            width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; 
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; 
             background: #111; color: white; box-sizing: border-box; 
         }
-
-        .btn-add { 
-            background: var(--rosa); color: white; border: none; padding: 15px; width: 100%; 
-            border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer; 
+        button { 
+            background: #d63384; color: white; border: none; padding: 15px; width: 100%; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;
         }
-
         .item { 
-            background: var(--card-bg); padding: 15px; margin-top: 10px; border-radius: 10px; 
+            background: #2d2d2d; padding: 15px; margin-top: 10px; border-radius: 10px; 
             display: flex; align-items: center; gap: 15px; border: 1px solid #444;
         }
         .img-preview { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; background: #000; }
         .info { flex-grow: 1; }
-        .btn-del { background: #ff4444; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>💎 Beleza & Companhia | Gestão</h1>
+        <h1>💎 Painel de Gestão</h1>
         
-        <div class="dashboard">
-            <div class="card-dash"><h3>Stock</h3><p id="dash-qtd">0</p></div>
-            <div class="card-dash"><h3>Total</h3><p id="dash-valor">€ 0</p></div>
-            <div class="card-dash"><h3>Alertas</h3><p id="dash-vencidos">0</p></div>
-        </div>
-
         <div class="card-form">
-            <label>Produto</label><input type="text" id="nome">
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1"><label>Preço</label><input type="number" id="preco" step="0.01"></div>
-                <div style="flex:1"><label>Qtd</label><input type="number" id="estoque"></div>
-            </div>
-            <label>Foto</label><input type="file" id="foto" accept="image/*">
-            <button class="btn-add" id="btnSalvar" onclick="salvarProduto()">GUARDAR PRODUTO</button>
+            <input type="text" id="nome" placeholder="Nome do Produto">
+            <input type="number" id="preco" placeholder="Preço (€)" step="0.01">
+            <input type="number" id="estoque" placeholder="Quantidade">
+            <input type="file" id="foto" accept="image/*">
+            <button id="btnSalvar" onclick="salvarProduto()">GUARDAR PRODUTO</button>
         </div>
 
-        <div id="lista">Carregando inventário...</div>
+        <div id="lista">A carregar inventário...</div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
         const S_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
         const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
         
-        const supabaseClient = window.supabase.createClient(S_URL, S_KEY);
+        let supabaseClient;
+
+        // Inicialização protegida
+        function init() {
+            try {
+                supabaseClient = window.supabase.createClient(S_URL, S_KEY);
+                console.log("Supabase pronto");
+                carregarDados();
+            } catch (e) {
+                document.getElementById('lista').innerText = "Erro ao carregar sistema: " + e.message;
+            }
+        }
 
         async function carregarDados() {
             try {
@@ -87,21 +67,19 @@
                 const produtos = await res.json();
                 const div = document.getElementById('lista');
                 div.innerHTML = '';
-                let totalV = 0;
 
                 produtos.forEach(p => {
-                    totalV += (p.preco * p.estoque);
                     const img = p.imagem || 'https://via.placeholder.com/50';
                     div.innerHTML += `
                         <div class="item">
                             <img src="${img}" class="img-preview">
-                            <div class="info"><strong>${p.nome}</strong><br>€${p.preco} | Qtd: ${p.estoque}</div>
-                            <button class="btn-del" onclick="deletar(${p.id})">🗑️</button>
+                            <div class="info"><strong>${p.nome}</strong><br>€${p.preco} | Stock: ${p.estoque}</div>
+                            <button onclick="deletar(${p.id})" style="width:auto; background:red; padding:5px 10px;">🗑️</button>
                         </div>`;
                 });
-                document.getElementById('dash-qtd').innerText = produtos.length;
-                document.getElementById('dash-valor').innerText = '€ ' + totalV.toFixed(2);
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                document.getElementById('lista').innerText = "Erro ao ligar ao servidor.";
+            }
         }
 
         async function salvarProduto() {
@@ -112,12 +90,12 @@
             const arquivo = document.getElementById('foto').files[0];
 
             if(!nome || !preco) return alert("Preencha os campos!");
-            btn.innerText = "Enviando...";
+            btn.innerText = "A enviar...";
             btn.disabled = true;
 
             let urlImg = "";
-            if(arquivo) {
-                const nomeArq = Date.now() + "_" + arquivo.name;
+            if(arquivo && supabaseClient) {
+                const nomeArq = Date.now() + "_" + arquivo.name.replace(/\s/g, '_');
                 const { data, error } = await supabaseClient.storage.from('fotos-produtos').upload(nomeArq, arquivo);
                 if(!error) {
                     const { data: l } = supabaseClient.storage.from('fotos-produtos').getPublicUrl(nomeArq);
@@ -139,7 +117,9 @@
                 carregarDados();
             }
         }
-        window.onload = carregarDados;
+
+        // Tenta iniciar
+        window.onload = init;
     </script>
 </body>
 </html>
