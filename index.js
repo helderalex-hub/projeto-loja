@@ -7,10 +7,15 @@ const cron = require('node-cron');
 
 const app = express();
 
-// --- 1. CONFIGURAÇÕES INICIAIS ---
-app.use(cors());
+// --- 1. CONFIGURAÇÃO DE SEGURANÇA (CORS) ---
+// Este bloco resolve o erro "blocked by CORS policy"
+app.use(cors({
+    origin: '*', // Permite que o GitHub Pages e outros acessem a API
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// --- 2. ROTA WEBHOOK (Prioridade Máxima - Deve vir antes do express.json) ---
+// --- 2. ROTA WEBHOOK (Prioridade Máxima - Sem express.json) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -31,14 +36,9 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             for (const item of lineItems.data) {
                 const produtoId = item.price.product.metadata.id_supabase;
                 if (produtoId) {
-                    // Busca produto atual no Supabase
                     const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
-                    
                     if (p) {
-                        // 1. Baixa o Stock
                         await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - 1) }).eq('id', produtoId);
-                        
-                        // 2. Regista Venda com Lucro Real
                         await supabase.from('vendas').insert([{
                             produto_nome: p.nome,
                             quantidade: 1,
@@ -48,9 +48,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                     }
                 }
             }
-            // Notificação por E-mail
-            enviarEmail("✅ VENDA REALIZADA!", `Nova venda de €${(session.amount_total/100).toFixed(2)} processada. O stock foi atualizado automaticamente.`).catch(e => {});
-            
+            enviarEmail("✅ VENDA REALIZADA!", `Nova venda de €${(session.amount_total/100).toFixed(2)} processada.`).catch(e => {});
         } catch (err) {
             console.error("Erro no processamento pós-venda:", err);
         }
@@ -58,7 +56,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.json({ received: true });
 });
 
-// --- 3. MIDDLEWARE JSON (Ativação para o Painel ADM e Checkout) ---
+// --- 3. MIDDLEWARES (Ativação para o Painel ADM e Checkout) ---
 app.use(express.json());
 
 // --- 4. CONFIGURAÇÃO DE CLIENTES (Supabase & E-mail) ---
@@ -86,9 +84,9 @@ async function enviarEmail(assunto, texto) {
     }
 }
 
-// --- 5. ROTAS DA API (Sincronizadas com adm.html) ---
+// --- 5. ROTAS DA API ---
 
-// LISTAR PRODUTOS (PVP, Custo e Imagens)
+// LISTAR PRODUTOS
 app.get('/produtos', async (req, res) => {
     const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
     if (error) return res.status(500).json(error);
@@ -105,8 +103,6 @@ app.post('/produtos', async (req, res) => {
 // EDITAR PRODUTO (Blindado para o ADM)
 app.put('/produtos/:id', async (req, res) => {
     const dadosLimpos = { ...req.body };
-    
-    // Remove chaves primárias e metadados para não dar erro no Supabase
     delete dadosLimpos.id;
     delete dadosLimpos.created_at;
 
@@ -116,10 +112,7 @@ app.put('/produtos/:id', async (req, res) => {
         .eq('id', req.params.id)
         .select();
 
-    if (error) {
-        console.error("Erro Supabase:", error.message);
-        return res.status(400).json(error);
-    }
+    if (error) return res.status(400).json(error);
     res.json(data[0]);
 });
 
@@ -158,22 +151,15 @@ app.post('/checkout', async (req, res) => {
     }
 });
 
-// --- 6. RELATÓRIO DIÁRIO (18:00 LISBOA) ---
+// --- 6. RELATÓRIO DIÁRIO ---
 cron.schedule('0 18 * * *', async () => {
     try {
         const { data: produtos } = await supabase.from('produtos').select('*');
         const stockBaixo = produtos.filter(p => p.estoque <= 5).map(p => `- ${p.nome}: ${p.estoque}`).join('\n');
         const totalVenda = produtos.reduce((acc, p) => acc + (p.preco * p.estoque), 0);
-
-        const texto = `📊 RELATÓRIO DE STOCK\n\n` +
-                      `⚠️ STOCK BAIXO (≤5):\n${stockBaixo || 'Nenhum item em falta'}\n\n` +
-                      `💰 VALOR TOTAL (PVP): €${totalVenda.toFixed(2)}\n\n` +
-                      `Equipa Beleza & Cia.`;
-
+        const texto = `📊 RELATÓRIO DE STOCK\n\n⚠️ STOCK BAIXO:\n${stockBaixo || 'Nenhum'}\n\n💰 TOTAL: €${totalVenda.toFixed(2)}`;
         await enviarEmail("📊 Relatório de Inventário Diário", texto);
-    } catch (err) {
-        console.error("Erro no cron:", err);
-    }
+    } catch (err) { console.error("Erro cron:", err); }
 }, { timezone: "Europe/Lisbon" });
 
 // --- 7. INICIALIZAÇÃO ---
