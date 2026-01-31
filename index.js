@@ -1,23 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-const stripe = require('stripe')(process.env.STRIPE_KEY);
+const stripe = require('stripe')(process.env.STRIPE_KEY); // Usa Variável
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 
 const app = express();
 app.use(cors());
-// IMPORTANTE: Esta linha tem de estar aqui para as edições do gerente funcionarem!
-app.use(express.json()); 
+app.use(express.json()); // Ativa a edição do gerente
 
-// --- CONFIGURAÇÃO DE E-MAIL (Porta 587) ---
+// --- CONFIGURAÇÃO DE E-MAIL SEGURA ---
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     secure: false,
     auth: {
-        user: 'helderalex@gmail.com',
-        pass: 'frmy ugsm iyza dlrd'
+        user: process.env.EMAIL_USER, // Variável
+        pass: process.env.EMAIL_PASS  // Variável
     },
     tls: { rejectUnauthorized: false }
 });
@@ -25,8 +24,8 @@ const transporter = nodemailer.createTransport({
 async function enviarEmail(assunto, texto) {
     try {
         await transporter.sendMail({
-            from: 'helderalex@gmail.com',
-            to: 'helderalex@gmail.com',
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER,
             subject: assunto,
             text: texto
         });
@@ -38,7 +37,7 @@ async function enviarEmail(assunto, texto) {
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- WEBHOOK STRIPE (Processa pagamento e stock) ---
+// --- WEBHOOK ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -71,37 +70,29 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.json({ received: true });
 });
 
-// --- ROTAS DO GERENTE (Adicionar, Editar, Listar, Eliminar) ---
-
+// --- ROTAS DO GERENTE ---
 app.get('/produtos', async (req, res) => {
     const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
     res.json(data || []);
 });
 
 app.post('/produtos', async (req, res) => {
-    const { nome, preco, preco_entrada, estoque, validade, imagem } = req.body;
-    const { data, error } = await supabase.from('produtos').insert([{
-        nome, preco, preco_entrada, estoque, validade, imagem
-    }]).select();
+    const { data, error } = await supabase.from('produtos').insert([req.body]).select();
     if (error) return res.status(400).json(error);
     res.status(201).json(data[0]);
 });
 
 app.put('/produtos/:id', async (req, res) => {
-    const { nome, preco, preco_entrada, estoque, validade, imagem } = req.body;
-    const { error } = await supabase.from('produtos').update({
-        nome, preco, preco_entrada, estoque, validade, imagem
-    }).eq('id', req.params.id);
+    const { error } = await supabase.from('produtos').update(req.body).eq('id', req.params.id);
     if (error) return res.status(400).json(error);
-    res.json({ message: "Atualizado com sucesso" });
+    res.json({ message: "OK" });
 });
 
 app.delete('/produtos/:id', async (req, res) => {
     await supabase.from('produtos').delete().eq('id', req.params.id);
-    res.json({ message: "Eliminado" });
+    res.json({ message: "OK" });
 });
 
-// --- CHECKOUT ---
 app.post('/checkout', async (req, res) => {
     try {
         const line_items = req.body.itens.map(item => ({
@@ -116,14 +107,13 @@ app.post('/checkout', async (req, res) => {
             payment_method_types: ['card'],
             line_items,
             mode: 'payment',
-            success_url: 'https://helderalex-hub.github.io/projeto-lo_ja/sucesso.html',
+            success_url: 'https://helderalex-hub.github.io/projeto-loja/sucesso.html',
             cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
         });
         res.json({ url: session.url });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// --- RELATÓRIO (18:00) ---
 cron.schedule('0 18 * * *', async () => {
     try {
         const { data: produtos } = await supabase.from('produtos').select('*');
@@ -134,4 +124,4 @@ cron.schedule('0 18 * * *', async () => {
 }, { timezone: "Europe/Lisbon" });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor Ativo na porta ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor Ativo`));
