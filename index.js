@@ -6,20 +6,21 @@ const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 
 const app = express();
-
-// 1. CONFIGURAÇÕES INICIAIS
 app.use(cors());
 
-// Configuração do Transportador de E-mail (Gmail)
+// --- CONFIGURAÇÃO DE E-MAIL (CORREÇÃO DE TIMEOUT) ---
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
         user: 'helderalex@gmail.com',
         pass: 'frmy ugsm iyza dlrd'
-    }
+    },
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 20000 
 });
 
-// Função auxiliar para enviar e-mails
 async function enviarEmail(assunto, texto) {
     try {
         await transporter.sendMail({
@@ -34,13 +35,13 @@ async function enviarEmail(assunto, texto) {
     }
 }
 
-// Iniciar Cliente Supabase
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Webhook do Stripe (Baixa de stock e Registo de Venda)
+// --- WEBHOOK (BAIXA DE ESTOQUE PRIORITÁRIA) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
+
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
@@ -49,115 +50,77 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
-        
-        await enviarEmail(
-            "✅ NOVO PEDIDO PAGO!", 
-            `Um pagamento de €${(session.amount_total / 100).toFixed(2)} foi confirmado. Verifique o painel para preparar o envio.`
-        );
+        console.log("💳 Pagamento confirmado! Processando stock...");
 
-        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { expand: ['data.price.product'] });
+        try {
+            const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { 
+                expand: ['data.price.product'] 
+            });
 
-        for (const item of lineItems.data) {
-            const produtoId = item.price.product.metadata.id_supabase;
-            if (produtoId) {
-                const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
-                if (p) {
-                    await supabase.from('produtos').update({ estoque: p.estoque - 1 }).eq('id', produtoId);
-                    await supabase.from('vendas').insert([{
-                        produto_nome: p.nome,
-                        quantidade: 1,
-                        valor_pago: p.preco,
-                        lucro_real: p.preco - (p.preco_entrada || 0)
-                    }]);
+            for (const item of lineItems.data) {
+                const produtoId = item.price.product.metadata.id_supabase;
+                if (produtoId) {
+                    const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
+                    if (p) {
+                        const novoEstoque = Math.max(0, p.estoque - 1);
+                        // Atualiza o stock no Supabase
+                        await supabase.from('produtos').update({ estoque: novoEstoque }).eq('id', produtoId);
+                        
+                        // Regista a venda
+                        await supabase.from('vendas').insert([{
+                            produto_nome: p.nome,
+                            quantidade: 1,
+                            valor_pago: p.preco,
+                            lucro_real: p.preco - (p.preco_entrada || 0)
+                        }]);
+                        console.log(`✅ Stock atualizado: ${p.nome}`);
+                    }
                 }
             }
+
+            // Envia o e-mail após processar o stock (sem bloquear a resposta ao Stripe)
+            enviarEmail(
+                "✅ NOVO PEDIDO PAGO!", 
+                `Venda confirmada de €${(session.amount_total/100).toFixed(2)}. O stock foi atualizado.`
+            ).catch(e => console.log("Erro e-mail:", e));
+
+        } catch (err) {
+            console.error("Erro no processamento pós-venda:", err);
         }
     }
-    res.send();
+    res.json({ received: true });
 });
 
 app.use(express.json());
 
-// 2. RELATÓRIO AGENDADO (Todos os dias às 18:00 de Lisboa)
+// --- RELATÓRIO DIÁRIO (18:00) ---
 cron.schedule('0 18 * * *', async () => {
     console.log("⏳ Gerando relatório das 18h...");
     try {
         const { data: produtos } = await supabase.from('produtos').select('*');
-        
-        const stockBaixo = produtos
-            .filter(p => p.estoque <= 5)
-            .map(p => `- ${p.nome}: ${p.estoque} unidades`)
-            .join('\n');
+        const stockBaixo = produtos.filter(p => p.estoque <= 5).map(p => `- ${p.nome}: ${p.estoque}`).join('\n');
+        const total = produtos.reduce((acc, p) => acc + (p.preco * p.estoque), 0);
 
-        const totalInventario = produtos.reduce((acc, p) => acc + (p.preco * p.estoque), 0);
-
-        const textoRelatorio = `
-📊 RELATÓRIO DIÁRIO DE INVENTÁRIO (18:00)
-------------------------------------------
-Data: ${new Date().toLocaleDateString('pt-PT')}
-
-⚠️ PRODUTOS COM STOCK BAIXO (<= 5):
-${stockBaixo || 'Nenhum produto em nível crítico.'}
-
-💰 VALOR TOTAL EM STOCK: €${totalInventario.toFixed(2)}
-
-Painel Administrativo: https://helderalex-hub.github.io/projeto-loja/gerente.html
-        `;
-
-        await enviarEmail("📊 Relatório de Stock Diário", textoRelatorio);
+        const texto = `📊 RELATÓRIO DIÁRIO\n\n⚠️ STOCK BAIXO:\n${stockBaixo || 'Tudo OK'}\n\n💰 VALOR TOTAL EM STOCK: €${total.toFixed(2)}`;
+        await enviarEmail("📊 Relatório de Stock Diário", texto);
     } catch (err) {
-        console.error("Erro no relatório agendado:", err);
+        console.error("Erro no cron:", err);
     }
 }, { timezone: "Europe/Lisbon" });
 
-// 3. ROTAS DE PRODUTOS
+// --- ROTAS DA API ---
 app.get('/produtos', async (req, res) => {
-    const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
-    if (error) return res.status(500).json(error);
+    const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
     res.json(data || []);
 });
 
-app.post('/produtos', async (req, res) => {
-    try {
-        const { nome, preco, preco_entrada, estoque, validade, imagem } = req.body;
-        const { data, error } = await supabase.from('produtos').insert([{
-            nome,
-            preco: parseFloat(preco) || 0,
-            preco_entrada: parseFloat(preco_entrada || 0),
-            estoque: parseInt(estoque || 0),
-            validade: validade || null,
-            imagem: imagem || ""
-        }]).select();
-        if (error) throw error;
-        res.status(201).json(data[0]);
-    } catch (err) { res.status(400).json({ error: err.message }); }
-});
-
-app.put('/produtos/:id', async (req, res) => {
-    try {
-        const { nome, preco, preco_entrada, estoque, validade, imagem } = req.body;
-        const { error } = await supabase.from('produtos').update({
-            nome, preco: parseFloat(preco), preco_entrada: parseFloat(preco_entrada || 0),
-            estoque: parseInt(estoque || 0), validade: validade || null, imagem: imagem || ""
-        }).eq('id', req.params.id);
-        if (error) throw error;
-        res.json({ message: "OK" });
-    } catch (err) { res.status(400).json({ error: err.message }); }
-});
-
-app.delete('/produtos/:id', async (req, res) => {
-    await supabase.from('produtos').delete().eq('id', req.params.id);
-    res.json({ message: "Eliminado" });
-});
-
-// 4. ROTA DE CHECKOUT
 app.post('/checkout', async (req, res) => {
     try {
         const line_items = req.body.itens.map(item => ({
             price_data: {
                 currency: 'eur',
                 product_data: { 
-                    name: item.nome,
+                    name: item.nome, 
                     metadata: { id_supabase: item.id } 
                 },
                 unit_amount: Math.round(item.preco * 100),
@@ -175,8 +138,5 @@ app.post('/checkout', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 5. INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor ON na porta ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Servidor ON na porta ${PORT}`));
