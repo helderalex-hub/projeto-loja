@@ -28,23 +28,20 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
             for (const item of lineItems.data) {
                 const produtoStripe = item.price.product;
-                // Tenta pegar o ID de dois lugares possíveis para garantir
-                const produtoId = produtoStripe.metadata.id_supabase || session.metadata.id_unico_teste;
+                const produtoId = produtoStripe.metadata.id_supabase;
                 
                 console.log(`🔍 WEBHOOK: Analisando item '${produtoStripe.name}'`);
-                console.log(`   - Metadata recebida:`, produtoStripe.metadata);
 
                 if (produtoId) {
                     await baixarEstoque(produtoId);
                 } else {
-                    console.log("❌ ERRO CRÍTICO: O ID do Supabase não chegou aqui. O checkout não enviou.");
+                    console.log("❌ ERRO CRÍTICO: ID do Supabase ausente no metadata.");
                 }
             }
         } catch (erroInterno) {
             console.error("❌ Erro no processamento:", erroInterno.message);
         }
     }
-
     res.send();
 });
 
@@ -55,7 +52,7 @@ async function baixarEstoque(id) {
 
     const { data: produto } = await supabase.from('produtos').select('estoque').eq('id', id).single();
 
-    if (produto) {
+    if (produto && produto.estoque > 0) {
         const novoEstoque = produto.estoque - 1;
         await supabase.from('produtos').update({ estoque: novoEstoque }).eq('id', id);
         console.log(`✅ SUCESSO! Estoque atualizado para ${novoEstoque}`);
@@ -73,8 +70,15 @@ app.get('/produtos', async (req, res) => {
     res.json(data);
 });
 
+// Rota POST atualizada para garantir que preco_entrada seja tratado
 app.post('/produtos', async (req, res) => {
-    const { data } = await supabase.from('produtos').insert([req.body]).select();
+    const novoProduto = {
+        ...req.body,
+        preco_entrada: req.body.preco_entrada || 0 // Garante que não vá nulo
+    };
+    const { data, error } = await supabase.from('produtos').insert([novoProduto]).select();
+    
+    if (error) return res.status(400).json(error);
     res.status(201).json(data[0]);
 });
 
@@ -88,29 +92,19 @@ app.delete('/produtos/:id', async (req, res) => {
     res.json({ message: "Deletado" });
 });
 
-// --- ROTA DE CHECKOUT (AQUI ESTÁ O FOCO DO TESTE) ---
+// --- ROTA DE CHECKOUT ---
 app.post('/checkout', async (req, res) => {
     try {
         const itensCarrinho = req.body.itens;
-        
-        // LOG DETETIVE: O que o Frontend mandou?
         console.log("🛒 CHECKOUT: Recebi pedido com", itensCarrinho.length, "itens.");
         
         const line_items = itensCarrinho.map(item => {
-            console.log(`   - Processando item: ${item.nome} | ID: ${item.id}`);
-            
-            if (!item.id) {
-                console.log("   ❌ PERIGO: Este item está sem ID!");
-            }
-
             return {
                 price_data: {
                     currency: 'eur',
                     product_data: { 
                         name: item.nome,
-                        metadata: { 
-                            id_supabase: item.id // <--- O ID TEM QUE ESTAR AQUI
-                        }
+                        metadata: { id_supabase: item.id }
                     },
                     unit_amount: Math.round(item.preco * 100), 
                 },
@@ -135,5 +129,5 @@ app.post('/checkout', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor Detetive V2 rodando na porta ${PORT}`);
-});
+    console.log(`Servidor Beleza & Cia rodando na porta ${PORT}`);
+}); 
