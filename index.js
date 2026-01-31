@@ -8,7 +8,7 @@ const cron = require('node-cron');
 const app = express();
 app.use(cors());
 
-// --- 1. CONFIGURAÇÃO DE E-MAIL (Variáveis de Ambiente) ---
+// --- CONFIGURAÇÃO DE E-MAIL (Porta 587) ---
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
@@ -36,7 +36,7 @@ async function enviarEmail(assunto, texto) {
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- 2. ROTA WEBHOOK (DEVE VIR ANTES DO express.json) ---
+// --- ROTA WEBHOOK (Prioridade para o Stripe) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -69,35 +69,50 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.json({ received: true });
 });
 
-// --- 3. AGORA ATIVAMOS O JSON PARA AS OUTRAS ROTAS ---
+// --- ATIVAÇÃO DE JSON PARA O GERENTE ---
 app.use(express.json());
 
-// --- 4. ROTAS DO GERENTE (AGORA VÃO FUNCIONAR) ---
+// --- ROTAS DO GERENTE (RESTAURADAS E TESTADAS) ---
+
+// Listar todos os produtos
 app.get('/produtos', async (req, res) => {
-    const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
+    const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
+    if (error) return res.status(400).json(error);
     res.json(data || []);
 });
 
+// Criar novo produto (Incluindo validade)
 app.post('/produtos', async (req, res) => {
-    console.log("Recebido cadastro:", req.body);
+    console.log("Cadastrando:", req.body);
     const { data, error } = await supabase.from('produtos').insert([req.body]).select();
     if (error) return res.status(400).json(error);
     res.status(201).json(data[0]);
 });
 
+// Editar produto (Incluindo validade)
 app.put('/produtos/:id', async (req, res) => {
-    console.log("Recebida edição para ID:", req.params.id, req.body);
-    const { error } = await supabase.from('produtos').update(req.body).eq('id', req.params.id);
-    if (error) return res.status(400).json(error);
-    res.json({ message: "OK" });
+    console.log("Editando ID:", req.params.id, "Dados:", req.body);
+    // Removemos o ID do corpo para o Supabase não tentar atualizar a chave primária
+    const dadosParaAtualizar = { ...req.body };
+    delete dadosParaAtualizar.id;
+    delete dadosParaAtualizar.created_at;
+
+    const { error } = await supabase.from('produtos').update(dadosParaAtualizar).eq('id', req.params.id);
+    if (error) {
+        console.error("Erro Supabase Edit:", error);
+        return res.status(400).json(error);
+    }
+    res.json({ message: "Atualizado com sucesso" });
 });
 
+// Eliminar produto
 app.delete('/produtos/:id', async (req, res) => {
-    await supabase.from('produtos').delete().eq('id', req.params.id);
-    res.json({ message: "OK" });
+    const { error } = await supabase.from('produtos').delete().eq('id', req.params.id);
+    if (error) return res.status(400).json(error);
+    res.json({ message: "Eliminado" });
 });
 
-// --- 5. CHECKOUT E CRON ---
+// --- ROTA DE CHECKOUT ---
 app.post('/checkout', async (req, res) => {
     try {
         const line_items = req.body.itens.map(item => ({
@@ -119,14 +134,15 @@ app.post('/checkout', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// --- CRON RELATÓRIO 18:00 ---
 cron.schedule('0 18 * * *', async () => {
     try {
         const { data: produtos } = await supabase.from('produtos').select('*');
         const stockBaixo = produtos.filter(p => p.estoque <= 5).map(p => `- ${p.nome}: ${p.estoque}`).join('\n');
         const total = produtos.reduce((acc, p) => acc + (p.preco * p.estoque), 0);
-        await enviarEmail("📊 Relatório de Stock", `⚠️ BAIXOS:\n${stockBaixo}\n\n💰 TOTAL: €${total.toFixed(2)}`);
+        await enviarEmail("📊 Relatório Diário", `⚠️ STOCK BAIXO:\n${stockBaixo || 'Nenhum'}\n\n💰 VALOR TOTAL: €${total.toFixed(2)}`);
     } catch (err) {}
 }, { timezone: "Europe/Lisbon" });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor Ativo na porta ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor ON - Gerente e Vendas Ativos`));
