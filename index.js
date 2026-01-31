@@ -4,48 +4,68 @@ const { createClient } = require('@supabase/supabase-js');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// 1. WEBHOOK DO STRIPE (Deve vir antes do express.json())
+// --- 1. CONFIGURAÇÕES DE CORS ---
+app.use(cors());
+
+// --- 2. WEBHOOK DO STRIPE (Deve vir ANTES do express.json) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
+
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
+        console.error(`⚠️ Webhook Error: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
-        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { expand: ['data.price.product'] });
+        
+        try {
+            const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+                expand: ['data.price.product'],
+            });
 
-        for (const item of lineItems.data) {
-            const produtoId = item.price.product.metadata.id_supabase;
-            if (produtoId) {
-                const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
-                if (p) {
-                    await supabase.from('produtos').update({ estoque: p.estoque - 1 }).eq('id', produtoId);
-                    await supabase.from('vendas').insert([{
-                        produto_nome: p.nome,
-                        quantidade: 1,
-                        valor_pago: p.preco,
-                        lucro_real: p.preco - (p.preco_entrada || 0)
-                    }]);
+            for (const item of lineItems.data) {
+                const produtoId = item.price.product.metadata.id_supabase;
+                
+                if (produtoId) {
+                    // Busca dados atuais do produto
+                    const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
+
+                    if (p) {
+                        // Baixa o stock
+                        await supabase.from('produtos').update({ estoque: p.estoque - 1 }).eq('id', produtoId);
+
+                        // Regista a venda para os relatórios
+                        await supabase.from('vendas').insert([{
+                            produto_nome: p.nome,
+                            quantidade: 1,
+                            valor_pago: p.preco,
+                            lucro_real: p.preco - (p.preco_entrada || 0),
+                            data_venda: new Date()
+                        }]);
+                        
+                        console.log(`✅ Stock atualizado e venda registada: ${p.nome}`);
+                    }
                 }
             }
+        } catch (err) {
+            console.error("❌ Erro ao processar webhook:", err.message);
         }
     }
     res.send();
 });
 
-// 2. CONFIGURAÇÕES GERAIS
+// --- 3. MIDDLEWARE PARA JSON ---
 app.use(express.json());
-app.use(cors());
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+// --- 4. ROTAS DE PRODUTOS ---
 
-// --- ROTAS DE PRODUTOS ---
-
+// Listar todos os produtos
 app.get('/produtos', async (req, res) => {
     try {
         const { data, error } = await supabase.from('produtos').select('*').order('id', { ascending: true });
@@ -56,6 +76,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
+// Criar novo produto
 app.post('/produtos', async (req, res) => {
     try {
         const { nome, preco, preco_entrada, estoque, imagem } = req.body;
@@ -66,7 +87,7 @@ app.post('/produtos', async (req, res) => {
             estoque: parseInt(estoque || 0),
             imagem: imagem || ""
         }]).select();
-        
+
         if (error) throw error;
         res.status(201).json(data[0]);
     } catch (err) {
@@ -74,6 +95,7 @@ app.post('/produtos', async (req, res) => {
     }
 });
 
+// Editar produto existente
 app.put('/produtos/:id', async (req, res) => {
     try {
         const { nome, preco, preco_entrada, estoque, imagem } = req.body;
@@ -86,32 +108,50 @@ app.put('/produtos/:id', async (req, res) => {
         }).eq('id', req.params.id);
 
         if (error) throw error;
-        res.json({ message: "Atualizado" });
+        res.json({ message: "Produto atualizado com sucesso" });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 });
 
+// Apagar produto
 app.delete('/produtos/:id', async (req, res) => {
-    await supabase.from('produtos').delete().eq('id', req.params.id);
-    res.json({ message: "Deletado" });
+    try {
+        const { error } = await supabase.from('produtos').delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ message: "Produto removido" });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 });
 
+// --- 5. ROTA DE VENDAS (PARA RELATÓRIOS) ---
 app.get('/vendas', async (req, res) => {
-    const { data } = await supabase.from('vendas').select('*').order('id', { ascending: false });
-    res.json(data || []);
+    try {
+        const { data, error } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false });
+        if (error) throw error;
+        res.json(data || []);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
+// --- 6. ROTA DE CHECKOUT (STRIPE) ---
 app.post('/checkout', async (req, res) => {
     try {
-        const line_items = req.body.itens.map(item => ({
+        const { itens } = req.body;
+        const line_items = itens.map(item => ({
             price_data: {
                 currency: 'eur',
-                product_data: { name: item.nome, metadata: { id_supabase: item.id } },
+                product_data: { 
+                    name: item.nome, 
+                    metadata: { id_supabase: item.id } 
+                },
                 unit_amount: Math.round(item.preco * 100),
             },
             quantity: 1,
         }));
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items,
@@ -119,11 +159,15 @@ app.post('/checkout', async (req, res) => {
             success_url: 'https://helderalex-hub.github.io/projeto-loja/sucesso.html',
             cancel_url: 'https://helderalex-hub.github.io/projeto-loja/',
         });
+
         res.json({ url: session.url });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
+// --- 7. INICIALIZAÇÃO DO SERVIDOR ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor Beleza e Companhia ON!`));
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor Beleza e Companhia rodando na porta ${PORT}`);
+});
