@@ -2,46 +2,50 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Gestão Pro | Beleza & Companhia</title>
+    <title>Painel Administrativo | Beleza & Companhia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --dark: #121212; --card: #1e1e1e; --rosa: #d63384; --texto: #e0e0e0; --verde: #2ecc71; --azul: #3498db; --laranja: #f39c12; }
+        :root { --dark: #121212; --card: #1e1e1e; --rosa: #d63384; --rosa-claro: #ffb6c1; --texto: #e0e0e0; --verde: #2ecc71; --azul: #3498db; --laranja: #f39c12; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
-        h1 { color: var(--rosa); text-align: center; text-transform: uppercase; letter-spacing: 2px; }
         
-        /* Dashboards Financeiros */
+        h1 { color: var(--rosa); text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; }
+        
+        /* Dashboards */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card-dash { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #333; }
         .card-dash h3 { font-size: 11px; color: #888; text-transform: uppercase; margin: 0; }
         .card-dash p { font-size: 24px; font-weight: bold; margin: 10px 0 0; }
 
         /* Formulário */
-        .card-form { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #333; margin-bottom: 30px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+        .card-form { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #333; margin-bottom: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         label { font-size: 11px; color: #777; text-transform: uppercase; font-weight: bold; }
         input { width: 100%; padding: 12px; margin: 6px 0 15px; border-radius: 8px; border: 1px solid #333; background: #0a0a0a; color: white; box-sizing: border-box; }
         
-        button#btnSalvar { background: var(--rosa); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 15px; text-transform: uppercase; }
-        button#btnSalvar:disabled { opacity: 0.5; }
+        button#btnSalvar { background: var(--rosa); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        
+        /* Lista de Produtos Estilizada */
+        .produto-card { background: var(--card); padding: 20px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+        .prod-info { flex: 1; min-width: 250px; }
+        .prod-info strong { color: var(--rosa-claro); font-size: 19px; display: block; margin-bottom: 8px; }
+        .prod-stats { display: flex; gap: 20px; font-size: 13px; color: #aaa; }
+        .prod-stats b { color: #fff; }
 
-        /* Lista Têxtil */
-        .item { background: var(--card); padding: 15px; margin-top: 10px; border-radius: 10px; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        .info-txt { flex-grow: 1; }
-        .info-txt strong { color: var(--rosa); font-size: 16px; }
-        .info-txt p { margin: 5px 0 0; font-size: 13px; color: #aaa; }
-        .badge-validade { font-size: 10px; background: #333; padding: 2px 6px; border-radius: 4px; color: var(--laranja); }
-        .btn-del { background: #e74c3c; border: none; padding: 10px; border-radius: 8px; cursor: pointer; color: white; }
+        .acoes { display: flex; gap: 10px; }
+        .btn-edit { background: var(--azul); border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-del { background: #e74c3c; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
+        
+        .badge-val { background: #333; color: var(--laranja); padding: 3px 8px; border-radius: 5px; font-size: 11px; margin-left: 10px; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>💎 Painel de Controle Financeiro</h1>
+        <h1>💎 Painel Administrativo</h1>
         
         <div class="dashboard">
-            <div class="card-dash"><h3>Faturação Bruta</h3><p id="dash-fatura" style="color:var(--azul)">€ 0.00</p></div>
+            <div class="card-dash"><h3>Faturação Total</h3><p id="dash-fatura" style="color:var(--azul)">€ 0.00</p></div>
             <div class="card-dash"><h3>Custo de Stock</h3><p id="dash-custo" style="color:var(--laranja)">€ 0.00</p></div>
             <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-margem" style="color:var(--verde)">€ 0.00</p></div>
         </div>
@@ -51,16 +55,17 @@
             <input type="text" id="nome" placeholder="Ex: Batom Matte">
             
             <div class="grid">
-                <div><label>Custo (€)</label><input type="number" id="preco_entrada" step="0.01" value="0"></div>
-                <div><label>Venda (€)</label><input type="number" id="preco" step="0.01" value="0"></div>
-                <div><label>Stock</label><input type="number" id="estoque" value="0"></div>
-                <div><label>Validade</label><input type="date" id="validade"></div>
+                <div><label>Custo Unitário (€)</label><input type="number" id="preco_entrada" step="0.01" value="0"></div>
+                <div><label>Venda Unitária (€)</label><input type="number" id="preco" step="0.01" value="0"></div>
+                <div><label>Stock Atual</label><input type="number" id="estoque" value="0"></div>
+                <div><label>Data de Validade</label><input type="date" id="validade"></div>
             </div>
             
             <button id="btnSalvar">ADICIONAR AO INVENTÁRIO</button>
         </div>
 
-        <div id="lista">A carregar dados financeiros...</div>
+        <h2 style="border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">Inventário Ativo</h2>
+        <div id="lista">A carregar dados administrativos...</div>
     </div>
 
     <script>
@@ -73,70 +78,97 @@
                 const produtos = await res.json();
                 
                 div.innerHTML = '';
-                let faturaTotal = 0, custoTotal = 0;
+                let fT = 0, cT = 0;
 
                 produtos.forEach(p => {
                     const v = parseFloat(p.preco || 0);
                     const c = parseFloat(p.preco_entrada || 0);
                     const s = parseInt(p.estoque || 0);
-                    const val = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
+                    const dataVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
                     
-                    faturaTotal += (v * s);
-                    custoTotal += (c * s);
+                    fT += (v * s);
+                    cT += (c * s);
 
                     div.innerHTML += `
-                        <div class="item">
-                            <div class="info-txt">
-                                <strong>${p.nome}</strong> <span class="badge-validade">EXP: ${val}</span>
-                                <p>Venda: €${v.toFixed(2)} | Custo: €${c.toFixed(2)} | Stock: <strong>${s}</strong></p>
+                        <div class="produto-card">
+                            <div class="prod-info">
+                                <strong>${p.nome} <span class="badge-val">VAL: ${dataVal}</span></strong>
+                                <div class="prod-stats">
+                                    <span>Venda: <b>€${v.toFixed(2)}</b></span>
+                                    <span>Custo: <b>€${c.toFixed(2)}</b></span>
+                                    <span>Stock: <b>${s} un.</b></span>
+                                </div>
                             </div>
-                            <button class="btn-del" onclick="deletar('${p.id}')">🗑️</button>
+                            <div class="acoes">
+                                <button class="btn-edit" onclick="editarProduto('${p.id}', '${p.nome}', ${v}, ${c}, ${s}, '${p.validade || ''}')">EDITAR</button>
+                                <button class="btn-del" onclick="deletar('${p.id}')">APAGAR</button>
+                            </div>
                         </div>`;
                 });
 
-                document.getElementById('dash-fatura').innerText = '€ ' + faturaTotal.toFixed(2);
-                document.getElementById('dash-custo').innerText = '€ ' + custoTotal.toFixed(2);
-                document.getElementById('dash-margem').innerText = '€ ' + (faturaTotal - custoTotal).toFixed(2);
+                document.getElementById('dash-fatura').innerText = '€ ' + fT.toFixed(2);
+                document.getElementById('dash-custo').innerText = '€ ' + cT.toFixed(2);
+                document.getElementById('dash-margem').innerText = '€ ' + (fT - cT).toFixed(2);
 
             } catch (e) {
-                div.innerHTML = `<p style="color:orange">Erro ao ligar ao servidor. Verifique o Render.</p>`;
+                div.innerHTML = `<p style="color:orange">Erro ao ligar ao servidor.</p>`;
             }
         }
 
         document.getElementById('btnSalvar').onclick = async () => {
             const btn = document.getElementById('btnSalvar');
             const nome = document.getElementById('nome').value;
-            const preco = document.getElementById('preco').value;
+            if(!nome) return alert("Insira o nome!");
             
-            if(!nome || !preco) return alert("Preencha o Nome e Preço de Venda!");
-            
-            btn.disabled = true;
-            btn.innerText = "A GUARDAR...";
+            btn.disabled = true; btn.innerText = "A GUARDAR...";
 
-            const res = await fetch(API, {
+            await fetch(API, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     nome,
-                    preco: parseFloat(preco),
+                    preco: parseFloat(document.getElementById('preco').value) || 0,
                     preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0,
                     estoque: parseInt(document.getElementById('estoque').value) || 0,
-                    validade: document.getElementById('validade').value,
-                    imagem: "" // Campo de imagem vazio para evitar erros
+                    validade: document.getElementById('validade').value
                 })
             });
-
-            if(res.ok) {
-                location.reload();
-            } else {
-                alert("Erro ao salvar produto.");
-                btn.disabled = false;
-                btn.innerText = "ADICIONAR AO INVENTÁRIO";
-            }
+            location.reload();
         };
 
+        async function editarProduto(id, nomeOriginal, precoV, precoC, stock, valOriginal) {
+            const novoNome = prompt("Novo Nome do Produto:", nomeOriginal);
+            if (!novoNome) return;
+
+            const novoPrecoV = prompt("Novo Preço de Venda (€):", precoV);
+            const novoPrecoC = prompt("Novo Preço de Custo (€):", precoC);
+            const novoStock = prompt("Nova Quantidade em Stock:", stock);
+            const novaVal = prompt("Nova Validade (AAAA-MM-DD):", valOriginal);
+
+            if (novoPrecoV !== null && novoStock !== null) {
+                const res = await fetch(API + '/' + id, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        nome: novoNome,
+                        preco: parseFloat(novoPrecoV),
+                        preco_entrada: parseFloat(novoPrecoC),
+                        estoque: parseInt(novoStock),
+                        validade: novaVal || null
+                    })
+                });
+                
+                if(res.ok) {
+                    alert("Produto atualizado com sucesso!");
+                    carregarDados();
+                } else {
+                    alert("Erro ao atualizar.");
+                }
+            }
+        }
+
         async function deletar(id) {
-            if(confirm("Deseja apagar este produto?")) {
+            if(confirm("Deseja eliminar este produto definitivamente?")) {
                 await fetch(API + '/' + id, { method: 'DELETE' });
                 carregarDados();
             }
