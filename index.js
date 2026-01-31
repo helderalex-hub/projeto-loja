@@ -1,22 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-const stripe = require('stripe')(process.env.STRIPE_KEY); // Usa Variável
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // Ativa a edição do gerente
 
-// --- CONFIGURAÇÃO DE E-MAIL SEGURA ---
+// --- 1. CONFIGURAÇÃO DE E-MAIL (Variáveis de Ambiente) ---
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     secure: false,
     auth: {
-        user: process.env.EMAIL_USER, // Variável
-        pass: process.env.EMAIL_PASS  // Variável
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     },
     tls: { rejectUnauthorized: false }
 });
@@ -37,7 +36,7 @@ async function enviarEmail(assunto, texto) {
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// --- WEBHOOK ---
+// --- 2. ROTA WEBHOOK (DEVE VIR ANTES DO express.json) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -70,19 +69,24 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.json({ received: true });
 });
 
-// --- ROTAS DO GERENTE ---
+// --- 3. AGORA ATIVAMOS O JSON PARA AS OUTRAS ROTAS ---
+app.use(express.json());
+
+// --- 4. ROTAS DO GERENTE (AGORA VÃO FUNCIONAR) ---
 app.get('/produtos', async (req, res) => {
     const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
     res.json(data || []);
 });
 
 app.post('/produtos', async (req, res) => {
+    console.log("Recebido cadastro:", req.body);
     const { data, error } = await supabase.from('produtos').insert([req.body]).select();
     if (error) return res.status(400).json(error);
     res.status(201).json(data[0]);
 });
 
 app.put('/produtos/:id', async (req, res) => {
+    console.log("Recebida edição para ID:", req.params.id, req.body);
     const { error } = await supabase.from('produtos').update(req.body).eq('id', req.params.id);
     if (error) return res.status(400).json(error);
     res.json({ message: "OK" });
@@ -93,6 +97,7 @@ app.delete('/produtos/:id', async (req, res) => {
     res.json({ message: "OK" });
 });
 
+// --- 5. CHECKOUT E CRON ---
 app.post('/checkout', async (req, res) => {
     try {
         const line_items = req.body.itens.map(item => ({
@@ -124,4 +129,4 @@ cron.schedule('0 18 * * *', async () => {
 }, { timezone: "Europe/Lisbon" });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor Ativo`));
+app.listen(PORT, () => console.log(`🚀 Servidor Ativo na porta ${PORT}`));
