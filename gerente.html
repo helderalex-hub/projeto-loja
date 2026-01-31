@@ -27,7 +27,6 @@
         .info { flex-grow: 1; }
         .info strong { color: var(--rosa); font-size: 17px; }
         .info p { margin: 5px 0 0; font-size: 13px; color: #ccc; }
-        .lucro-tag { color: var(--verde); font-weight: bold; }
         
         .acoes { display: flex; gap: 8px; }
         .btn-acao { border: none; padding: 10px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
@@ -41,27 +40,25 @@
         <h1>💎 Beleza & Companhia | Gestão</h1>
         
         <div class="dashboard">
-            <div class="card-dash"><h3>Stock Itens</h3><p id="dash-qtd">0</p></div>
-            <div class="card-dash"><h3>Valor Venda</h3><p id="dash-venda">€ 0.00</p></div>
+            <div class="card-dash"><h3>Total Itens</h3><p id="dash-qtd">0</p></div>
+            <div class="card-dash"><h3>Faturação Total</h3><p id="dash-venda">€ 0.00</p></div>
             <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
             <div class="card-dash"><h3>Margem Média</h3><p id="dash-margem">0%</p></div>
         </div>
 
         <div class="card-form">
-            <label>Novo Produto</label>
-            <input type="text" id="nome" placeholder="Ex: Batom Matte">
-            
+            <label>Nome do Produto</label>
+            <input type="text" id="nome">
             <div class="grid-form">
                 <div><label>Custo (€)</label><input type="number" id="preco_entrada" step="0.01"></div>
                 <div><label>Venda (€)</label><input type="number" id="preco" step="0.01"></div>
-                <div><label>Stock</label><input type="number" id="estoque"></div>
+                <div><label>Stock (Qtd)</label><input type="number" id="estoque"></div>
                 <div><label>Foto</label><input type="file" id="foto" accept="image/*"></div>
             </div>
-            
-            <button id="btnSalvar">ADICIONAR AO INVENTÁRIO</button>
+            <button id="btnSalvar">ADICIONAR PRODUTO</button>
         </div>
 
-        <div id="lista">A carregar inventário financeiro...</div>
+        <div id="lista">A carregar inventário...</div>
     </div>
 
     <script>
@@ -71,10 +68,10 @@
         const supabaseClient = window.supabase.createClient(S_URL, S_KEY);
 
         async function carregarDados() {
-            const div = document.getElementById('lista');
             try {
                 const res = await fetch(API);
                 const produtos = await res.json();
+                const div = document.getElementById('lista');
                 div.innerHTML = '';
 
                 let totalQtd = 0, valorVenda = 0, lucroTotal = 0, somaMargens = 0;
@@ -97,25 +94,22 @@
                         <img src="${p.imagem || 'https://via.placeholder.com/60'}" class="img-preview">
                         <div class="info">
                             <strong>${p.nome}</strong>
-                            <p>Custo: €${custo.toFixed(2)} | Venda: €${venda.toFixed(2)} | Qtd: ${qtd}</p>
-                            <p>Lucro: <span class="lucro-tag">€${lucroItem.toFixed(2)} (${margem.toFixed(1)}%)</span></p>
+                            <p>Custo: €${custo.toFixed(2)} | Venda: €${venda.toFixed(2)} | Stock: <strong>${qtd}</strong></p>
                         </div>
                     `;
 
                     const acoesDiv = document.createElement('div');
                     acoesDiv.className = 'acoes';
 
-                    // BOTÃO EDITAR
                     const btnEdit = document.createElement('button');
                     btnEdit.innerHTML = '✏️';
                     btnEdit.className = 'btn-acao btn-edit';
-                    btnEdit.addEventListener('click', () => editarProduto(p));
+                    btnEdit.onclick = () => editarProduto(p);
 
-                    // BOTÃO APAGAR
                     const btnDel = document.createElement('button');
                     btnDel.innerHTML = '🗑️';
                     btnDel.className = 'btn-acao btn-del';
-                    btnDel.addEventListener('click', () => deletarProduto(p.id));
+                    btnDel.onclick = () => deletarProduto(p.id);
 
                     acoesDiv.appendChild(btnEdit);
                     acoesDiv.appendChild(btnDel);
@@ -127,35 +121,34 @@
                 document.getElementById('dash-venda').innerText = '€ ' + valorVenda.toFixed(2);
                 document.getElementById('dash-lucro').innerText = '€ ' + lucroTotal.toFixed(2);
                 document.getElementById('dash-margem').innerText = (produtos.length > 0 ? (somaMargens / produtos.length).toFixed(1) : 0) + '%';
-
-            } catch (e) { div.innerText = "Erro ao ligar ao servidor."; }
+            } catch (e) { console.error(e); }
         }
 
         async function editarProduto(p) {
-            const novoNome = prompt("Novo Nome:", p.nome);
-            const novoCusto = prompt("Novo Preço de Custo (€):", p.preco_entrada);
-            const novoVenda = prompt("Novo Preço de Venda (€):", p.preco);
-            const novoStock = prompt("Nova Quantidade:", p.estoque);
+            const novoNome = prompt("Nome do Produto:", p.nome);
+            const novoCusto = prompt("Preço de Custo (€):", p.preco_entrada);
+            const novoVenda = prompt("Preço de Venda (€):", p.preco);
+            const novoStock = prompt("Quantidade em Stock:", p.estoque);
 
-            if (novoNome && novoVenda) {
-                try {
-                    await fetch(`${API}/${p.id}`, {
-                        method: 'PUT',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ 
-                            nome: novoNome, 
-                            preco_entrada: novoCusto, 
-                            preco: novoVenda, 
-                            estoque: novoStock 
-                        })
-                    });
-                    carregarDados();
-                } catch (e) { alert("Erro ao atualizar."); }
+            if (novoNome !== null) {
+                const dadosAtualizados = {
+                    nome: novoNome,
+                    preco_entrada: parseFloat(novoCusto),
+                    preco: parseFloat(novoVenda),
+                    estoque: parseInt(novoStock)
+                };
+
+                await fetch(`${API}/${p.id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(dadosAtualizados)
+                });
+                carregarDados();
             }
         }
 
         async function deletarProduto(id) {
-            if(confirm("Apagar permanentemente?")) {
+            if(confirm("Apagar?")) {
                 await fetch(`${API}/${id}`, { method: 'DELETE' });
                 carregarDados();
             }
@@ -169,7 +162,8 @@
             const estoque = document.getElementById('estoque').value;
             const arquivo = document.getElementById('foto').files[0];
 
-            if(!nome || !venda) return alert("Preencha Nome e Preço!");
+            if(!nome || !venda || !estoque) return alert("Preencha Nome, Venda e Stock!");
+            
             btn.innerText = "A guardar..."; btn.disabled = true;
 
             let urlImg = "";
@@ -182,15 +176,29 @@
                 }
             }
 
+            // Envio garantindo que os números são números
             await fetch(API, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ nome, preco_entrada: custo, preco: venda, estoque, imagem: urlImg })
+                body: JSON.stringify({ 
+                    nome, 
+                    preco_entrada: parseFloat(custo) || 0, 
+                    preco: parseFloat(venda), 
+                    estoque: parseInt(estoque), 
+                    imagem: urlImg 
+                })
             });
-            location.reload();
+
+            // Limpar formulário e recarregar
+            document.getElementById('nome').value = '';
+            document.getElementById('preco_entrada').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('estoque').value = '';
+            btn.innerText = "ADICIONAR PRODUTO"; btn.disabled = false;
+            carregarDados();
         });
 
-        window.addEventListener('load', carregarDados);
+        window.onload = carregarDados;
     </script>
 </body>
 </html>
