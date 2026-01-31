@@ -1,166 +1,120 @@
-<!DOCTYPE html>
-<html lang="pt-PT">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beleza & Cia | Loja Online</title>
-    <style>
-        body { font-family: 'Helvetica Neue', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
-        
-        header { text-align: center; margin-bottom: 40px; }
-        h1 { color: #d63384; margin-bottom: 5px; }
-        p.subtitle { color: #666; }
+const express = require('express');
+const cors = require('cors');
+const { createClient } = require('@supabase/supabase-js');
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
-        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        
-        /* Card do Produto */
-        .produto { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
-        .produto:hover { transform: translateY(-5px); }
-        
-        .emoji { font-size: 60px; margin: 10px 0; display: block; }
-        .nome { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; }
-        .preco { font-size: 22px; color: #28a745; font-weight: bold; margin-bottom: 15px; }
-        .estoque { font-size: 12px; color: #999; margin-bottom: 15px; }
+const app = express();
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-        button { background-color: #d63384; color: white; border: none; padding: 12px; width: 100%; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: #b02a6b; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
+app.use(cors());
 
-        /* Carrinho Flutuante */
-        #carrinho-bar { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: none; align-items: center; gap: 15px; cursor: pointer; z-index: 100; }
-        #carrinho-bar:hover { transform: scale(1.05); }
-    </style>
-</head>
-<body>
+// --- WEBHOOK (PROCESSAMENTO DE VENDAS) ---
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) { return res.status(400).send(`Webhook Error: ${err.message}`); }
 
-    <header>
-        <h1>✨ Beleza & Cia</h1>
-        <p class="subtitle">Os melhores produtos, agora em Euros.</p>
-    </header>
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { expand: ['data.price.product'] });
 
-    <div class="container" id="lista-produtos">
-        <p style="text-align:center; width:100%;">Carregando produtos...</p>
-    </div>
-
-    <div id="carrinho-bar" onclick="finalizarCompra()">
-        <span>🛒 <b id="qtd-carrinho">0</b> itens</span>
-        <span style="border-left: 1px solid #555; padding-left: 15px;">Ir para Pagamento ➔</span>
-    </div>
-
-    <script>
-        // SEU BACKEND NO RENDER
-        const API_URL = 'https://projeto-loja-dzqv.onrender.com';
-        
-        let carrinho = [];
-        let produtosGlobais = [];
-
-        async function carregarLoja() {
-            try {
-                const response = await fetch(`${API_URL}/produtos`);
-                produtosGlobais = await response.json();
-                renderizar(produtosGlobais);
-            } catch (error) {
-                console.error("Erro ao carregar:", error);
-                document.getElementById('lista-produtos').innerHTML = '<p>Erro ao carregar loja. Tente novamente.</p>';
-            }
-        }
-
-        function renderizar(lista) {
-            const div = document.getElementById('lista-produtos');
-            div.innerHTML = '';
-
-            lista.forEach(prod => {
-                const precoNum = parseFloat(prod.preco);
-                const semEstoque = prod.estoque <= 0;
-
-                // IMPORTANTE: Aqui garantimos que o ID é passado corretamente no clique
-                div.innerHTML += `
-                    <div class="produto">
-                        <span class="emoji">💄</span>
-                        <div class="nome">${prod.nome}</div>
-                        <div class="preco">€ ${precoNum.toFixed(2)}</div>
-                        <div class="estoque">${semEstoque ? 'ESGOTADO' : 'Restam: ' + prod.estoque}</div>
-                        <button onclick="adicionarAoCarrinho(${prod.id})" ${semEstoque ? 'disabled' : ''}>
-                            ${semEstoque ? 'Indisponível' : 'Adicionar ao Carrinho'}
-                        </button>
-                    </div>
-                `;
-            });
-        }
-
-        function adicionarAoCarrinho(id) {
-            // Procura o produto na lista original
-            const produtoOriginal = produtosGlobais.find(p => p.id === id);
-            
-            if (!produtoOriginal) {
-                alert("Erro: Produto não encontrado!");
-                return;
-            }
-
-            // CRIA UM NOVO OBJETO LIMPO PARA O CARRINHO
-            // Isso garante que estamos a enviar APENAS o necessário e que o ID está lá
-            const itemDoCarrinho = {
-                id: produtoOriginal.id,
-                nome: produtoOriginal.nome,
-                preco: produtoOriginal.preco
-            };
-
-            // Verificação de Segurança
-            if (!itemDoCarrinho.id) {
-                alert("ERRO GRAVE: Este produto está sem ID no sistema. O estoque não funcionará.");
-                return;
-            }
-
-            carrinho.push(itemDoCarrinho);
-            atualizarBarraCarrinho();
-        }
-
-        function atualizarBarraCarrinho() {
-            const barra = document.getElementById('carrinho-bar');
-            const qtd = document.getElementById('qtd-carrinho');
-            qtd.innerText = carrinho.length;
-            
-            if (carrinho.length > 0) {
-                barra.style.display = 'flex';
-            } else {
-                barra.style.display = 'none';
-            }
-        }
-
-        async function finalizarCompra() {
-            if(carrinho.length === 0) return;
-
-            const btn = document.getElementById('carrinho-bar');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = 'Processando... ⏳';
-
-            try {
-                // LOG DE DEBUG PARA VOCÊ VER NO CONSOLE DO NAVEGADOR
-                console.log("Enviando carrinho para o servidor:", carrinho);
-
-                const resposta = await fetch(`${API_URL}/checkout`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ itens: carrinho })
-                });
-
-                const dados = await resposta.json();
-                
-                if(dados.url) {
-                    window.location.href = dados.url;
-                } else {
-                    alert('Erro ao criar pagamento: ' + (dados.error || 'Erro desconhecido'));
-                    btn.innerHTML = textoOriginal;
+        for (const item of lineItems.data) {
+            const produtoId = item.price.product.metadata.id_supabase;
+            if (produtoId) {
+                const { data: p } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
+                if (p) {
+                    await supabase.from('produtos').update({ estoque: p.estoque - 1 }).eq('id', produtoId);
+                    await supabase.from('vendas').insert([{
+                        produto_nome: p.nome,
+                        quantidade: 1,
+                        valor_pago: p.preco,
+                        lucro_real: p.preco - (p.preco_entrada || 0)
+                    }]);
                 }
-            } catch (error) {
-                console.error(error);
-                alert('Erro de conexão.');
-                btn.innerHTML = textoOriginal;
             }
         }
+    }
+    res.send();
+});
 
-        carregarLoja();
-    </script>
+app.use(express.json());
 
-</body>
-</html>
+// --- ROTAS DE PRODUTOS (SINCRONIZADAS COM A SUA TABELA) ---
+
+app.get('/produtos', async (req, res) => {
+    const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
+    res.json(data || []);
+});
+
+app.post('/produtos', async (req, res) => {
+    try {
+        const { nome, preco, preco_entrada, estoque, validade } = req.body;
+        
+        const { data, error } = await supabase.from('produtos').insert([{
+            nome: nome,
+            preco: parseFloat(preco) || 0,
+            preco_entrada: parseFloat(preco_entrada || 0),
+            estoque: parseInt(estoque || 0),
+            validade: validade || null
+        }]).select();
+        
+        if (error) throw error;
+        res.status(201).json(data[0]);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.put('/produtos/:id', async (req, res) => {
+    try {
+        const { nome, preco, preco_entrada, estoque, validade } = req.body;
+        const { error } = await supabase.from('produtos').update({
+            nome: nome,
+            preco: parseFloat(preco),
+            preco_entrada: parseFloat(preco_entrada || 0),
+            estoque: parseInt(estoque || 0),
+            validade: validade || null
+        }).eq('id', req.params.id);
+
+        if (error) throw error;
+        res.json({ message: "OK" });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.delete('/produtos/:id', async (req, res) => {
+    await supabase.from('produtos').delete().eq('id', req.params.id);
+    res.json({ message: "OK" });
+});
+
+app.get('/vendas', async (req, res) => {
+    const { data } = await supabase.from('vendas').select('*').order('id', { ascending: false });
+    res.json(data || []);
+});
+
+app.post('/checkout', async (req, res) => {
+    try {
+        const line_items = req.body.itens.map(item => ({
+            price_data: {
+                currency: 'eur',
+                product_data: { name: item.nome, metadata: { id_supabase: item.id } },
+                unit_amount: Math.round(item.preco * 100),
+            },
+            quantity: 1,
+        }));
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items,
+            mode: 'payment',
+            success_url: 'https://helderalex-hub.github.io/projeto-loja/sucesso.html',
+            cancel_url: 'https://helderalex-hub.github.io/projeto-loja/',
+        });
+        res.json({ url: session.url });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor Beleza e Companhia ON!`));
