@@ -5,36 +5,49 @@
     <title>Loja | Beleza & Companhia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --dark: #0a0a0a; --card: #161616; --rosa: #d63384; --rosa-claro: #ffb6c1; --texto: #f5f5f5; }
+        :root { --dark: #0a0a0a; --card: #161616; --rosa: #d63384; --rosa-claro: #ffb6c1; --texto: #f5f5f5; --alerta: #f39c12; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 0; }
         header { background: #000; padding: 30px 20px; text-align: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
         header h1 { margin: 0; color: var(--rosa); text-transform: uppercase; letter-spacing: 5px; font-size: 26px; }
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        
         .produto-card { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid #222; transition: 0.4s; position: relative; display: flex; flex-direction: column; }
         .produto-card.sem-estoque { opacity: 0.7; }
         .produto-card.sem-estoque img { filter: grayscale(100%) blur(1px); }
-        .produto-card.sem-estoque .btn-comprar { display: none; }
+        
         .img-container { width: 100%; height: 320px; background: #000; position: relative; overflow: hidden; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
         .overlay-indisponivel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; text-transform: uppercase; display: none; z-index: 5; }
         .sem-estoque .overlay-indisponivel { display: block; }
+        
         .info { padding: 25px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .info h3 { margin: 0 0 10px; font-size: 18px; color: var(--rosa-claro); }
-        .preco { font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 20px; }
+        .preco { font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 5px; }
+        
+        /* ALERTA DE STOCK BAIXO */
+        .alerta-stock { color: var(--alerta); font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
+
         .msg-indisponivel { color: #888; font-size: 14px; margin-bottom: 20px; font-style: italic; }
-        .btn-comprar { background: transparent; color: var(--rosa); border: 2px solid var(--rosa); padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-comprar:hover { background: var(--rosa); color: white; }
-        #btn-carrinho { position: fixed; bottom: 30px; right: 30px; background: var(--rosa); color: white; padding: 18px 28px; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 1000; border: none; }
+
+        .compra-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
+        .qtd-seletor { display: flex; align-items: center; background: #222; border-radius: 8px; border: 1px solid #333; overflow: hidden; }
+        .qtd-btn { background: transparent; color: white; border: none; padding: 8px 12px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.2s; }
+        .qtd-btn:hover { background: #333; color: var(--rosa); }
+        .qtd-num { width: 30px; text-align: center; font-weight: bold; font-size: 14px; }
+
+        .btn-comprar { background: var(--rosa); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; flex: 1; }
+        .btn-comprar:hover { background: #b02a6a; }
+
+        #btn-carrinho { position: fixed; bottom: 30px; right: 30px; background: var(--rosa); color: white; padding: 18px 28px; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 1000; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
     <header><h1>💎 Beleza & Companhia</h1></header>
-    <div class="container"><div id="vitrine" class="vitrine">A carregar...</div></div>
+    <div class="container"><div id="vitrine" class="vitrine">A carregar coleção de luxo...</div></div>
     <button id="btn-carrinho" onclick="finalizarCompra()">🛒 Finalizar Compra (<span id="cart-count">0</span>)</button>
 
     <script>
-        // URL DA SUA API NO RENDER
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let carrinho = [];
 
@@ -44,8 +57,12 @@
                 const produtos = await res.json();
                 const vitrine = document.getElementById('vitrine');
                 vitrine.innerHTML = '';
+                
                 produtos.forEach(p => {
-                    const emStock = p.estoque > 0;
+                    const stock = parseInt(p.estoque) || 0;
+                    const emStock = stock > 0;
+                    const stockBaixo = emStock && stock <= 5;
+
                     vitrine.innerHTML += `
                         <div class="produto-card ${!emStock ? 'sem-estoque' : ''}">
                             <div class="img-container">
@@ -54,17 +71,49 @@
                             </div>
                             <div class="info">
                                 <h3>${p.nome}</h3>
-                                ${emStock ? `<div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>` : `<div class="msg-indisponivel">Sem stock</div>`}
-                                <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">Comprar</button>
+                                ${emStock ? `
+                                    <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
+                                    ${stockBaixo ? `<div class="alerta-stock">⚠️ Restam apenas ${stock} unidades!</div>` : '<div style="height:29px"></div>'}
+                                    <div class="compra-row">
+                                        <div class="qtd-seletor">
+                                            <button class="qtd-btn" onclick="mudarQtd('${p.id}', -1)">−</button>
+                                            <span class="qtd-num" id="qtd-${p.id}">1</span>
+                                            <button class="qtd-btn" onclick="mudarQtd('${p.id}', 1, ${stock})">+</button>
+                                        </div>
+                                        <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, ${stock})">Comprar</button>
+                                    </div>
+                                ` : `<div class="msg-indisponivel">Sem stock no momento</div>`}
                             </div>
                         </div>`;
                 });
             } catch (e) { console.error(e); }
         }
 
-        function addCarrinho(id, nome, preco) {
-            carrinho.push({ id, nome, preco });
+        function mudarQtd(id, delta, max) {
+            const el = document.getElementById(`qtd-${id}`);
+            let atual = parseInt(el.innerText);
+            let novo = atual + delta;
+            if (novo >= 1 && novo <= max) {
+                el.innerText = novo;
+            }
+        }
+
+        function addCarrinho(id, nome, preco, stockMax) {
+            const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText);
+            for(let i = 0; i < qtd; i++) {
+                carrinho.push({ id, nome, preco });
+            }
             document.getElementById('cart-count').innerText = carrinho.length;
+            
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "ADICIONADO!";
+            btn.style.background = "#2ecc71";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "";
+                document.getElementById(`qtd-${id}`).innerText = 1;
+            }, 1000);
         }
 
         async function finalizarCompra() {
@@ -74,7 +123,6 @@
             btn.disabled = true;
 
             try {
-                // ESTA PARTE É A QUE FOI CORRIGIDA:
                 const res = await fetch(`${API}/checkout`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -82,7 +130,7 @@
                 });
                 const data = await res.json();
                 if (data.url) {
-                    window.location.href = data.url; // REDIRECIONA PARA O STRIPE
+                    window.location.href = data.url;
                 } else {
                     alert("Erro no servidor.");
                     btn.disabled = false;
