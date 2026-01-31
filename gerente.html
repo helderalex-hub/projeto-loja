@@ -3,122 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerente - Beleza & Cia</title>
+    <title>Admin - Beleza & Cia</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #fdf2f8; color: #333; padding: 20px; }
-        h1 { color: #d63384; text-align: center; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; margin: 20px auto; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #d63384; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        button:hover { background: #b82a6e; }
-        .lista { max-width: 800px; margin: 20px auto; }
-        .item-produto { background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent: #d63384;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: var(--bg-dark); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px; 
+            line-height: 1.5;
+        }
+
+        .container { max-width: 1000px; margin: auto; }
+
+        /* HEADER & DASHBOARD */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .dashboard { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 30px; 
+        }
+        .stat-card { 
+            background: var(--card-dark); 
+            padding: 20px; 
+            border-radius: 12px; 
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+        .stat-card p { margin: 10px 0 0; font-size: 26px; font-weight: 800; color: var(--text-main); }
+
+        /* FORMULÁRIO */
+        .form-card { 
+            background: var(--card-dark); 
+            padding: 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            margin-bottom: 40px; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .form-card h2 { margin-top: 0; color: var(--accent); font-size: 20px; margin-bottom: 20px; }
+        
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+        
+        label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; margin-top: 10px; }
+        input { 
+            background: #334155; 
+            border: 1px solid #475569; 
+            color: white; 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+        input:focus { border-color: var(--accent); outline: none; background: #1e293b; }
+
+        .btn-main { 
+            background: var(--accent); 
+            color: white; 
+            padding: 15px; 
+            width: 100%; 
+            margin-top: 25px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+        .btn-main:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+        /* LISTA DE PRODUTOS */
+        .product-item { 
+            background: var(--card-dark); 
+            padding: 15px; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+            margin-bottom: 12px;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .product-item:hover { border-color: rgba(214, 51, 132, 0.3); }
+        .img-preview { width: 65px; height: 65px; border-radius: 10px; object-fit: cover; background: #0f172a; }
+        
         .info { flex-grow: 1; }
-        .info b { color: #d63384; font-size: 18px; }
-        .acoes button { width: auto; padding: 8px 12px; margin-left: 5px; font-size: 14px; }
-        .btn-delete { background: #ff4d4d; }
-        .btn-edit { background: #4da3ff; }
+        .info h4 { margin: 0; font-size: 17px; color: var(--text-main); }
+        .info p { margin: 5px 0 0; font-size: 13px; color: var(--text-dim); }
+        .stock-tag { font-weight: bold; color: var(--accent); }
+
+        .actions { display: flex; gap: 10px; }
+        .btn-circle { 
+            width: 38px; 
+            height: 38px; 
+            border-radius: 50%; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 16px; 
+            transition: 0.2s;
+        }
+        .edit { background: rgba(14, 165, 233, 0.2); color: #0ea5e9; }
+        .edit:hover { background: #0ea5e9; color: white; }
+        .delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .delete:hover { background: #ef4444; color: white; }
+
+        @media (max-width: 600px) { .grid-inputs { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
     </style>
 </head>
 <body>
 
-    <h1>🌸 Painel Administrativo</h1>
+<div class="container">
+    <header>
+        <h1>💎 Beleza & Cia <small style="font-size: 12px; color: var(--text-dim); font-weight: normal;">Admin</small></h1>
+        <button onclick="carregar()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:20px;">🔄</button>
+    </header>
 
-    <div class="card">
-        <h3 id="titulo-form">Adicionar Novo Produto</h3>
-        <input type="hidden" id="prod-id">
-        <input type="text" id="nome" placeholder="Nome do Produto">
-        <input type="number" id="preco" placeholder="Preço de Venda (€)" step="0.01">
-        <input type="number" id="preco_entrada" placeholder="Preço de Custo (€)" step="0.01">
-        <input type="number" id="estoque" placeholder="Quantidade em Stock">
-        <label style="font-size: 12px; color: #666;">Data de Validade:</label>
-        <input type="date" id="validade">
-        <button onclick="salvar()">Guardar Alterações</button>
-        <button onclick="limpar()" style="background: #ccc; margin-top: 5px; color: #333;">Limpar / Novo</button>
+    <div class="dashboard">
+        <div class="stat-card">
+            <h3>Valor em Stock (PVP)</h3>
+            <p id="dash-total">€ 0,00</p>
+        </div>
+        <div class="stat-card">
+            <h3>Stock Crítico (≤5)</h3>
+            <p id="dash-critico" style="color: var(--danger);">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Mix de Produtos</h3>
+            <p id="dash-produtos">0</p>
+        </div>
     </div>
 
-    <div class="lista" id="lista-produtos">
+    <div class="form-card">
+        <h2 id="form-title">📦 Gestão de Produto</h2>
+        <input type="hidden" id="prod-id">
+        <div class="grid-inputs">
+            <div class="full-width">
+                <label>Nome do Produto</label>
+                <input type="text" id="nome" placeholder="Ex: Sérum Facial Vitamina C">
+            </div>
+            <div>
+                <label>Preço de Venda (€)</label>
+                <input type="number" id="preco" step="0.01" placeholder="0.00">
+            </div>
+            <div>
+                <label>Preço de Custo (€)</label>
+                <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
+            </div>
+            <div>
+                <label>Quantidade Stock</label>
+                <input type="number" id="estoque" placeholder="0">
+            </div>
+            <div>
+                <label>Data de Validade</label>
+                <input type="date" id="validade">
+            </div>
+            <div class="full-width">
+                <label>URL da Imagem (Link)</label>
+                <input type="text" id="imagem" placeholder="https://exemplo.com/foto.jpg">
+            </div>
         </div>
+        <button class="btn-main" onclick="salvar()">GRAVAR NO SISTEMA</button>
+        <button onclick="limpar()" style="background:transparent; color:var(--text-dim); width:100%; margin-top:15px; border:none; cursor:pointer;">Limpar / Novo Cadastro</button>
+    </div>
 
-    <script>
-        const API_URL = "https://projeto-loja-beleza-cia.onrender.com";
+    <div id="lista">
+        </div>
+</div>
 
-        async function carregarProdutos() {
+<script>
+    const API_URL = "https://projeto-loja-beleza-cia.onrender.com";
+
+    async function carregar() {
+        try {
             const res = await fetch(`${API_URL}/produtos`);
-            const produtos = await res.json();
-            const lista = document.getElementById("lista-produtos");
+            const dados = await res.json();
+            
+            let totalVenda = 0;
+            let criticos = 0;
+            const lista = document.getElementById("lista");
             lista.innerHTML = "";
 
-            produtos.forEach(p => {
-                const dataValidade = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : "---";
+            dados.forEach(p => {
+                totalVenda += (p.preco * p.estoque);
+                if(p.estoque <= 5) criticos++;
+
+                const dataVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
+
                 lista.innerHTML += `
-                    <div class="item-produto">
+                    <div class="product-item">
+                        <img src="${p.imagem || 'https://via.placeholder.com/150?text=Sem+Foto'}" class="img-preview" onerror="this.src='https://via.placeholder.com/150?text=Erro+Foto'">
                         <div class="info">
-                            <b>${p.nome}</b><br>
-                            Preço: €${p.preco.toFixed(2)} | Stock: ${p.estoque}<br>
-                            <small>Validade: ${dataValidade}</small>
+                            <h4>${p.nome}</h4>
+                            <p>PV: <span style="color:white">€${p.preco.toFixed(2)}</span> | 
+                               Stock: <span class="stock-tag">${p.estoque}</span> | 
+                               Val: ${dataVal}</p>
                         </div>
-                        <div class="acoes">
-                            <button class="btn-edit" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
-                            <button class="btn-delete" onclick="eliminar(${p.id})">🗑️</button>
+                        <div class="actions">
+                            <button class="btn-circle edit" title="Editar" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
+                            <button class="btn-circle delete" title="Eliminar" onclick="eliminar(${p.id})">🗑️</button>
                         </div>
                     </div>
                 `;
             });
+
+            document.getElementById("dash-total").innerText = `€ ${totalVenda.toLocaleString('pt-PT', {minimumFractionDigits: 2})}`;
+            document.getElementById("dash-critico").innerText = criticos;
+            document.getElementById("dash-produtos").innerText = dados.length;
+
+        } catch (err) {
+            console.error("Erro ao carregar:", err);
+        }
+    }
+
+    function prepararEdicao(p) {
+        document.getElementById("form-title").innerText = "✏️ Editando: " + p.nome;
+        document.getElementById("prod-id").value = p.id;
+        document.getElementById("nome").value = p.nome;
+        document.getElementById("preco").value = p.preco;
+        document.getElementById("preco_entrada").value = p.preco_entrada || 0;
+        document.getElementById("estoque").value = p.estoque;
+        document.getElementById("validade").value = p.validade || "";
+        document.getElementById("imagem").value = p.imagem || "";
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    async function salvar() {
+        const id = document.getElementById("prod-id").value;
+        const produto = {
+            nome: document.getElementById("nome").value,
+            preco: parseFloat(document.getElementById("preco").value),
+            preco_entrada: parseFloat(document.getElementById("preco_entrada").value) || 0,
+            estoque: parseInt(document.getElementById("estoque").value),
+            validade: document.getElementById("validade").value || null,
+            imagem: document.getElementById("imagem").value || ""
+        };
+
+        if (!produto.nome || isNaN(produto.preco)) {
+            alert("Nome e Preço são obrigatórios!");
+            return;
         }
 
-        function prepararEdicao(p) {
-            document.getElementById("titulo-form").innerText = "Editar Produto";
-            document.getElementById("prod-id").value = p.id;
-            document.getElementById("nome").value = p.nome;
-            document.getElementById("preco").value = p.preco;
-            document.getElementById("preco_entrada").value = p.preco_entrada || "";
-            document.getElementById("estoque").value = p.estoque;
-            document.getElementById("validade").value = p.validade || "";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        const metodo = id ? "PUT" : "POST";
+        const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
 
-        async function salvar() {
-            const id = document.getElementById("prod-id").value;
-            const produto = {
-                nome: document.getElementById("nome").value,
-                preco: parseFloat(document.getElementById("preco").value),
-                preco_entrada: parseFloat(document.getElementById("preco_entrada").value),
-                estoque: parseInt(document.getElementById("estoque").value),
-                validade: document.getElementById("validade").value
-            };
-
-            const metodo = id ? "PUT" : "POST";
-            const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
-
-            await fetch(url, {
+        try {
+            const res = await fetch(url, {
                 method: metodo,
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(produto)
             });
 
-            limpar();
-            carregarProdutos();
-        }
-
-        async function eliminar(id) {
-            if(confirm("Eliminar este produto?")) {
-                await fetch(`${API_URL}/produtos/${id}`, { method: "DELETE" });
-                carregarProdutos();
+            if (res.ok) {
+                limpar();
+                carregar();
+            } else {
+                alert("Erro ao salvar no servidor.");
             }
+        } catch (err) {
+            alert("Erro de conexão.");
         }
+    }
 
-        function limpar() {
-            document.getElementById("titulo-form").innerText = "Adicionar Novo Produto";
-            document.getElementById("prod-id").value = "";
-            document.getElementById("nome").value = "";
-            document.getElementById("preco").value = "";
-            document.getElementById("preco_entrada").value = "";
-            document.getElementById("estoque").value = "";
-            document.getElementById("validade").value = "";
-        }
+    async function eliminar(id) {
+        if(!confirm("⚠️ Tem certeza que deseja eliminar permanentemente este produto?")) return;
+        try {
+            const res = await fetch(`${API_URL}/produtos/${id}`, { method: "DELETE" });
+            if(res.ok) carregar();
+        } catch (err) { alert("Erro ao eliminar."); }
+    }
 
-        carregarProdutos();
-    </script>
+    function limpar() {
+        document.getElementById("form-title").innerText = "📦 Gestão de Produto";
+        document.getElementById("prod-id").value = "";
+        document.getElementById("nome").value = "";
+        document.getElementById("preco").value = "";
+        document.getElementById("preco_entrada").value = "";
+        document.getElementById("estoque").value = "";
+        document.getElementById("validade").value = "";
+        document.getElementById("imagem").value = "";
+    }
+
+    carregar();
+</script>
+
 </body>
 </html>
