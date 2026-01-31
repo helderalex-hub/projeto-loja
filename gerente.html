@@ -3,243 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Beleza & Cia</title>
+    <title>Gerente Pro - Beleza & Cia</title>
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --card-dark: #1e293b;
-            --accent: #d63384;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --success: #22c55e;
-            --danger: #ef4444;
+            --bg-dark: #0f172a; --card-dark: #1e293b; --accent: #d63384;
+            --text-main: #f8fafc; --text-dim: #94a3b8; --money: #22c55e;
         }
 
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background: var(--bg-dark); 
-            color: var(--text-main); 
-            margin: 0; 
-            padding: 20px; 
-            line-height: 1.5;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; }
 
-        .container { max-width: 1000px; margin: auto; }
-
-        /* HEADER & DASHBOARD */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .dashboard { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 30px; 
-        }
-        .stat-card { 
-            background: var(--card-dark); 
-            padding: 20px; 
-            border-radius: 12px; 
-            border-left: 4px solid var(--accent);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .stat-card h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
-        .stat-card p { margin: 10px 0 0; font-size: 26px; font-weight: 800; color: var(--text-main); }
+        /* DASHBOARD FINANCEIRO */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-dark); padding: 20px; border-radius: 12px; border-bottom: 4px solid var(--accent); }
+        .stat-card h3 { margin: 0; font-size: 13px; color: var(--text-dim); text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0; font-size: 22px; font-weight: bold; }
+        .lucro { color: var(--money); }
 
         /* FORMULÁRIO */
-        .form-card { 
-            background: var(--card-dark); 
-            padding: 25px; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
-            margin-bottom: 40px; 
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .form-card h2 { margin-top: 0; color: var(--accent); font-size: 20px; margin-bottom: 20px; }
+        .form-card { background: var(--card-dark); padding: 25px; border-radius: 15px; margin-bottom: 40px; border: 1px solid #334155; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .photo-input-area { grid-row: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #475569; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+        .photo-input-area:hover { border-color: var(--accent); background: #334155; }
+        .photo-input-area img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 5px; }
         
-        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .full-width { grid-column: span 2; }
-        
-        label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; margin-top: 10px; }
-        input { 
-            background: #334155; 
-            border: 1px solid #475569; 
-            color: white; 
-            padding: 12px; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            width: 100%; 
-            box-sizing: border-box; 
-        }
-        input:focus { border-color: var(--accent); outline: none; background: #1e293b; }
+        input { background: #334155; border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; }
+        .btn-main { background: var(--accent); color: white; padding: 15px; width: 100%; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
 
-        .btn-main { 
-            background: var(--accent); 
-            color: white; 
-            padding: 15px; 
-            width: 100%; 
-            margin-top: 25px; 
-            font-size: 16px; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer; 
-        }
-        .btn-main:hover { filter: brightness(1.2); transform: translateY(-1px); }
-
-        /* LISTA DE PRODUTOS */
-        .product-item { 
-            background: var(--card-dark); 
-            padding: 15px; 
-            border-radius: 12px; 
-            display: flex; 
-            align-items: center; 
-            gap: 20px; 
-            margin-bottom: 12px;
-            transition: 0.2s;
-            border: 1px solid transparent;
-        }
-        .product-item:hover { border-color: rgba(214, 51, 132, 0.3); }
-        .img-preview { width: 65px; height: 65px; border-radius: 10px; object-fit: cover; background: #0f172a; }
-        
+        /* TABELA DE PRODUTOS */
+        .product-item { background: var(--card-dark); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 20px; margin-bottom: 10px; border: 1px solid transparent; }
+        .product-item:hover { border-color: var(--accent); }
+        .img-table { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; cursor: pointer; background: #0f172a; }
         .info { flex-grow: 1; }
-        .info h4 { margin: 0; font-size: 17px; color: var(--text-main); }
-        .info p { margin: 5px 0 0; font-size: 13px; color: var(--text-dim); }
-        .stock-tag { font-weight: bold; color: var(--accent); }
-
-        .actions { display: flex; gap: 10px; }
-        .btn-circle { 
-            width: 38px; 
-            height: 38px; 
-            border-radius: 50%; 
-            border: none; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 16px; 
-            transition: 0.2s;
-        }
-        .edit { background: rgba(14, 165, 233, 0.2); color: #0ea5e9; }
-        .edit:hover { background: #0ea5e9; color: white; }
-        .delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-        .delete:hover { background: #ef4444; color: white; }
-
-        @media (max-width: 600px) { .grid-inputs { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+        .actions { display: flex; gap: 8px; }
+        .btn-action { background: #334155; border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>💎 Beleza & Cia <small style="font-size: 12px; color: var(--text-dim); font-weight: normal;">Admin</small></h1>
-        <button onclick="carregar()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:20px;">🔄</button>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>👑 Gestão Financeira & Stock</h1>
+        <button onclick="carregar()" style="background:none; border:none; color:var(--accent); font-size:24px; cursor:pointer;">🔄</button>
     </header>
 
     <div class="dashboard">
         <div class="stat-card">
-            <h3>Valor em Stock (PVP)</h3>
-            <p id="dash-total">€ 0,00</p>
+            <h3>Custo Total Stock</h3>
+            <p id="dash-custo">€ 0.00</p>
         </div>
         <div class="stat-card">
-            <h3>Stock Crítico (≤5)</h3>
-            <p id="dash-critico" style="color: var(--danger);">0</p>
+            <h3>Venda Total Esperada</h3>
+            <p id="dash-venda">€ 0.00</p>
         </div>
         <div class="stat-card">
-            <h3>Mix de Produtos</h3>
-            <p id="dash-produtos">0</p>
+            <h3>Lucro Estimado</h3>
+            <p id="dash-lucro" class="lucro">€ 0.00</p>
         </div>
     </div>
 
     <div class="form-card">
-        <h2 id="form-title">📦 Gestão de Produto</h2>
         <input type="hidden" id="prod-id">
+        <input type="hidden" id="imagem-url">
+        
         <div class="grid-inputs">
-            <div class="full-width">
-                <label>Nome do Produto</label>
-                <input type="text" id="nome" placeholder="Ex: Sérum Facial Vitamina C">
+            <div class="photo-input-area" onclick="alterarFotoManual('formulario')">
+                <img id="preview-form" src="https://via.placeholder.com/100?text=FOTO">
+                <small id="txt-foto">Clique para Link</small>
             </div>
-            <div>
-                <label>Preço de Venda (€)</label>
-                <input type="number" id="preco" step="0.01" placeholder="0.00">
+            
+            <div style="grid-column: span 2;">
+                <label style="font-size:12px; color:var(--text-dim)">Nome do Produto</label>
+                <input type="text" id="nome" placeholder="Nome do Produto">
             </div>
+            
             <div>
-                <label>Preço de Custo (€)</label>
+                <label style="font-size:12px; color:var(--text-dim)">Preço Custo (€)</label>
                 <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
             </div>
             <div>
-                <label>Quantidade Stock</label>
-                <input type="number" id="estoque" placeholder="0">
+                <label style="font-size:12px; color:var(--text-dim)">Preço Venda (€)</label>
+                <input type="number" id="preco" step="0.01" placeholder="0.00">
             </div>
             <div>
-                <label>Data de Validade</label>
+                <label style="font-size:12px; color:var(--text-dim)">Quantidade</label>
+                <input type="number" id="estoque" placeholder="0">
+            </div>
+            <div style="grid-column: span 2;">
+                <label style="font-size:12px; color:var(--text-dim)">Validade</label>
                 <input type="date" id="validade">
             </div>
-            <div class="full-width">
-                <label>URL da Imagem (Link)</label>
-                <input type="text" id="imagem" placeholder="https://exemplo.com/foto.jpg">
-            </div>
         </div>
-        <button class="btn-main" onclick="salvar()">GRAVAR NO SISTEMA</button>
-        <button onclick="limpar()" style="background:transparent; color:var(--text-dim); width:100%; margin-top:15px; border:none; cursor:pointer;">Limpar / Novo Cadastro</button>
+        
+        <button class="btn-main" onclick="salvar()">GRAVAR ALTERAÇÕES</button>
+        <button onclick="limpar()" style="background:none; color:var(--text-dim); width:100%; margin-top:10px; border:none; cursor:pointer;">Novo Cadastro</button>
     </div>
 
-    <div id="lista">
-        </div>
+    <div id="lista"></div>
 </div>
 
 <script>
     const API_URL = "https://projeto-loja-beleza-cia.onrender.com";
 
     async function carregar() {
-        try {
-            const res = await fetch(`${API_URL}/produtos`);
-            const dados = await res.json();
-            
-            let totalVenda = 0;
-            let criticos = 0;
-            const lista = document.getElementById("lista");
-            lista.innerHTML = "";
+        const res = await fetch(`${API_URL}/produtos`);
+        const dados = await res.json();
+        
+        let totalCusto = 0, totalVenda = 0;
+        const lista = document.getElementById("lista");
+        lista.innerHTML = "";
 
-            dados.forEach(p => {
-                totalVenda += (p.preco * p.estoque);
-                if(p.estoque <= 5) criticos++;
+        dados.forEach(p => {
+            const custoItem = (p.preco_entrada || 0) * p.estoque;
+            const vendaItem = p.preco * p.estoque;
+            totalCusto += custoItem;
+            totalVenda += vendaItem;
 
-                const dataVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
-
-                lista.innerHTML += `
-                    <div class="product-item">
-                        <img src="${p.imagem || 'https://via.placeholder.com/150?text=Sem+Foto'}" class="img-preview" onerror="this.src='https://via.placeholder.com/150?text=Erro+Foto'">
-                        <div class="info">
-                            <h4>${p.nome}</h4>
-                            <p>PV: <span style="color:white">€${p.preco.toFixed(2)}</span> | 
-                               Stock: <span class="stock-tag">${p.estoque}</span> | 
-                               Val: ${dataVal}</p>
-                        </div>
-                        <div class="actions">
-                            <button class="btn-circle edit" title="Editar" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
-                            <button class="btn-circle delete" title="Eliminar" onclick="eliminar(${p.id})">🗑️</button>
-                        </div>
+            lista.innerHTML += `
+                <div class="product-item">
+                    <img src="${p.imagem || 'https://via.placeholder.com/60'}" 
+                         class="img-table" 
+                         onclick="alterarFotoNaLinha(${p.id}, '${p.nome}')"
+                         title="Clique para mudar a foto">
+                    <div class="info">
+                        <h4>${p.nome}</h4>
+                        <small>Custo: €${(p.preco_entrada || 0).toFixed(2)} | Venda: €${p.preco.toFixed(2)} | Stock: ${p.estoque}</small>
                     </div>
-                `;
+                    <div class="actions">
+                        <button class="btn-action" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
+                        <button class="btn-action" style="color:#ef4444" onclick="eliminar(${p.id})">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        document.getElementById("dash-custo").innerText = `€ ${totalCusto.toFixed(2)}`;
+        document.getElementById("dash-venda").innerText = `€ ${totalVenda.toFixed(2)}`;
+        document.getElementById("dash-lucro").innerText = `€ ${(totalVenda - totalCusto).toFixed(2)}`;
+    }
+
+    function alterarFotoManual(tipo) {
+        const url = prompt("Cole o link (URL) da imagem do produto:");
+        if (url) {
+            document.getElementById("imagem-url").value = url;
+            document.getElementById("preview-form").src = url;
+        }
+    }
+
+    async function alterarFotoNaLinha(id, nome) {
+        const url = prompt(`Novo link de imagem para: ${nome}`);
+        if (url) {
+            await fetch(`${API_URL}/produtos/${id}`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ imagem: url })
             });
-
-            document.getElementById("dash-total").innerText = `€ ${totalVenda.toLocaleString('pt-PT', {minimumFractionDigits: 2})}`;
-            document.getElementById("dash-critico").innerText = criticos;
-            document.getElementById("dash-produtos").innerText = dados.length;
-
-        } catch (err) {
-            console.error("Erro ao carregar:", err);
+            carregar();
         }
     }
 
     function prepararEdicao(p) {
-        document.getElementById("form-title").innerText = "✏️ Editando: " + p.nome;
         document.getElementById("prod-id").value = p.id;
         document.getElementById("nome").value = p.nome;
         document.getElementById("preco").value = p.preco;
         document.getElementById("preco_entrada").value = p.preco_entrada || 0;
         document.getElementById("estoque").value = p.estoque;
         document.getElementById("validade").value = p.validade || "";
-        document.getElementById("imagem").value = p.imagem || "";
+        document.getElementById("imagem-url").value = p.imagem || "";
+        document.getElementById("preview-form").src = p.imagem || "https://via.placeholder.com/100";
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
@@ -251,56 +182,40 @@
             preco_entrada: parseFloat(document.getElementById("preco_entrada").value) || 0,
             estoque: parseInt(document.getElementById("estoque").value),
             validade: document.getElementById("validade").value || null,
-            imagem: document.getElementById("imagem").value || ""
+            imagem: document.getElementById("imagem-url").value
         };
-
-        if (!produto.nome || isNaN(produto.preco)) {
-            alert("Nome e Preço são obrigatórios!");
-            return;
-        }
 
         const metodo = id ? "PUT" : "POST";
         const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
 
-        try {
-            const res = await fetch(url, {
-                method: metodo,
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(produto)
-            });
-
-            if (res.ok) {
-                limpar();
-                carregar();
-            } else {
-                alert("Erro ao salvar no servidor.");
-            }
-        } catch (err) {
-            alert("Erro de conexão.");
-        }
+        await fetch(url, {
+            method: metodo,
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(produto)
+        });
+        limpar();
+        carregar();
     }
 
     async function eliminar(id) {
-        if(!confirm("⚠️ Tem certeza que deseja eliminar permanentemente este produto?")) return;
-        try {
-            const res = await fetch(`${API_URL}/produtos/${id}`, { method: "DELETE" });
-            if(res.ok) carregar();
-        } catch (err) { alert("Erro ao eliminar."); }
+        if(confirm("Eliminar produto?")) {
+            await fetch(`${API_URL}/produtos/${id}`, { method: "DELETE" });
+            carregar();
+        }
     }
 
     function limpar() {
-        document.getElementById("form-title").innerText = "📦 Gestão de Produto";
         document.getElementById("prod-id").value = "";
         document.getElementById("nome").value = "";
         document.getElementById("preco").value = "";
         document.getElementById("preco_entrada").value = "";
         document.getElementById("estoque").value = "";
         document.getElementById("validade").value = "";
-        document.getElementById("imagem").value = "";
+        document.getElementById("imagem-url").value = "";
+        document.getElementById("preview-form").src = "https://via.placeholder.com/100?text=FOTO";
     }
 
     carregar();
 </script>
-
 </body>
 </html>
