@@ -2,124 +2,68 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Gestão | Beleza & Companhia</title>
+    <title>Gestão Financeira | Beleza & Companhia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; background-color: #1a1a1a; color: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        h1 { color: #d63384; text-align: center; }
-        .card-form { background: #2d2d2d; padding: 20px; border-radius: 12px; border: 1px solid #444; margin-bottom: 20px; }
+        :root { --dark-bg: #1a1a1a; --card-bg: #2d2d2d; --rosa: #d63384; --texto: #f5f5f5; --verde: #28a745; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--dark-bg); color: var(--texto); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: var(--rosa); text-align: center; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Dashboard */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card-dash { background: var(--card-bg); padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .card-dash h3 { margin: 0; font-size: 13px; color: #aaa; text-transform: uppercase; }
+        .card-dash p { font-size: 22px; font-weight: bold; color: var(--rosa); margin: 10px 0 0; }
+        .lucro-valor { color: var(--verde) !important; }
+
+        /* Form */
+        .card-form { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid #444; margin-bottom: 30px; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        label { font-size: 12px; color: #aaa; display: block; margin-top: 10px; }
         input { 
-            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; 
-            background: #111; color: white; box-sizing: border-box; 
+            width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; 
+            background: #111; color: white; box-sizing: border-box; font-size: 16px;
         }
         button { 
-            background: #d63384; color: white; border: none; padding: 15px; width: 100%; 
-            border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;
+            background: var(--rosa); color: white; border: none; padding: 15px; width: 100%; 
+            border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 16px;
         }
+
+        /* Lista */
         .item { 
-            background: #2d2d2d; padding: 15px; margin-top: 10px; border-radius: 10px; 
+            background: var(--card-bg); padding: 15px; margin-top: 10px; border-radius: 10px; 
             display: flex; align-items: center; gap: 15px; border: 1px solid #444;
         }
-        .img-preview { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; background: #000; }
+        .img-preview { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #000; }
         .info { flex-grow: 1; }
+        .info strong { font-size: 18px; color: var(--rosa); }
+        .info p { margin: 5px 0 0; font-size: 13px; color: #ccc; }
+        .badge-lucro { background: rgba(40, 167, 69, 0.2); color: var(--verde); padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+        .btn-del { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>💎 Painel de Gestão</h1>
+        <h1>💎 Beleza & Companhia | Admin</h1>
         
-        <div class="card-form">
-            <input type="text" id="nome" placeholder="Nome do Produto">
-            <input type="number" id="preco" placeholder="Preço (€)" step="0.01">
-            <input type="number" id="estoque" placeholder="Quantidade">
-            <input type="file" id="foto" accept="image/*">
-            <button id="btnSalvar" onclick="salvarProduto()">GUARDAR PRODUTO</button>
+        <div class="dashboard">
+            <div class="card-dash"><h3>Total em Stock</h3><p id="dash-qtd">0</p></div>
+            <div class="card-dash"><h3>Valor de Venda</h3><p id="dash-venda">€ 0.00</p></div>
+            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro" class="lucro-valor">€ 0.00</p></div>
+            <div class="card-dash"><h3>Margem Média</h3><p id="dash-margem">0%</p></div>
         </div>
 
-        <div id="lista">A carregar inventário...</div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <script>
-        const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
-        const S_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
-        const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
-        
-        let supabaseClient;
-
-        // Inicialização protegida
-        function init() {
-            try {
-                supabaseClient = window.supabase.createClient(S_URL, S_KEY);
-                console.log("Supabase pronto");
-                carregarDados();
-            } catch (e) {
-                document.getElementById('lista').innerText = "Erro ao carregar sistema: " + e.message;
-            }
-        }
-
-        async function carregarDados() {
-            try {
-                const res = await fetch(API);
-                const produtos = await res.json();
-                const div = document.getElementById('lista');
-                div.innerHTML = '';
-
-                produtos.forEach(p => {
-                    const img = p.imagem || 'https://via.placeholder.com/50';
-                    div.innerHTML += `
-                        <div class="item">
-                            <img src="${img}" class="img-preview">
-                            <div class="info"><strong>${p.nome}</strong><br>€${p.preco} | Stock: ${p.estoque}</div>
-                            <button onclick="deletar(${p.id})" style="width:auto; background:red; padding:5px 10px;">🗑️</button>
-                        </div>`;
-                });
-            } catch (e) { 
-                document.getElementById('lista').innerText = "Erro ao ligar ao servidor.";
-            }
-        }
-
-        async function salvarProduto() {
-            const btn = document.getElementById('btnSalvar');
-            const nome = document.getElementById('nome').value;
-            const preco = document.getElementById('preco').value;
-            const estoque = document.getElementById('estoque').value;
-            const arquivo = document.getElementById('foto').files[0];
-
-            if(!nome || !preco) return alert("Preencha os campos!");
-            btn.innerText = "A enviar...";
-            btn.disabled = true;
-
-            let urlImg = "";
-            if(arquivo && supabaseClient) {
-                const nomeArq = Date.now() + "_" + arquivo.name.replace(/\s/g, '_');
-                const { data, error } = await supabaseClient.storage.from('fotos-produtos').upload(nomeArq, arquivo);
-                if(!error) {
-                    const { data: l } = supabaseClient.storage.from('fotos-produtos').getPublicUrl(nomeArq);
-                    urlImg = l.publicUrl;
-                }
-            }
-
-            await fetch(API, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ nome, preco, estoque, imagem: urlImg })
-            });
-            location.reload();
-        }
-
-        async function deletar(id) {
-            if(confirm("Apagar?")) {
-                await fetch(API + '/' + id, { method: 'DELETE' });
-                carregarDados();
-            }
-        }
-
-        // Tenta iniciar
-        window.onload = init;
-    </script>
-</body>
-</html>
+        <div class="card-form">
+            <label>Nome do Produto</label>
+            <input type="text" id="nome" placeholder="Ex: Batom Matte Lux">
+            
+            <div class="grid-inputs">
+                <div><label>Preço de Entrada (Custo)</label><input type="number" id="preco_entrada" step="0.01" placeholder="0.00"></div>
+                <div><label>Preço de Venda</label><input type="number" id="preco" step="0.01" placeholder="0.00"></div>
+                <div><label>Quantidade em Stock</label><input type="number" id="estoque" placeholder="0"></div>
+                <div><label>Foto</label><input type="file" id="foto" accept="image/*"></div>
+            </div>
+            
+            <button id="btnSalvar" onclick="salvarProduto()">CADASTRAR E
