@@ -2,11 +2,11 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Admin | Beleza & Companhia</title>
+    <title>Admin Pro | Beleza & Companhia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --dark: #1a1a1a; --card: #2d2d2d; --rosa: #d63384; --texto: #f5f5f5; --verde: #28a745; }
+        :root { --dark: #1a1a1a; --card: #2d2d2d; --rosa: #d63384; --texto: #f5f5f5; --verde: #28a745; --azul: #2196F3; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
         h1 { color: var(--rosa); text-align: center; text-transform: uppercase; letter-spacing: 2px; }
@@ -17,11 +17,10 @@
 
         .card-form { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #444; margin-bottom: 30px; }
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        label { font-size: 12px; color: #aaa; display: block; margin-top: 10px; }
+        label { font-size: 11px; color: #aaa; display: block; margin-top: 10px; text-transform: uppercase; }
         input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; box-sizing: border-box; }
         
         #btnSalvar { background: var(--rosa); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
-        #btnSalvar:disabled { background: #555; }
 
         .item { background: var(--card); padding: 15px; margin-top: 10px; border-radius: 10px; display: flex; align-items: center; gap: 15px; border: 1px solid #444; }
         .img-preview { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #000; }
@@ -29,7 +28,11 @@
         .info strong { color: var(--rosa); font-size: 17px; }
         .info p { margin: 5px 0 0; font-size: 13px; color: #ccc; }
         .lucro-tag { color: var(--verde); font-weight: bold; }
-        .btn-del { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
+        
+        .acoes { display: flex; gap: 8px; }
+        .btn-acao { border: none; padding: 10px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-edit { background: var(--azul); }
+        .btn-del { background: #ff4444; }
     </style>
 </head>
 <body>
@@ -45,27 +48,26 @@
         </div>
 
         <div class="card-form">
-            <label>Nome do Produto</label>
-            <input type="text" id="nome" placeholder="Ex: Sérum Facial">
+            <label>Novo Produto</label>
+            <input type="text" id="nome" placeholder="Ex: Batom Matte">
             
             <div class="grid-form">
-                <div><label>Preço de Custo (€)</label><input type="number" id="preco_entrada" step="0.01"></div>
-                <div><label>Preço de Venda (€)</label><input type="number" id="preco" step="0.01"></div>
-                <div><label>Quantidade</label><input type="number" id="estoque"></div>
-                <div><label>Foto do Produto</label><input type="file" id="foto" accept="image/*"></div>
+                <div><label>Custo (€)</label><input type="number" id="preco_entrada" step="0.01"></div>
+                <div><label>Venda (€)</label><input type="number" id="preco" step="0.01"></div>
+                <div><label>Stock</label><input type="number" id="estoque"></div>
+                <div><label>Foto</label><input type="file" id="foto" accept="image/*"></div>
             </div>
             
-            <button id="btnSalvar">SALVAR E CALCULAR MARGENS</button>
+            <button id="btnSalvar">ADICIONAR AO INVENTÁRIO</button>
         </div>
 
-        <div id="lista">A carregar inventário...</div>
+        <div id="lista">A carregar inventário financeiro...</div>
     </div>
 
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
         const S_URL = 'https://sgamfzcgiexoevnyiehn.supabase.co';
         const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYW1memNnaWV4b2V2bnlpZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzIwMDYsImV4cCI6MjA4NDUwODAwNn0.BLdnOWXEpW6w_Ic_0stcOexXXQBWl7Rc5ll0ATjvZVs';
-        
         const supabaseClient = window.supabase.createClient(S_URL, S_KEY);
 
         async function carregarDados() {
@@ -100,17 +102,24 @@
                         </div>
                     `;
 
-                    const btnDel = document.createElement('button');
-                    btnDel.innerText = '🗑️';
-                    btnDel.className = 'btn-del';
-                    btnDel.addEventListener('click', async () => {
-                        if(confirm("Apagar produto?")) {
-                            await fetch(`${API}/${p.id}`, { method: 'DELETE' });
-                            carregarDados();
-                        }
-                    });
+                    const acoesDiv = document.createElement('div');
+                    acoesDiv.className = 'acoes';
 
-                    itemDiv.appendChild(btnDel);
+                    // BOTÃO EDITAR
+                    const btnEdit = document.createElement('button');
+                    btnEdit.innerHTML = '✏️';
+                    btnEdit.className = 'btn-acao btn-edit';
+                    btnEdit.addEventListener('click', () => editarProduto(p));
+
+                    // BOTÃO APAGAR
+                    const btnDel = document.createElement('button');
+                    btnDel.innerHTML = '🗑️';
+                    btnDel.className = 'btn-acao btn-del';
+                    btnDel.addEventListener('click', () => deletarProduto(p.id));
+
+                    acoesDiv.appendChild(btnEdit);
+                    acoesDiv.appendChild(btnDel);
+                    itemDiv.appendChild(acoesDiv);
                     div.appendChild(itemDiv);
                 });
 
@@ -122,7 +131,36 @@
             } catch (e) { div.innerText = "Erro ao ligar ao servidor."; }
         }
 
-        // Event Listener para evitar erro de CSP
+        async function editarProduto(p) {
+            const novoNome = prompt("Novo Nome:", p.nome);
+            const novoCusto = prompt("Novo Preço de Custo (€):", p.preco_entrada);
+            const novoVenda = prompt("Novo Preço de Venda (€):", p.preco);
+            const novoStock = prompt("Nova Quantidade:", p.estoque);
+
+            if (novoNome && novoVenda) {
+                try {
+                    await fetch(`${API}/${p.id}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ 
+                            nome: novoNome, 
+                            preco_entrada: novoCusto, 
+                            preco: novoVenda, 
+                            estoque: novoStock 
+                        })
+                    });
+                    carregarDados();
+                } catch (e) { alert("Erro ao atualizar."); }
+            }
+        }
+
+        async function deletarProduto(id) {
+            if(confirm("Apagar permanentemente?")) {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                carregarDados();
+            }
+        }
+
         document.getElementById('btnSalvar').addEventListener('click', async () => {
             const btn = document.getElementById('btnSalvar');
             const nome = document.getElementById('nome').value;
@@ -131,10 +169,8 @@
             const estoque = document.getElementById('estoque').value;
             const arquivo = document.getElementById('foto').files[0];
 
-            if(!nome || !venda) return alert("Preencha Nome e Preço de Venda!");
-            
-            btn.innerText = "A processar...";
-            btn.disabled = true;
+            if(!nome || !venda) return alert("Preencha Nome e Preço!");
+            btn.innerText = "A guardar..."; btn.disabled = true;
 
             let urlImg = "";
             if(arquivo) {
@@ -146,18 +182,12 @@
                 }
             }
 
-            try {
-                await fetch(API, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ nome, preco_entrada: custo, preco: venda, estoque, imagem: urlImg })
-                });
-                location.reload();
-            } catch (e) {
-                alert("Erro ao salvar.");
-                btn.innerText = "SALVAR E CALCULAR MARGENS";
-                btn.disabled = false;
-            }
+            await fetch(API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ nome, preco_entrada: custo, preco: venda, estoque, imagem: urlImg })
+            });
+            location.reload();
         });
 
         window.addEventListener('load', carregarDados);
