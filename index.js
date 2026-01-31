@@ -14,8 +14,8 @@ app.use(cors());
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'helderalex@gmail.com', // O teu e-mail
-        pass: 'frmy ugsm iyza dlrd'   // A tua App Password gerada
+        user: 'helderalex@gmail.com',
+        pass: 'frmy ugsm iyza dlrd'
     }
 });
 
@@ -50,7 +50,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         
-        // Envia e-mail imediato de aviso de venda
         await enviarEmail(
             "✅ NOVO PEDIDO PAGO!", 
             `Um pagamento de €${(session.amount_total / 100).toFixed(2)} foi confirmado. Verifique o painel para preparar o envio.`
@@ -125,4 +124,59 @@ app.post('/produtos', async (req, res) => {
             nome,
             preco: parseFloat(preco) || 0,
             preco_entrada: parseFloat(preco_entrada || 0),
-            esto
+            estoque: parseInt(estoque || 0),
+            validade: validade || null,
+            imagem: imagem || ""
+        }]).select();
+        if (error) throw error;
+        res.status(201).json(data[0]);
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.put('/produtos/:id', async (req, res) => {
+    try {
+        const { nome, preco, preco_entrada, estoque, validade, imagem } = req.body;
+        const { error } = await supabase.from('produtos').update({
+            nome, preco: parseFloat(preco), preco_entrada: parseFloat(preco_entrada || 0),
+            estoque: parseInt(estoque || 0), validade: validade || null, imagem: imagem || ""
+        }).eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ message: "OK" });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.delete('/produtos/:id', async (req, res) => {
+    await supabase.from('produtos').delete().eq('id', req.params.id);
+    res.json({ message: "Eliminado" });
+});
+
+// 4. ROTA DE CHECKOUT
+app.post('/checkout', async (req, res) => {
+    try {
+        const line_items = req.body.itens.map(item => ({
+            price_data: {
+                currency: 'eur',
+                product_data: { 
+                    name: item.nome,
+                    metadata: { id_supabase: item.id } 
+                },
+                unit_amount: Math.round(item.preco * 100),
+            },
+            quantity: 1,
+        }));
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items,
+            mode: 'payment',
+            success_url: 'https://helderalex-hub.github.io/projeto-loja/sucesso.html',
+            cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
+        });
+        res.json({ url: session.url });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+// 5. INICIAR SERVIDOR
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor ON na porta ${PORT}`);
+});
