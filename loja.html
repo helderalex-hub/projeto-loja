@@ -1,113 +1,155 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
+    <title>Loja | Beleza & Companhia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Loja Europeia</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #fdf2f8; color: #333; padding-bottom: 100px; }
-        header { background-color: #d63384; color: white; padding: 20px; text-align: center; }
-        .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 20px; max-width: 1000px; margin: 0 auto; }
-        .produto-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .btn-add { background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold;}
+        :root { --dark: #0a0a0a; --card: #161616; --rosa: #d63384; --rosa-claro: #ffb6c1; --texto: #f5f5f5; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 0; }
         
-        /* Barra Inferior */
-        .barra-pagamento {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #222; color: white; padding: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
-            z-index: 100;
+        header { background: #000; padding: 30px 20px; text-align: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+        header h1 { margin: 0; color: var(--rosa); text-transform: uppercase; letter-spacing: 5px; font-size: 26px; font-weight: 300; }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+
+        /* Grade de Produtos */
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        
+        .produto-card { 
+            background: var(--card); border-radius: 20px; overflow: hidden; 
+            border: 1px solid #222; transition: all 0.4s ease; position: relative;
+            display: flex; flex-direction: column;
         }
-        .btn-pagar { 
-            background-color: #635bff; /* Cor oficial do Stripe */
-            color: white; border: none; padding: 12px 25px; 
-            border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 16px;
-            margin-right: 20px; text-decoration: none;
+        .produto-card:hover { transform: translateY(-10px); border-color: var(--rosa); box-shadow: 0 10px 30px rgba(214, 51, 132, 0.2); }
+        
+        .img-container { width: 100%; height: 320px; background: #000; position: relative; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .produto-card:hover .img-container img { transform: scale(1.08); }
+        
+        .info { padding: 25px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .info h3 { margin: 0 0 10px; font-size: 18px; font-weight: 400; color: var(--rosa-claro); letter-spacing: 1px; }
+        .preco { font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 20px; display: block; }
+        
+        .btn-comprar { 
+            background: transparent; color: var(--rosa); border: 2px solid var(--rosa); 
+            padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
         }
-        .btn-pagar:hover { background-color: #4e45e5; }
+        .btn-comprar:hover { background: var(--rosa); color: white; }
+        .btn-comprar:disabled { border-color: #444; color: #444; cursor: not-allowed; }
+
+        /* Selos de Status */
+        .badge { position: absolute; top: 15px; right: 15px; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; z-index: 10; }
+        .esgotado { background: #333; color: #888; }
+        .promo { background: var(--rosa); color: white; }
+
+        /* Carrinho Flutuante */
+        #btn-carrinho { 
+            position: fixed; bottom: 30px; right: 30px; background: var(--rosa); 
+            color: white; padding: 18px 28px; border-radius: 50px; font-weight: bold; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; z-index: 1000; border: none;
+            display: flex; align-items: center; gap: 10px; transition: 0.3s;
+        }
+        #btn-carrinho:hover { transform: scale(1.1); background: #b02a6a; }
+        .cart-count { background: white; color: var(--rosa); padding: 2px 8px; border-radius: 10px; font-size: 12px; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>✨ Beleza Europa ✨</h1>
-        <p>Entregamos em toda União Europeia 🇪🇺</p>
+        <h1>💎 Beleza & Companhia</h1>
     </header>
 
-    <div class="vitrine" id="vitrine">Carregando...</div>
-
-    <div class="barra-pagamento" id="barra-pagamento" style="display: none;">
-        <div style="margin-left: 20px;">
-            🛒 <span id="qtd">0</span> itens <br>
-            Total: € <span id="total">0.00</span>
-        </div>
-        <button onclick="finalizarCompra()" class="btn-pagar" id="btn-finalizar">
-            Pagar com Cartão 💳
-        </button>
+    <div class="container">
+        <div id="vitrine" class="vitrine">A preparar a sua experiência de beleza...</div>
     </div>
 
+    <button id="btn-carrinho" onclick="finalizarCompra()">
+        🛒 Finalizar Compra <span class="cart-count" id="cart-count">0</span>
+    </button>
+
     <script>
-        const API_URL = 'https://projeto-loja-dzqv.onrender.com'; // Seu servidor
+        const API = 'https://projeto-loja-dzqv.onrender.com';
         let carrinho = [];
 
-        async function carregarVitrine() {
-            const res = await fetch(`${API_URL}/produtos`);
-            const produtos = await res.json();
-            const div = document.getElementById('vitrine');
-            div.innerHTML = '';
+        async function carregarProdutos() {
+            try {
+                const res = await fetch(`${API}/produtos`);
+                const produtos = await res.json();
+                const vitrine = document.getElementById('vitrine');
+                vitrine.innerHTML = '';
 
-            produtos.forEach(p => {
-                div.innerHTML += `
-                <div class="produto-card">
-                    <h3>${p.nome}</h3>
-                    <p style="color:#d63384; font-weight:bold;">€ ${p.preco}</p>
-                    <button class="btn-add" onclick="adicionar('${p.nome}', ${p.preco})">Adicionar +</button>
-                </div>`;
-            });
+                if (produtos.length === 0) {
+                    vitrine.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>A nossa nova coleção chega em breve!</p>";
+                    return;
+                }
+
+                produtos.forEach(p => {
+                    const emStock = p.estoque > 0;
+                    vitrine.innerHTML += `
+                        <div class="produto-card">
+                            ${!emStock ? '<div class="badge esgotado">ESGOTADO</div>' : ''}
+                            <div class="img-container">
+                                <img src="${p.imagem || 'https://via.placeholder.com/400x500?text=Beleza+%26+Cia'}" 
+                                     alt="${p.nome}"
+                                     onerror="this.src='https://via.placeholder.com/400x500?text=Imagem+Indisponível'">
+                            </div>
+                            <div class="info">
+                                <h3>${p.nome}</h3>
+                                <span class="preco">€${parseFloat(p.preco).toFixed(2)}</span>
+                                <button class="btn-comprar" ${!emStock ? 'disabled' : ''} 
+                                        onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">
+                                    ${emStock ? 'Adicionar ao Carrinho' : 'Brevemente'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                document.getElementById('vitrine').innerHTML = "Ocorreu um erro ao carregar a vitrine.";
+            }
         }
 
-        function adicionar(nome, preco) {
-            carrinho.push({ nome, preco });
-            atualizarBarra();
-        }
-
-        function atualizarBarra() {
-            document.getElementById('barra-pagamento').style.display = 'flex';
-            document.getElementById('qtd').innerText = carrinho.length;
-            const total = carrinho.reduce((acc, item) => acc + item.preco, 0);
-            document.getElementById('total').innerText = total.toFixed(2);
+        function addCarrinho(id, nome, preco) {
+            carrinho.push({ id, nome, preco });
+            document.getElementById('cart-count').innerText = carrinho.length;
+            // Efeito visual simples de confirmação
+            const btn = document.getElementById('btn-carrinho');
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
         }
 
         async function finalizarCompra() {
-            const btn = document.getElementById('btn-finalizar');
-            btn.innerText = "Processando...";
+            if (carrinho.length === 0) return alert("O seu carrinho está vazio!");
+
+            const btn = document.getElementById('btn-carrinho');
+            const originalText = btn.innerHTML;
+            btn.innerText = "A Redirecionar...";
             btn.disabled = true;
 
             try {
-                // 1. Envia o carrinho para o Render
-                const resposta = await fetch(`${API_URL}/checkout`, {
+                const res = await fetch(`${API}/checkout`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ itens: carrinho })
                 });
-
-                const dados = await resposta.json();
-
-                // 2. Se deu certo, o Render devolve o link do Stripe
-                if (dados.url) {
-                    window.location.href = dados.url; // Redireciona o cliente
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
                 } else {
-                    alert('Erro ao criar pagamento.');
+                    alert("Erro no checkout.");
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
                 }
-            } catch (erro) {
-                alert('Erro de conexão com o servidor.');
-                btn.innerText = "Tentar Novamente";
+            } catch (e) {
+                alert("Erro de conexão.");
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         }
 
-        carregarVitrine();
+        window.onload = carregarProdutos;
     </script>
 </body>
 </html>
