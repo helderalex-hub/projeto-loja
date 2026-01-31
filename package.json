@@ -1,18 +1,24 @@
 {
-  "name": "loja-backend",
+  "name": "projeto-loja-beleza-cia",
   "version": "1.0.0",
-  "description": "API da Loja",
+  "description": "Servidor da loja com Stripe, Supabase e Notificações por E-mail",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "stripe": "^14.14.0",
-    "@supabase/supabase-js": "^2.39.0"
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.7",
+    "stripe": "^14.10.0"
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "author": "Helder Nogueira",
+  "license": "ISC"
 }
