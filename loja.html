@@ -24,6 +24,7 @@
         .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         .produto-card:hover .img-container img { transform: scale(1.05); }
         
+        /* Etiquetas */
         .overlay-indisponivel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; text-transform: uppercase; display: none; z-index: 5; border: 1px solid #555; }
         .sem-estoque .overlay-indisponivel { display: block; }
         
@@ -60,7 +61,6 @@
     </button>
 
     <script>
-        // URL da sua API no Render
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let carrinho = [];
 
@@ -73,12 +73,27 @@
                 const produtos = await res.json();
                 vitrine.innerHTML = '';
                 
+                let produtosVisiveis = 0;
+                const hoje = new Date();
+                hoje.setHours(0,0,0,0); // Compara apenas a data (ignora horas)
+
                 if(produtos.length === 0) {
                     vitrine.innerHTML = "<p style='text-align:center; width:100%'>Nenhum produto disponível.</p>";
                     return;
                 }
 
                 produtos.forEach(p => {
+                    // --- FILTRO DE SEGURANÇA ---
+                    // Se estiver VENCIDO, não mostra na loja.
+                    if (p.validade) {
+                        const dataVal = new Date(p.validade);
+                        if (dataVal < hoje) {
+                            return; // Pula este produto (esconde)
+                        }
+                    }
+                    // --------------------------
+
+                    produtosVisiveis++;
                     const stock = parseInt(p.estoque) || 0;
                     const emStock = stock > 0;
                     const stockBaixo = emStock && stock <= 5;
@@ -109,6 +124,11 @@
                             </div>
                         </div>`;
                 });
+
+                if (produtosVisiveis === 0) {
+                    vitrine.innerHTML = "<p style='text-align:center; width:100%'>Não há produtos disponíveis no momento.</p>";
+                }
+
             } catch (e) { 
                 console.error(e);
                 vitrine.innerHTML = "<p style='text-align:center'>Erro ao carregar a loja. Tente novamente.</p>";
@@ -127,23 +147,19 @@
 
         function addCarrinho(id, nome, preco, imagem) {
             const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText);
-            
-            // Adiciona a quantidade escolhida ao carrinho
             for(let i = 0; i < qtd; i++) {
                 carrinho.push({ id, nome, preco: parseFloat(preco), imagem });
             }
-            
             document.getElementById('cart-count').innerText = carrinho.length;
             
-            // Efeito visual no botão
             const btn = event.target;
             const textoOriginal = btn.innerText;
             btn.innerText = "ADICIONADO!";
-            btn.style.background = "#22c55e"; // Verde
+            btn.style.background = "#22c55e"; 
             setTimeout(() => {
                 btn.innerText = textoOriginal;
                 btn.style.background = "";
-                document.getElementById(`qtd-${id}`).innerText = 1; // Reseta qtd para 1
+                document.getElementById(`qtd-${id}`).innerText = 1;
             }, 1000);
         }
 
@@ -157,7 +173,6 @@
             btn.disabled = true;
 
             try {
-                // CORREÇÃO CRÍTICA: Enviar o array 'carrinho' diretamente
                 const res = await fetch(`${API}/checkout`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -170,13 +185,11 @@
                 }
 
                 const data = await res.json();
-                
                 if (data.url) {
-                    window.location.href = data.url; // Vai para o Stripe
+                    window.location.href = data.url;
                 } else {
                     throw new Error("URL de pagamento não gerada");
                 }
-
             } catch (e) {
                 alert("Erro ao iniciar pagamento: " + e.message);
                 btn.disabled = false;
