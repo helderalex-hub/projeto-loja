@@ -29,55 +29,39 @@
         .header-top { text-align: center; margin-bottom: 25px; position: relative; }
         h1 { margin: 0; font-size: 24px; color: var(--rosa-claro); text-transform: uppercase; letter-spacing: 1px; }
         .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-        .btn-sair:hover { border-color: var(--erro); color: var(--erro); }
 
-        /* DASHBOARD - 5 CARTÕES */
-        .dashboard { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-            gap: 15px; 
-            margin-bottom: 25px; 
-        }
+        /* DASHBOARD */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 100px; }
-        .card-dash h3 { margin: 0; font-size: 11px; color: var(--label); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-dash h3 { margin: 0; font-size: 11px; color: var(--label); text-transform: uppercase; }
         .card-dash p { margin: 8px 0 0 0; font-size: 18px; font-weight: bold; color: var(--rosa-claro); }
 
-        /* ÁREA DO GRÁFICO (Movido para baixo) */
-        .area-grafico { 
-            background: var(--card); 
-            padding: 20px; 
-            border-radius: 12px; 
-            border: 1px solid var(--borda); 
-            margin-top: 40px; /* Separar do inventário */
-            height: 350px; 
-            position: relative; 
-        }
+        /* GRÁFICO */
+        .area-grafico { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); margin-top: 40px; height: 350px; position: relative; }
 
+        /* BOTÕES DE RELATÓRIO */
         .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .titulo-seccao { width: 100%; font-size: 13px; color: var(--rosa-claro); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
         .btn-pdf { background: #475569; color: white; border: 1px solid var(--borda); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .btn-pdf:hover { background: var(--rosa); border-color: var(--rosa); }
 
+        /* Formulário e Listas */
         .card-cadastro { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; flex-wrap: wrap; }
         .area-foto { width: 180px; height: 180px; background: #000; border: 2px dashed var(--rosa); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
         .area-foto img { width: 100%; height: 100%; object-fit: contain; position: absolute; }
-        .area-foto span { color: var(--rosa-claro); font-size: 12px; font-weight: bold; text-align: center; padding: 10px; z-index: 1; }
-
+        .area-foto span { color: var(--rosa-claro); font-size: 12px; font-weight: bold; }
         .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 250px; }
         .grid-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         label { font-size: 11px; color: var(--label); font-weight: 600; display: block; margin-bottom: 4px; text-transform: uppercase; }
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; }
         .btn-principal { background: var(--rosa); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: auto; text-transform: uppercase; }
-
         .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); gap: 15px; }
         .img-lista { width: 60px; height: 60px; border-radius: 8px; object-fit: contain; background: #000; border: 1px solid #333; }
         .info-principal { flex: 1; }
         .nome-produto { font-size: 16px; color: var(--rosa-claro); font-weight: bold; display: block; margin-bottom: 4px; }
         .alerta-estoque { color: var(--erro); font-weight: bold; font-size: 11px; margin-left: 5px; background: rgba(239, 68, 68, 0.1); padding: 2px 6px; border-radius: 4px; }
-        
         .btn-acao { padding: 8px 14px; border-radius: 6px; border: none; color: white; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
         .btn-editar { background: #3b82f6; } .btn-apagar { background: var(--erro); }
-        
         .lista-box { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid var(--borda); max-height: 250px; overflow-y: auto; }
         .venda-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; display: flex; justify-content: space-between; }
     </style>
@@ -90,35 +74,19 @@
         </div>
         
         <div class="dashboard">
-            <div class="card-dash">
-                <h3>Venda Bruta (Estoque)</h3>
-                <p id="dash-venda">€ 0.00</p>
-            </div>
-            <div class="card-dash">
-                <h3>Custo Estoque</h3>
-                <p id="dash-custo">€ 0.00</p>
-            </div>
-            <div class="card-dash">
-                <h3>Lucro Estimado (Estoque)</h3>
-                <p id="dash-lucro-est">€ 0.00</p>
-            </div>
-            
-            <div class="card-dash" style="border-color: rgba(34, 197, 94, 0.3);">
-                <h3>Vendas (7 Dias)</h3>
-                <p id="dash-venda-semana" style="color:var(--verde)">€ 0.00</p>
-            </div>
-            <div class="card-dash" style="border-color: rgba(34, 197, 94, 0.3);">
-                <h3>Lucro Real (7 Dias)</h3>
-                <p id="dash-lucro-semana" style="color:var(--verde)">€ 0.00</p>
-            </div>
+            <div class="card-dash"><h3>Venda Bruta (Estoque)</h3><p id="dash-venda">€ 0.00</p></div>
+            <div class="card-dash"><h3>Custo Estoque</h3><p id="dash-custo">€ 0.00</p></div>
+            <div class="card-dash"><h3>Lucro Estimado</h3><p id="dash-lucro-est">€ 0.00</p></div>
+            <div class="card-dash" style="border-color: rgba(34, 197, 94, 0.3);"><h3>Vendas (7 Dias)</h3><p id="dash-venda-semana" style="color:var(--verde)">€ 0.00</p></div>
+            <div class="card-dash" style="border-color: rgba(34, 197, 94, 0.3);"><h3>Lucro Real (7 Dias)</h3><p id="dash-lucro-semana" style="color:var(--verde)">€ 0.00</p></div>
         </div>
 
         <div class="area-relatorios">
-            <div class="titulo-seccao">📑 Relatórios & Logística:</div>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('diario')" style="background:var(--rosa); border:none;">🚚 Guia de Envio (Hoje)</button>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('semanal')">📈 Semanal</button>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('mensal')">💰 Mensal</button>
-            <button class="btn-pdf" onclick="gerarPDF('inventario')" style="background:#1e293b">📦 Inventário Completo</button>
+            <div class="titulo-seccao">📑 Logística & Relatórios:</div>
+            <button class="btn-pdf" onclick="gerarEtiquetasDoDia()" style="background:var(--rosa); border:none;">🏷️ Etiquetas Térmicas (Hoje)</button>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('mensal')">💰 Relatório Mensal</button>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('semanal')">📈 Relatório Semanal</button>
+            <button class="btn-pdf" onclick="gerarPDF('inventario')" style="background:#1e293b">📦 Inventário</button>
         </div>
 
         <div class="card-cadastro">
@@ -148,7 +116,7 @@
         <h2 class="titulo-seccao" style="font-size:16px; margin-top:30px;">📋 Gestão de Estoque</h2>
         <div id="lista">A carregar...</div>
 
-        <h2 class="titulo-seccao" style="font-size:16px; margin-top:40px;">📊 Performance de Vendas (Últimos 30 Dias)</h2>
+        <h2 class="titulo-seccao" style="font-size:16px; margin-top:40px;">📊 Performance (30 Dias)</h2>
         <div class="area-grafico">
             <canvas id="graficoVendas"></canvas>
         </div>
@@ -165,10 +133,8 @@
         async function carregar() {
             const div = document.getElementById('lista');
             try {
-                // 1. DADOS DE INVENTÁRIO
                 const res = await fetch(`${API}/produtos`); dadosGlobais = await res.json(); div.innerHTML = '';
                 let v = 0, c = 0; const hoje = new Date();
-                
                 dadosGlobais.forEach(p => {
                     const pV = parseFloat(p.preco||0), pC = parseFloat(p.preco_entrada||0), q = parseInt(p.estoque||0);
                     v += (pV * q); c += (pC * q);
@@ -183,49 +149,28 @@
                     const estiloQtd = q < 5 ? 'color:var(--erro); font-weight:bold' : '';
                     div.innerHTML += `<div class="produto-item"><img src="${p.imagem||''}" class="img-lista"><div class="info-principal"><span class="nome-produto">${p.nome}</span><span style="color:white">€ ${pV.toFixed(2)}</span> <small style="color:#64748b; margin-left:8px">Custo: € ${pC.toFixed(2)}</small><br><small>Estoque: <b style="${estiloQtd}">${q}</b> ${msgCritico}</small> | <small style="${eVal}">Val: ${dVal} ${aVal}</small></div><button class="btn-acao btn-editar" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button><button class="btn-acao btn-apagar" onclick="deletar('${p.id}')">Apagar</button></div>`;
                 });
-                
-                // Preenche cards de Inventário
                 document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`; 
                 document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`; 
                 document.getElementById('dash-lucro-est').innerText = `€ ${(v-c).toFixed(2)}`;
-                
-                // 2. DADOS DE VENDAS
                 carregarVendas();
             } catch(e) { div.innerHTML = "Erro ao carregar lista."; }
         }
 
         async function carregarVendas() {
             try {
-                // Busca vendas mensais (para gráfico e cálculos da semana)
-                const res = await fetch(`${API}/vendas?periodo=mensal`); 
-                const vendas = await res.json();
-                const div = document.getElementById('lista-vendas');
-                div.innerHTML = vendas.length ? '' : 'Nenhuma venda.';
-                
-                // Lista as últimas 5
+                const res = await fetch(`${API}/vendas?periodo=mensal`); const vendas = await res.json();
+                const div = document.getElementById('lista-vendas'); div.innerHTML = vendas.length ? '' : 'Nenhuma venda.';
                 vendas.slice(0, 5).forEach(v => {
                     div.innerHTML += `<div class="venda-item"><div><b style="color:var(--rosa-claro)">${v.cliente_nome}</b><br><small style="color:#94a3b8">📍 ${v.cliente_morada}</small></div><div style="text-align:right"><span style="color:var(--verde); font-weight:bold;">+ €${parseFloat(v.total_venda).toFixed(2)}</span><br><small style="color:#64748b">${new Date(v.data_venda).toLocaleDateString('pt-PT')}</small></div></div>`;
                 });
-
-                // CÁLCULO DE VENDAS DA SEMANA (Últimos 7 dias)
-                const hoje = new Date();
-                const seteDiasAtras = new Date();
-                seteDiasAtras.setDate(hoje.getDate() - 7);
-                
-                let totalVendasSemana = 0;
-                let lucroRealSemana = 0;
-
+                const hoje = new Date(); const seteDiasAtras = new Date(); seteDiasAtras.setDate(hoje.getDate() - 7);
+                let totalVendasSemana = 0; let lucroRealSemana = 0;
                 vendas.forEach(v => {
                     const dataVenda = new Date(v.data_venda);
-                    if(dataVenda >= seteDiasAtras) {
-                        totalVendasSemana += parseFloat(v.total_venda || 0);
-                        lucroRealSemana += parseFloat(v.lucro || 0);
-                    }
+                    if(dataVenda >= seteDiasAtras) { totalVendasSemana += parseFloat(v.total_venda || 0); lucroRealSemana += parseFloat(v.lucro || 0); }
                 });
-
                 document.getElementById('dash-venda-semana').innerText = `€ ${totalVendasSemana.toFixed(2)}`;
                 document.getElementById('dash-lucro-semana').innerText = `€ ${lucroRealSemana.toFixed(2)}`;
-
                 renderizarGrafico(vendas);
             } catch(e){}
         }
@@ -233,38 +178,13 @@
         function renderizarGrafico(vendas) {
             const ctx = document.getElementById('graficoVendas').getContext('2d');
             const dadosPorDia = {};
-            // Agrupar por dia
             vendas.forEach(v => {
                 const dia = new Date(v.data_venda).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
                 dadosPorDia[dia] = (dadosPorDia[dia] || 0) + parseFloat(v.total_venda);
             });
-            const labels = Object.keys(dadosPorDia).reverse();
-            const valores = Object.values(dadosPorDia).reverse();
-
+            const labels = Object.keys(dadosPorDia).reverse(); const valores = Object.values(dadosPorDia).reverse();
             if(graficoInstance) graficoInstance.destroy();
-
-            graficoInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Vendas Diárias (€)',
-                        data: valores,
-                        backgroundColor: '#d63384',
-                        borderRadius: 5,
-                        barThickness: 20
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
-                    scales: {
-                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
-                    }
-                }
-            });
+            graficoInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Vendas Diárias (€)', data: valores, backgroundColor: '#d63384', borderRadius: 5, barThickness: 20 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { display: false } } } } });
         }
 
         async function salvar() {
@@ -282,18 +202,115 @@
         async function deletar(id) { if(confirm("Apagar permanentemente?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregar(); } }
         function resetForm() { document.getElementById('edit-id').value=''; ['nome','preco','preco_entrada','estoque','validade','imagem','input-file'].forEach(i=>document.getElementById(i).value=''); document.getElementById('img-preview').style.display='none'; document.getElementById('txt-foto').style.display='block'; }
         
+        // --- FUNÇÃO 1: ETIQUETAS TÉRMICAS 10x15 CM (COM AGRUPAMENTO) ---
+        async function gerarEtiquetasDoDia() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: [100, 150] });
+            try {
+                const res = await fetch(`${API}/vendas`);
+                const vendas = await res.json();
+                const hoje = new Date().toLocaleDateString('pt-PT');
+                const vendasHoje = vendas.filter(v => new Date(v.data_venda).toLocaleDateString('pt-PT') === hoje);
+
+                if (vendasHoje.length === 0) { alert("Não existem vendas hoje para gerar etiquetas."); return; }
+
+                vendasHoje.forEach((venda, index) => {
+                    if (index > 0) doc.addPage([100, 150]);
+
+                    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+                    doc.text("REMETENTE: BELEZA & COMPANHIA", 10, 10);
+                    
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("DESTINATÁRIO:", 10, 20);
+                    doc.setFontSize(14); 
+                    doc.text(venda.cliente_nome.toUpperCase().substring(0, 25), 10, 27);
+                    
+                    doc.setFontSize(11); doc.setFont("helvetica", "normal");
+                    const moradaSplit = doc.splitTextToSize(venda.cliente_morada, 85);
+                    doc.text(moradaSplit, 10, 35);
+
+                    doc.setLineWidth(0.5); doc.line(5, 70, 95, 70);
+
+                    doc.setFontSize(9); doc.setFont("helvetica", "bold");
+                    doc.text("CONTEÚDO / PICKING LIST:", 10, 78);
+                    doc.setFont("helvetica", "normal");
+                    
+                    // Agrupamento de itens
+                    const itensAgrupados = {};
+                    if(venda.itens && Array.isArray(venda.itens)) {
+                        venda.itens.forEach(item => {
+                            itensAgrupados[item.nome] = (itensAgrupados[item.nome] || 0) + 1;
+                        });
+                    }
+
+                    let yPos = 85;
+                    Object.entries(itensAgrupados).forEach(([nome, qtd]) => {
+                        doc.text(`[  ]  ${qtd}x  ${nome}`, 10, yPos);
+                        yPos += 6;
+                    });
+
+                    doc.setFontSize(8);
+                    doc.text(`ID Venda: ${venda.id} | Data: ${hoje}`, 10, 140);
+                });
+                
+                doc.save(`Etiquetas_Despacho_${hoje.replace(/\//g, '-')}.pdf`);
+            } catch(e) { alert("Erro ao gerar etiquetas: " + e.message); }
+        }
+        
+        // --- FUNÇÃO 2: RELATÓRIO FINANCEIRO COM TOTAIS ---
         async function gerarRelatorioVendas(per) {
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
             try {
                 const res = await fetch(`${API}/vendas?periodo=${per}`); const dados = await res.json();
-                doc.setFontSize(18); doc.setTextColor(253, 164, 175); doc.text(per==='diario'?"Guia de Envios":`Relatório ${per}`, 14, 20);
-                let h, b; if(per==='diario'){ h=[["Cliente","Morada","Itens"]]; b=dados.map(v=>[v.cliente_nome, v.cliente_morada, v.itens.map(i=>i.nome).join(", ")]); }
-                else { h=[["Data","Cliente","Total","Lucro"]]; b=dados.map(v=>[new Date(v.data_venda).toLocaleDateString('pt-PT'), v.cliente_nome, `€ ${parseFloat(v.total_venda).toFixed(2)}`, `€ ${parseFloat(v.lucro).toFixed(2)}`]); }
-                doc.autoTable({startY:30, head:h, body:b, headStyles:{fillColor:[214,51,132]}, theme:'grid'}); doc.save(`Rel_${per}.pdf`);
-            } catch(e){ alert("Erro PDF"); }
+                
+                // 1. Calcular TOTAIS
+                let totalReceita = 0;
+                let totalLucro = 0;
+                dados.forEach(v => {
+                    totalReceita += parseFloat(v.total_venda || 0);
+                    totalLucro += parseFloat(v.lucro || 0);
+                });
+
+                // 2. Cabeçalho PDF
+                doc.setFontSize(18); doc.setTextColor(214, 51, 132); 
+                doc.text(`Relatório de Vendas - ${per.toUpperCase()}`, 14, 20);
+                
+                // 3. Resumo no Topo
+                doc.setFontSize(11); doc.setTextColor(0, 0, 0);
+                doc.text(`RECEITA TOTAL: €${totalReceita.toFixed(2)}   |   LUCRO TOTAL: €${totalLucro.toFixed(2)}`, 14, 28);
+                
+                // 4. Prepara dados com agrupamento
+                const corpoTabela = dados.map(v => {
+                    const agrupados = {};
+                    if(v.itens && Array.isArray(v.itens)) {
+                        v.itens.forEach(i => agrupados[i.nome] = (agrupados[i.nome] || 0) + 1);
+                    }
+                    const listaItens = Object.entries(agrupados).map(([n, q]) => `${q}x ${n}`).join(", ");
+                    
+                    return [
+                        new Date(v.data_venda).toLocaleDateString('pt-PT'),
+                        v.cliente_nome,
+                        listaItens, 
+                        `€ ${parseFloat(v.total_venda).toFixed(2)}`,
+                        `€ ${parseFloat(v.lucro).toFixed(2)}`
+                    ];
+                });
+
+                // 5. Tabela com Rodapé de Totais
+                doc.autoTable({
+                    startY: 35, 
+                    head: [['Data', 'Cliente', 'Itens', 'Total', 'Lucro']], 
+                    body: corpoTabela, 
+                    foot: [['', '', 'TOTAIS GERAIS:', `€ ${totalReceita.toFixed(2)}`, `€ ${totalLucro.toFixed(2)}`]],
+                    headStyles:{fillColor:[214,51,132]}, 
+                    footStyles:{fillColor:[240, 240, 240], textColor:[0,0,0], fontStyle:'bold'},
+                    theme:'grid'
+                }); 
+                doc.save(`Relatorio_${per}.pdf`);
+            } catch(e){ console.error(e); alert("Erro ao gerar PDF."); }
         }
         
-        async function gerarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("Inventário", 14, 20); const b = dadosGlobais.map(p=>[p.nome, p.estoque, `€${p.preco.toFixed(2)}`, p.validade ? new Date(p.validade).toLocaleDateString():'N/A']); doc.autoTable({startY:30, head:[['Produto','Estoque','Preço','Validade']], body:b}); doc.save("Inventario.pdf"); }
+        async function gerarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("Inventário Atual", 14, 20); const b = dadosGlobais.map(p=>[p.nome, p.estoque, `€${p.preco.toFixed(2)}`, p.validade ? new Date(p.validade).toLocaleDateString():'N/A']); doc.autoTable({startY:30, head:[['Produto','Estoque','Preço','Validade']], body:b}); doc.save("Inventario.pdf"); }
         
         window.onload = carregar;
     </script>
