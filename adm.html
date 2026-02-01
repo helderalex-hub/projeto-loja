@@ -7,107 +7,115 @@
     <style>
         :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --label: #cbd5e1; --verde: #22c55e; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
-        .container { max-width: 800px; margin: 0 auto; }
+        .container { max-width: 850px; margin: 0 auto; }
         
         /* Dashboard */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; }
-        .card-dash h3 { margin: 0; font-size: 13px; color: var(--label); text-transform: uppercase; }
-        .card-dash p { margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: var(--rosa-claro); }
+        .card-dash { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; }
+        .card-dash h3 { margin: 0; font-size: 12px; color: var(--label); text-transform: uppercase; }
+        .card-dash p { margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: var(--rosa-claro); }
 
-        .card { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        /* Área de Cadastro Compacta */
+        .card-cadastro { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; align-items: stretch; }
         
-        /* Área da Foto no Formulário */
-        .foto-container { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 10px; }
-        .preview-box { width: 120px; height: 120px; background: #0f172a; border: 2px dashed var(--borda); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
-        .foto-inputs { flex-grow: 1; }
+        .area-foto { width: 220px; min-height: 220px; background: rgba(214, 51, 132, 0.05); border: 2px dashed var(--rosa); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; transition: 0.3s; }
+        .area-foto:hover { background: rgba(214, 51, 132, 0.1); }
+        .area-foto img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+        .area-foto span { font-size: 13px; color: var(--rosa-claro); text-align: center; padding: 10px; z-index: 1; font-weight: bold; }
 
-        .grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        label { display: block; font-size: 15px; color: var(--label); margin-bottom: 8px; margin-top: 12px; font-weight: 500; }
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .grid-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        label { font-size: 13px; color: var(--label); font-weight: 500; }
+        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; box-sizing: border-box; font-size: 13px; }
         input:focus { border-color: var(--rosa); outline: none; }
         
-        .btn-principal { background: var(--rosa); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; transition: 0.3s; font-size: 16px; }
-        .btn-principal:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        
-        .produto-item { background: var(--card); padding: 18px; margin-bottom: 12px; border-radius: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); gap: 15px; }
-        .img-lista { width: 70px; height: 70px; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid var(--borda); }
+        .btn-principal { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: auto; transition: 0.3s; font-size: 14px; text-transform: uppercase; }
+        .btn-principal:hover { filter: brightness(1.2); }
+
+        /* Lista de Produtos */
+        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); gap: 15px; }
+        .img-lista { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #0f172a; }
         .info-principal { flex: 1; }
-        .nome-produto { font-size: 18px; color: var(--rosa-claro); font-weight: bold; }
-        .tag-validade { font-size: 11px; background: #334155; padding: 2px 8px; border-radius: 4px; color: #cbd5e1; display: inline-block; margin-top: 5px; }
-        .btn-acao { width: auto; padding: 8px 16px; margin-left: 8px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 13px; text-transform: uppercase; font-weight: bold; }
+        .nome-produto { font-size: 16px; color: var(--rosa-claro); font-weight: bold; }
+        .btn-acao { padding: 6px 12px; border-radius: 6px; border: none; color: white; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align:center; letter-spacing: -1px;">💎 Painel <span style="color:var(--rosa)">Administrativo</span></h1>
+        <h1 style="text-align:center; font-size: 24px;">💎 Painel <span style="color:var(--rosa)">Administrativo</span></h1>
         
         <div class="dashboard">
-            <div class="card-dash"><h3>Total Venda (PVP)</h3><p id="dash-venda">€ 0.00</p></div>
-            <div class="card-dash"><h3>Total Custo</h3><p id="dash-custo">€ 0.00</p></div>
-            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
+            <div class="card-dash"><h3>PVP Total</h3><p id="dash-venda">€ 0.00</p></div>
+            <div class="card-dash"><h3>Custo Total</h3><p id="dash-custo">€ 0.00</p></div>
+            <div class="card-dash"><h3>Lucro</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
         </div>
 
-        <div class="card">
-            <input type="hidden" id="edit-id">
-            
-            <div class="foto-container">
-                <div class="preview-box">
-                    <img id="img-preview" src="" style="display:none">
-                    <span id="img-placeholder" style="color:var(--borda); font-size: 30px;">📷</span>
-                </div>
-                <div class="foto-inputs">
-                    <label>URL DA FOTO</label>
-                    <input type="text" id="imagem" placeholder="Cole o link da imagem aqui" oninput="atualizarPreview()">
-                </div>
+        <div class="card-cadastro">
+            <div class="area-foto" onclick="pedirURL()">
+                <img id="img-preview" src="" style="display:none">
+                <span id="txt-foto">📷<br>ÁREA DA FOTO<br><small>Clicar para carregar</small></span>
+                <input type="hidden" id="imagem">
             </div>
 
-            <label>NOME DO PRODUTO</label>
-            <input type="text" id="nome" placeholder="Ex: Batom Matte Rosa">
-            
-            <div class="grid-campos">
+            <div class="campos-texto">
+                <input type="hidden" id="edit-id">
+                
                 <div>
-                    <label>PREÇO CUSTO (€)</label>
-                    <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
+                    <label>NOME DO PRODUTO</label>
+                    <input type="text" id="nome" placeholder="Ex: Batom Matte">
                 </div>
-                <div>
-                    <label>PREÇO VENDA (€)</label>
-                    <input type="number" id="preco" step="0.01" placeholder="0.00">
-                </div>
-            </div>
 
-            <div class="grid-campos">
-                <div>
-                    <label>ESTOQUE ATUAL</label>
-                    <input type="number" id="estoque" placeholder="0">
+                <div class="grid-duplo">
+                    <div>
+                        <label>CUSTO (€)</label>
+                        <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label>VENDA (€)</label>
+                        <input type="number" id="preco" step="0.01" placeholder="0.00">
+                    </div>
                 </div>
-                <div>
-                    <label>VALIDADE</label>
-                    <input type="date" id="validade">
-                </div>
-            </div>
 
-            <button class="btn-principal" id="btnSalvar" onclick="salvar()">GRAVAR NO INVENTÁRIO</button>
+                <div class="grid-duplo">
+                    <div>
+                        <label>ESTOQUE</label>
+                        <input type="number" id="estoque" placeholder="0">
+                    </div>
+                    <div>
+                        <label>VALIDADE</label>
+                        <input type="date" id="validade">
+                    </div>
+                </div>
+
+                <button class="btn-principal" id="btnSalvar" onclick="salvar()">Gravar no Inventário</button>
+            </div>
         </div>
 
-        <div id="lista">A carregar inventário...</div>
+        <div id="lista">A carregar...</div>
     </div>
 
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
-        function atualizarPreview() {
-            const url = document.getElementById('imagem').value;
-            const preview = document.getElementById('img-preview');
-            const placeholder = document.getElementById('img-placeholder');
+        function pedirURL() {
+            const url = prompt("Cole aqui o link (URL) da imagem do produto:");
+            if (url !== null) {
+                document.getElementById('imagem').value = url;
+                atualizarPreview(url);
+            }
+        }
+
+        function atualizarPreview(url) {
+            const img = document.getElementById('img-preview');
+            const txt = document.getElementById('txt-foto');
             if (url) {
-                preview.src = url;
-                preview.style.display = 'block';
-                placeholder.style.display = 'none';
+                img.src = url;
+                img.style.display = 'block';
+                txt.style.opacity = '0';
             } else {
-                preview.style.display = 'none';
-                placeholder.style.display = 'block';
+                img.style.display = 'none';
+                txt.style.opacity = '1';
             }
         }
 
@@ -117,46 +125,37 @@
                 const res = await fetch(API);
                 const dados = await res.json();
                 div.innerHTML = '';
-                let totalVenda = 0, totalCusto = 0;
+                let v = 0, c = 0;
 
                 dados.forEach(p => {
-                    const precoV = parseFloat(p.preco || 0);
-                    const precoC = parseFloat(p.preco_entrada || 0);
-                    const qtd = parseInt(p.estoque || 0);
-                    totalVenda += (precoV * qtd);
-                    totalCusto += (precoC * qtd);
-
-                    const dataVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
-                    const fotoUrl = p.imagem || 'https://via.placeholder.com/70?text=S/F';
+                    const pV = parseFloat(p.preco || 0), pC = parseFloat(p.preco_entrada || 0), q = parseInt(p.estoque || 0);
+                    v += (pV * q); c += (pC * q);
+                    const dVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
 
                     div.innerHTML += `
                         <div class="produto-item">
-                            <img src="${fotoUrl}" class="img-lista" onerror="this.src='https://via.placeholder.com/70?text=Erro'">
+                            <img src="${p.imagem || ''}" class="img-lista" onerror="this.src='https://via.placeholder.com/60?text=S/F'">
                             <div class="info-principal">
                                 <span class="nome-produto">${p.nome}</span><br>
-                                <span style="color:var(--rosa); font-weight: 500;">€ ${precoV.toFixed(2)}</span> 
-                                <small style="color:#64748b; margin-left:10px">Custo: € ${precoC.toFixed(2)}</small><br>
-                                <small>Estoque: <b>${qtd}</b></small><br>
-                                <span class="tag-validade">📅 Validade: ${dataVal}</span>
+                                <span style="color:var(--rosa)">€ ${pV.toFixed(2)}</span> 
+                                <small style="color:#64748b; margin-left:8px">Custo: € ${pC.toFixed(2)}</small><br>
+                                <small>Estoque: <b>${q}</b> | Val: ${dVal}</small>
                             </div>
-                            <div style="display:flex">
-                                <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
-                                <button class="btn-acao" style="background:#ef4444" onclick="deletar('${p.id}')">Apagar</button>
-                            </div>
+                            <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
+                            <button class="btn-acao" style="background:#ef4444" onclick="deletar('${p.id}')">Apagar</button>
                         </div>`;
                 });
 
-                document.getElementById('dash-venda').innerText = `€ ${totalVenda.toFixed(2)}`;
-                document.getElementById('dash-custo').innerText = `€ ${totalCusto.toFixed(2)}`;
-                document.getElementById('dash-lucro').innerText = `€ ${(totalVenda - totalCusto).toFixed(2)}`;
-
-            } catch (e) { div.innerHTML = "Erro ao carregar lista."; }
+                document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`;
+                document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`;
+                document.getElementById('dash-lucro').innerText = `€ ${(v - c).toFixed(2)}`;
+            } catch (e) { div.innerHTML = "Erro ao carregar."; }
         }
 
         async function salvar() {
             const id = document.getElementById('edit-id').value;
             const btn = document.getElementById('btnSalvar');
-            btn.innerText = "A PROCESSAR..."; btn.disabled = true;
+            btn.innerText = "A GUARDAR..."; btn.disabled = true;
 
             const produto = {
                 nome: document.getElementById('nome').value,
@@ -176,7 +175,7 @@
                 resetForm();
                 carregar();
             } catch (e) { alert("Erro ao guardar!"); }
-            btn.innerText = "GRAVAR NO INVENTÁRIO"; btn.disabled = false;
+            btn.innerText = "Gravar no Inventário"; btn.disabled = false;
         }
 
         function prepararEdicao(p) {
@@ -187,18 +186,18 @@
             document.getElementById('estoque').value = p.estoque;
             document.getElementById('validade').value = p.validade || '';
             document.getElementById('imagem').value = p.imagem || '';
-            atualizarPreview();
+            atualizarPreview(p.imagem);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetForm() {
             document.getElementById('edit-id').value = '';
-            ['nome', 'preco', 'preco_entrada', 'estoque', 'validade', 'imagem'].forEach(c => document.getElementById(c).value = '');
-            atualizarPreview();
+            ['nome', 'preco', 'preco_entrada', 'estoque', 'validade', 'imagem'].forEach(id => document.getElementById(id).value = '');
+            atualizarPreview('');
         }
 
         async function deletar(id) {
-            if (confirm("Deseja apagar este produto?")) {
+            if (confirm("Apagar produto?")) {
                 await fetch(`${API}/${id}`, { method: 'DELETE' });
                 carregar();
             }
