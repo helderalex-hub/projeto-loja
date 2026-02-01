@@ -2,89 +2,123 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ADM | Beleza & Cia</title>
-    <link rel="icon" href="data:,">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Gerente | Beleza & Cia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --texto: #f8fafc; }
         body { font-family: sans-serif; background: var(--dark); color: var(--texto); padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: var(--card); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #334155; }
-        input { width: 100%; padding: 10px; margin: 5px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 5px; box-sizing: border-box; }
-        button { background: var(--rosa); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
-        .prod-item { background: var(--card); padding: 15px; margin-top: 10px; border-radius: 8px; display: flex; align-items: center; gap: 15px; border-bottom: 2px solid #0f172a; }
-        .img-item { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; box-sizing: border-box; }
+        button { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
+        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .btn-acao { width: auto; padding: 8px 15px; margin-left: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Painel Administrativo</h1>
+        <h1 style="color:var(--rosa)">💎 Gestão de Inventário</h1>
         
         <div class="card">
             <input type="hidden" id="edit-id">
             <input type="text" id="nome" placeholder="Nome do Produto">
-            <div style="display:flex; gap:10px">
-                <input type="number" id="preco_entrada" placeholder="Custo €">
-                <input type="number" id="preco" placeholder="Venda €">
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="preco" placeholder="Preço Venda €">
+                <input type="number" id="estoque" placeholder="Quantidade">
             </div>
-            <input type="number" id="estoque" placeholder="Stock">
-            <input type="text" id="imagem" placeholder="URL da Imagem">
+            <input type="text" id="imagem" placeholder="Link da Imagem (URL)">
             <button id="btnSalvar" onclick="salvar()">GRAVAR PRODUTO</button>
         </div>
 
-        <div id="lista">A carregar...</div>
+        <div id="lista">A carregar inventário...</div>
     </div>
 
     <script>
-        const API = 'https://projeto-loja-beleza-cia.onrender.com/produtos';
+        // URL CORRETA DA SUA API NO RENDER
+        const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
         async function carregar() {
+            const div = document.getElementById('lista');
             try {
                 const res = await fetch(API);
+                if (!res.ok) throw new Error("Falha ao ler dados");
                 const dados = await res.json();
-                const div = document.getElementById('lista');
+                
                 div.innerHTML = '';
+                if (dados.length === 0) div.innerHTML = "Nenhum produto cadastrado.";
+                
                 dados.forEach(p => {
                     div.innerHTML += `
-                        <div class="prod-item">
-                            <img src="${p.imagem}" class="img-item" onerror="this.src='https://via.placeholder.com/50'">
-                            <div style="flex:1"><b>${p.nome}</b><br>Stock: ${p.estoque} | PVP: €${p.preco}</div>
-                            <button style="width:auto; margin-right:5px" onclick='preparar(${JSON.stringify(p)})'>✏️</button>
-                            <button style="width:auto; background:red" onclick="deletar('${p.id}')">🗑️</button>
+                        <div class="produto-item">
+                            <div>
+                                <strong>${p.nome}</strong><br>
+                                <small>Stock: ${p.estoque} | Preço: €${p.preco}</small>
+                            </div>
+                            <div>
+                                <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
+                                <button class="btn-acao" style="background:#ef4444" onclick="deletar('${p.id}')">🗑️</button>
+                            </div>
                         </div>`;
                 });
-            } catch (e) { document.getElementById('lista').innerHTML = "Erro de conexão com servidor."; }
+            } catch (e) {
+                div.innerHTML = "<b style='color:red'>Erro ao ligar ao Servidor. Verifique se o Render está LIVE.</b>";
+            }
         }
 
         async function salvar() {
             const id = document.getElementById('edit-id').value;
-            const p = {
+            const btn = document.getElementById('btnSalvar');
+            btn.innerText = "A GUARDAR..."; btn.disabled = true;
+
+            const produto = {
                 nome: document.getElementById('nome').value,
                 preco: parseFloat(document.getElementById('preco').value),
-                preco_entrada: parseFloat(document.getElementById('preco_entrada').value),
                 estoque: parseInt(document.getElementById('estoque').value),
                 imagem: document.getElementById('imagem').value
             };
-            await fetch(id ? `${API}/${id}` : API, {
-                method: id ? 'PUT' : 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(p)
-            });
-            location.reload();
+
+            try {
+                const metodo = id ? 'PUT' : 'POST';
+                const url = id ? `${API}/${id}` : API;
+
+                await fetch(url, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(produto)
+                });
+                
+                // Limpar formulário e recarregar
+                document.getElementById('edit-id').value = '';
+                document.getElementById('nome').value = '';
+                document.getElementById('preco').value = '';
+                document.getElementById('estoque').value = '';
+                document.getElementById('imagem').value = '';
+                btn.innerText = "GRAVAR PRODUTO"; btn.disabled = false;
+                carregar();
+            } catch (e) {
+                alert("Erro ao salvar!");
+                btn.innerText = "GRAVAR PRODUTO"; btn.disabled = false;
+            }
         }
 
-        function preparar(p) {
+        function prepararEdicao(p) {
             document.getElementById('edit-id').value = p.id;
             document.getElementById('nome').value = p.nome;
             document.getElementById('preco').value = p.preco;
-            document.getElementById('preco_entrada').value = p.preco_entrada;
             document.getElementById('estoque').value = p.estoque;
             document.getElementById('imagem').value = p.imagem;
-            window.scrollTo(0,0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        async function deletar(id) { if(confirm("Apagar?")) { await fetch(`${API}/${id}`, {method:'DELETE'}); carregar(); } }
+        async function deletar(id) {
+            if (confirm("Tem certeza que deseja eliminar este produto?")) {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                carregar();
+            }
+        }
 
+        // Iniciar
         window.onload = carregar;
     </script>
 </body>
