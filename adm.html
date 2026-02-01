@@ -16,20 +16,26 @@
         .card-dash p { margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: var(--rosa-claro); }
 
         .card { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        
+        /* Área da Foto no Formulário */
+        .foto-container { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 10px; }
+        .preview-box { width: 120px; height: 120px; background: #0f172a; border: 2px dashed var(--borda); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .foto-inputs { flex-grow: 1; }
+
         .grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        
         label { display: block; font-size: 15px; color: var(--label); margin-bottom: 8px; margin-top: 12px; font-weight: 500; }
-        
         input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
         input:focus { border-color: var(--rosa); outline: none; }
         
         .btn-principal { background: var(--rosa); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; transition: 0.3s; font-size: 16px; }
         .btn-principal:hover { transform: translateY(-2px); filter: brightness(1.1); }
         
-        .produto-item { background: var(--card); padding: 18px; margin-bottom: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .produto-item { background: var(--card); padding: 18px; margin-bottom: 12px; border-radius: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); gap: 15px; }
+        .img-lista { width: 70px; height: 70px; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid var(--borda); }
+        .info-principal { flex: 1; }
         .nome-produto { font-size: 18px; color: var(--rosa-claro); font-weight: bold; }
         .tag-validade { font-size: 11px; background: #334155; padding: 2px 8px; border-radius: 4px; color: #cbd5e1; display: inline-block; margin-top: 5px; }
-        
         .btn-acao { width: auto; padding: 8px 16px; margin-left: 8px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 13px; text-transform: uppercase; font-weight: bold; }
     </style>
 </head>
@@ -46,6 +52,17 @@
         <div class="card">
             <input type="hidden" id="edit-id">
             
+            <div class="foto-container">
+                <div class="preview-box">
+                    <img id="img-preview" src="" style="display:none">
+                    <span id="img-placeholder" style="color:var(--borda); font-size: 30px;">📷</span>
+                </div>
+                <div class="foto-inputs">
+                    <label>URL DA FOTO</label>
+                    <input type="text" id="imagem" placeholder="Cole o link da imagem aqui" oninput="atualizarPreview()">
+                </div>
+            </div>
+
             <label>NOME DO PRODUTO</label>
             <input type="text" id="nome" placeholder="Ex: Batom Matte Rosa">
             
@@ -71,9 +88,6 @@
                 </div>
             </div>
 
-            <label>URL DA IMAGEM</label>
-            <input type="text" id="imagem" placeholder="https://...">
-
             <button class="btn-principal" id="btnSalvar" onclick="salvar()">GRAVAR NO INVENTÁRIO</button>
         </div>
 
@@ -81,8 +95,21 @@
     </div>
 
     <script>
-        // URL CORRETA
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
+
+        function atualizarPreview() {
+            const url = document.getElementById('imagem').value;
+            const preview = document.getElementById('img-preview');
+            const placeholder = document.getElementById('img-placeholder');
+            if (url) {
+                preview.src = url;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+            }
+        }
 
         async function carregar() {
             const div = document.getElementById('lista');
@@ -90,22 +117,21 @@
                 const res = await fetch(API);
                 const dados = await res.json();
                 div.innerHTML = '';
-                
-                let totalVenda = 0;
-                let totalCusto = 0;
+                let totalVenda = 0, totalCusto = 0;
 
                 dados.forEach(p => {
                     const precoV = parseFloat(p.preco || 0);
                     const precoC = parseFloat(p.preco_entrada || 0);
                     const qtd = parseInt(p.estoque || 0);
-
                     totalVenda += (precoV * qtd);
                     totalCusto += (precoC * qtd);
 
                     const dataVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
+                    const fotoUrl = p.imagem || 'https://via.placeholder.com/70?text=S/F';
 
                     div.innerHTML += `
                         <div class="produto-item">
+                            <img src="${fotoUrl}" class="img-lista" onerror="this.src='https://via.placeholder.com/70?text=Erro'">
                             <div class="info-principal">
                                 <span class="nome-produto">${p.nome}</span><br>
                                 <span style="color:var(--rosa); font-weight: 500;">€ ${precoV.toFixed(2)}</span> 
@@ -120,14 +146,11 @@
                         </div>`;
                 });
 
-                // Atualizar Dashboard
                 document.getElementById('dash-venda').innerText = `€ ${totalVenda.toFixed(2)}`;
                 document.getElementById('dash-custo').innerText = `€ ${totalCusto.toFixed(2)}`;
                 document.getElementById('dash-lucro').innerText = `€ ${(totalVenda - totalCusto).toFixed(2)}`;
 
-            } catch (e) { 
-                div.innerHTML = "<b style='color:red'>Erro ao carregar lista. Verifique se o servidor no Render está ativo.</b>"; 
-            }
+            } catch (e) { div.innerHTML = "Erro ao carregar lista."; }
         }
 
         async function salvar() {
@@ -164,17 +187,18 @@
             document.getElementById('estoque').value = p.estoque;
             document.getElementById('validade').value = p.validade || '';
             document.getElementById('imagem').value = p.imagem || '';
+            atualizarPreview();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetForm() {
             document.getElementById('edit-id').value = '';
-            const campos = ['nome', 'preco', 'preco_entrada', 'estoque', 'validade', 'imagem'];
-            campos.forEach(c => document.getElementById(c).value = '');
+            ['nome', 'preco', 'preco_entrada', 'estoque', 'validade', 'imagem'].forEach(c => document.getElementById(c).value = '');
+            atualizarPreview();
         }
 
         async function deletar(id) {
-            if (confirm("Deseja mesmo apagar este produto?")) {
+            if (confirm("Deseja apagar este produto?")) {
                 await fetch(`${API}/${id}`, { method: 'DELETE' });
                 carregar();
             }
