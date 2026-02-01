@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <script>
-        if (localStorage.getItem('token_gerente') !== 'logado_sucesso') {
+        // Agora verificamos o token exato que o servidor enviou
+        if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') {
             window.location.href = 'login-adm.html';
         }
     </script>
@@ -84,7 +85,7 @@
         <div class="area-relatorios">
             <span style="font-weight:bold; color:var(--label)">📑 Central de Relatórios:</span>
             <button class="btn-pdf" onclick="gerarPDF('inventario')">📦 Inventário Completo</button>
-            </div>
+        </div>
 
         <div class="card-cadastro">
             <div class="area-foto" onclick="document.getElementById('input-file').click()">
