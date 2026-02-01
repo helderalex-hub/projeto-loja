@@ -2,13 +2,19 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Gerente Pro | Beleza & Cia</title>
+    <title>Painel Administrativo | Beleza & Cia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --label: #cbd5e1; }
+        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --label: #cbd5e1; --verde: #22c55e; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
         .container { max-width: 800px; margin: 0 auto; }
         
+        /* Dashboard */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; }
+        .card-dash h3 { margin: 0; font-size: 13px; color: var(--label); text-transform: uppercase; }
+        .card-dash p { margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: var(--rosa-claro); }
+
         .card { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
@@ -17,23 +23,26 @@
         input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
         input:focus { border-color: var(--rosa); outline: none; }
         
-        button { background: var(--rosa); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; transition: 0.3s; font-size: 16px; }
-        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-principal { background: var(--rosa); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; transition: 0.3s; font-size: 16px; }
+        .btn-principal:hover { transform: translateY(-2px); filter: brightness(1.1); }
         
         .produto-item { background: var(--card); padding: 18px; margin-bottom: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-        .info-principal { flex: 1; }
-        
         .nome-produto { font-size: 18px; color: var(--rosa-claro); font-weight: bold; }
-        
         .tag-validade { font-size: 11px; background: #334155; padding: 2px 8px; border-radius: 4px; color: #cbd5e1; display: inline-block; margin-top: 5px; }
         
-        .btn-acao { width: auto; padding: 8px 16px; margin-left: 8px; margin-top: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-acao { width: auto; padding: 8px 16px; margin-left: 8px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 13px; text-transform: uppercase; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align:center; letter-spacing: -1px;">💎 Gerente <span style="color:var(--rosa)">Pro</span></h1>
+        <h1 style="text-align:center; letter-spacing: -1px;">💎 Painel <span style="color:var(--rosa)">Administrativo</span></h1>
         
+        <div class="dashboard">
+            <div class="card-dash"><h3>Total Venda (PVP)</h3><p id="dash-venda">€ 0.00</p></div>
+            <div class="card-dash"><h3>Total Custo</h3><p id="dash-custo">€ 0.00</p></div>
+            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
+        </div>
+
         <div class="card">
             <input type="hidden" id="edit-id">
             
@@ -65,14 +74,15 @@
             <label>URL DA IMAGEM</label>
             <input type="text" id="imagem" placeholder="https://...">
 
-            <button id="btnSalvar" onclick="salvar()">GRAVAR NO INVENTÁRIO</button>
+            <button class="btn-principal" id="btnSalvar" onclick="salvar()">GRAVAR NO INVENTÁRIO</button>
         </div>
 
-        <div id="lista">A carregar produtos...</div>
+        <div id="lista">A carregar inventário...</div>
     </div>
 
     <script>
-        const API = 'https://projeto-lo_ja-dzqv.onrender.com/produtos';
+        // URL CORRETA
+        const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
         async function carregar() {
             const div = document.getElementById('lista');
@@ -81,18 +91,26 @@
                 const dados = await res.json();
                 div.innerHTML = '';
                 
+                let totalVenda = 0;
+                let totalCusto = 0;
+
                 dados.forEach(p => {
+                    const precoV = parseFloat(p.preco || 0);
+                    const precoC = parseFloat(p.preco_entrada || 0);
+                    const qtd = parseInt(p.estoque || 0);
+
+                    totalVenda += (precoV * qtd);
+                    totalCusto += (precoC * qtd);
+
                     const dataVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
-                    const precoVenda = parseFloat(p.preco || 0).toFixed(2);
-                    const precoCusto = parseFloat(p.preco_entrada || 0).toFixed(2);
 
                     div.innerHTML += `
                         <div class="produto-item">
                             <div class="info-principal">
                                 <span class="nome-produto">${p.nome}</span><br>
-                                <span style="color:var(--rosa); font-weight: 500;">€ ${precoVenda}</span> 
-                                <small style="color:#64748b; margin-left:10px">Custo: € ${precoCusto}</small><br>
-                                <small>Estoque: <b>${p.estoque}</b></small><br>
+                                <span style="color:var(--rosa); font-weight: 500;">€ ${precoV.toFixed(2)}</span> 
+                                <small style="color:#64748b; margin-left:10px">Custo: € ${precoC.toFixed(2)}</small><br>
+                                <small>Estoque: <b>${qtd}</b></small><br>
                                 <span class="tag-validade">📅 Validade: ${dataVal}</span>
                             </div>
                             <div style="display:flex">
@@ -101,7 +119,15 @@
                             </div>
                         </div>`;
                 });
-            } catch (e) { div.innerHTML = "Erro ao carregar lista."; }
+
+                // Atualizar Dashboard
+                document.getElementById('dash-venda').innerText = `€ ${totalVenda.toFixed(2)}`;
+                document.getElementById('dash-custo').innerText = `€ ${totalCusto.toFixed(2)}`;
+                document.getElementById('dash-lucro').innerText = `€ ${(totalVenda - totalCusto).toFixed(2)}`;
+
+            } catch (e) { 
+                div.innerHTML = "<b style='color:red'>Erro ao carregar lista. Verifique se o servidor no Render está ativo.</b>"; 
+            }
         }
 
         async function salvar() {
