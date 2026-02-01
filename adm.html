@@ -2,103 +2,80 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Painel Administrativo | Beleza & Cia</title>
+    <title>Painel Admin | Beleza & Cia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <script>
-        // CADEADO DE SEGURANÇA
-        if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') {
-            window.location.href = 'login-adm.html';
-        }
-    </script>
-
+    <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
     <style>
-        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --label: #cbd5e1; --verde: #22c55e; --erro: #ef4444; --alerta: #f59e0b; }
+        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --verde: #22c55e; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
         .container { max-width: 850px; margin: 0 auto; }
         .header-top { text-align: center; margin-bottom: 20px; position: relative; }
-        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-        
+        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card-dash { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; }
-        .card-dash h3 { margin: 0; font-size: 12px; color: var(--label); text-transform: uppercase; }
-        .card-dash p { margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: var(--rosa-claro); }
-
         .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn-pdf { background: #475569; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s; }
+        .btn-pdf { background: #475569; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .btn-pdf:hover { background: var(--rosa); }
-
         .card-cadastro { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; flex-wrap: wrap; }
-        .area-foto { width: 180px; height: 180px; border: 2px dashed var(--rosa); border-radius: 12px; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; background: rgba(0,0,0,0.2); }
-        .area-foto img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+        
+        /* Ajuste Moderno da Imagem no Admin */
+        .area-foto { 
+            width: 180px; height: 180px; 
+            border: 2px dashed var(--rosa); border-radius: 12px; 
+            position: relative; cursor: pointer; 
+            background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; 
+        }
+        .area-foto img { width: 100%; height: 100%; object-fit: contain; }
         
         .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 250px; }
-        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; box-sizing: border-box; }
-        .btn-principal { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; }
+        .btn-principal { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
         
-        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .img-lista { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
-        .btn-acao { padding: 5px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; font-size: 11px; margin-left: 5px; }
-
-        .seccao-vendas { margin-bottom: 30px; }
-        .venda-item { padding: 10px; border-bottom: 1px solid #334155; font-size: 12px; }
+        .produto-item { background: var(--card); padding: 12px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .img-lista { width: 50px; height: 50px; border-radius: 6px; object-fit: contain; background: #000; }
+        .btn-acao { padding: 5px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; font-size: 11px; }
+        .venda-item { padding: 8px; border-bottom: 1px solid #334155; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header-top">
-            <h1>💎 Painel <span style="color:var(--rosa)">Administrativo</span></h1>
+            <h1>💎 Painel <span style="color:var(--rosa)">Admin</span></h1>
             <button class="btn-sair" onclick="sair()">🔒 SAIR</button>
         </div>
 
         <div class="dashboard">
             <div class="card-dash"><h3>Venda Bruta</h3><p id="dash-venda">€ 0.00</p></div>
             <div class="card-dash"><h3>Custos Stock</h3><p id="dash-custo">€ 0.00</p></div>
-            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
+            <div class="card-dash"><h3>Lucro</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
         </div>
 
         <div class="area-relatorios">
-            <div style="width:100%; color:var(--label); font-size:12px; margin-bottom:5px;">RELATÓRIOS & GUIAS DE ENVIO:</div>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('diario')" style="background:var(--rosa)">🚚 Guia de Envio (Hoje)</button>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('semanal')">📈 Balanço Semanal</button>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('mensal')">💰 Lucro Mensal</button>
-            <button class="btn-pdf" onclick="gerarPDF('inventario')" style="background:#1e293b">📦 Inventário Completo</button>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('diario')" style="background:var(--rosa)">🚚 Envio (Hoje)</button>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('semanal')">📈 Semanal</button>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('mensal')">💰 Mensal</button>
+            <button class="btn-pdf" onclick="gerarPDF('inventario')" style="background:#1e293b">📦 Stock</button>
         </div>
 
         <div class="card-cadastro">
             <div class="area-foto" onclick="document.getElementById('input-file').click()">
                 <img id="img-preview" src="" style="display:none">
-                <span id="txt-foto">📷 FOTO</span>
+                <span id="txt-foto">FOTO</span>
                 <input type="file" id="input-file" accept="image/*" style="display:none" onchange="processarFoto(this)">
                 <input type="hidden" id="imagem">
             </div>
             <div class="campos-texto">
-                <input type="hidden" id="edit-id">
-                <input type="text" id="nome" placeholder="Nome do Produto">
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="preco_entrada" step="0.01" placeholder="Custo (€)">
-                    <input type="number" id="preco" step="0.01" placeholder="Venda (€)">
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="estoque" placeholder="Qtd Stock">
-                    <input type="date" id="validade">
-                </div>
-                <button class="btn-principal" onclick="salvar()">Gravar no Inventário</button>
+                <input type="hidden" id="edit-id"><input type="text" id="nome" placeholder="Nome">
+                <div style="display:flex; gap:10px;"><input type="number" id="preco_entrada" placeholder="Custo €"><input type="number" id="preco" placeholder="Venda €"></div>
+                <div style="display:flex; gap:10px;"><input type="number" id="estoque" placeholder="Qtd"><input type="date" id="validade"></div>
+                <button class="btn-principal" onclick="salvar()">Gravar Produto</button>
             </div>
         </div>
 
-        <div class="seccao-vendas">
-            <h2 style="font-size:16px; color:var(--rosa-claro)">📦 Últimas Encomendas (Moradas)</h2>
-            <div id="lista-vendas" style="background:var(--card); border-radius:12px; padding:10px; border:1px solid var(--borda);">
-                Carregando vendas...
-            </div>
-        </div>
-
-        <h2 style="font-size:16px; color:var(--rosa-claro)">📋 Gestão de Stock</h2>
-        <div id="lista">Carregando inventário...</div>
+        <div style="margin-bottom:30px;"><h2 style="font-size:16px;color:var(--rosa-claro)">📦 Últimas Encomendas</h2><div id="lista-vendas" style="background:var(--card); border-radius:12px; padding:10px; border:1px solid var(--borda);"></div></div>
+        <h2 style="font-size:16px;color:var(--rosa-claro)">📋 Stock</h2><div id="lista"></div>
     </div>
 
     <script>
@@ -106,15 +83,13 @@
         let dadosGlobais = [];
 
         function sair() { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; }
-
         function processarFoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = e => {
                     document.getElementById('imagem').value = e.target.result;
                     const img = document.getElementById('img-preview');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
+                    img.src = e.target.result; img.style.display = 'block';
                     document.getElementById('txt-foto').style.display = 'none';
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -124,36 +99,14 @@
         async function carregar() {
             const res = await fetch(`${API}/produtos`);
             dadosGlobais = await res.json();
-            const div = document.getElementById('lista');
-            div.innerHTML = '';
+            const div = document.getElementById('lista'); div.innerHTML = '';
             let v=0, c=0;
-
-            const hoje = new Date();
-
             dadosGlobais.forEach(p => {
-                const q = p.estoque || 0;
-                v += (p.preco * q); c += (p.preco_entrada * q);
-                
-                // Lógica de Validade (6 meses)
-                let corVal = 'var(--label)';
-                let avisoVal = '';
-                if(p.validade) {
-                    const dVal = new Date(p.validade);
-                    const diff = (dVal - hoje) / (1000 * 60 * 60 * 24 * 30);
-                    if(diff < 0) { corVal = 'var(--erro)'; avisoVal = ' (VENCIDO)'; }
-                    else if(diff < 6) { corVal = 'var(--alerta)'; avisoVal = ' (VENCE EM BREVE)'; }
-                }
-
-                div.innerHTML += `
-                    <div class="produto-item">
-                        <img src="${p.imagem}" class="img-lista" onerror="this.src='https://via.placeholder.com/50'">
-                        <div style="flex:1">
-                            <b>${p.nome}</b><br>
-                            <small>Stock: ${q} | <span style="color:${corVal}">Val: ${p.validade || 'N/A'}${avisoVal}</span></small>
-                        </div>
-                        <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
-                        <button class="btn-acao" style="background:var(--erro)" onclick="deletar('${p.id}')">Apagar</button>
-                    </div>`;
+                const q = p.estoque || 0; v += (p.preco * q); c += (p.preco_entrada * q);
+                div.innerHTML += `<div class="produto-item"><img src="${p.imagem}" class="img-lista">
+                    <div style="flex:1"><b>${p.nome}</b><br><small>Stock: ${q} | Val: ${p.validade || 'N/A'}</small></div>
+                    <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
+                </div>`;
             });
             document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`;
             document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`;
@@ -162,88 +115,38 @@
         }
 
         async function carregarVendas() {
-            try {
-                const res = await fetch(`${API}/vendas`);
-                const vendas = await res.json();
-                const div = document.getElementById('lista-vendas');
-                div.innerHTML = vendas.length ? '' : 'Sem vendas registadas.';
-                vendas.slice(0, 5).forEach(v => {
-                    div.innerHTML += `
-                        <div class="venda-item">
-                            <div style="display:flex; justify-content:space-between">
-                                <b>${v.cliente_nome}</b>
-                                <span style="color:var(--verde)">+ €${v.total_venda.toFixed(2)}</span>
-                            </div>
-                            <div style="color:var(--label); font-size:11px; margin-top:3px;">📍 ${v.cliente_morada}</div>
-                        </div>`;
-                });
-            } catch(e) { console.log("Erro ao carregar vendas"); }
+            const res = await fetch(`${API}/vendas`);
+            const vendas = await res.json();
+            const div = document.getElementById('lista-vendas'); div.innerHTML = vendas.length ? '' : 'Sem vendas.';
+            vendas.slice(0, 5).forEach(v => {
+                div.innerHTML += `<div class="venda-item"><b>${v.cliente_nome}</b> - €${v.total_venda.toFixed(2)}<br><small>${v.cliente_morada}</small></div>`;
+            });
         }
 
         async function gerarRelatorioVendas(periodo) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
             const res = await fetch(`${API}/vendas?periodo=${periodo}`);
             const dados = await res.json();
-            
-            doc.setTextColor(214, 51, 132);
-            doc.text(periodo === 'diario' ? "Guia de Envios do Dia" : `Relatorio Financeiro - ${periodo}`, 14, 20);
-
-            let headers, body;
-            if(periodo === 'diario') {
-                headers = [["Cliente", "Morada Completa", "Itens Comprados"]];
-                body = dados.map(v => [v.cliente_nome, v.cliente_morada, v.itens.map(i=>i.nome).join(", ")]);
-            } else {
-                headers = [["Data", "Cliente", "Venda (€)", "Lucro (€)"]];
-                body = dados.map(v => [new Date(v.data_venda).toLocaleDateString(), v.cliente_nome, v.total_venda.toFixed(2), v.lucro.toFixed(2)]);
-            }
-
-            doc.autoTable({ startY: 30, head: headers, body: body, headStyles: {fillColor:[214,51,132]} });
-            doc.save(`Relatorio_${periodo}.pdf`);
-        }
-
-        async function gerarPDF(tipo) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("Inventário de Stock - Beleza & Cia", 14, 20);
-            const body = dadosGlobais.map(p => [p.nome, p.estoque, p.preco.toFixed(2), p.validade || 'N/A']);
-            doc.autoTable({ startY: 30, head: [["Produto", "Qtd", "Preço", "Validade"]], body: body });
-            doc.save("Inventario.pdf");
+            doc.text(periodo === 'diario' ? "Guia de Envios" : `Relatorio ${periodo}`, 14, 20);
+            let h = [["Data", "Cliente", "Total", "Lucro"]], b = dados.map(v => [new Date(v.data_venda).toLocaleDateString(), v.cliente_nome, v.total_venda, v.lucro]);
+            if(periodo === 'diario') { h = [["Cliente", "Morada", "Itens"]]; b = dados.map(v => [v.cliente_nome, v.cliente_morada, v.itens.map(i=>i.nome).join(", ")]); }
+            doc.autoTable({ startY: 30, head: h, body: b }); doc.save(`Relatorio_${periodo}.pdf`);
         }
 
         async function salvar() {
             const id = document.getElementById('edit-id').value;
-            const p = {
-                nome: document.getElementById('nome').value,
-                preco: parseFloat(document.getElementById('preco').value) || 0,
-                preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0,
-                estoque: parseInt(document.getElementById('estoque').value) || 0,
-                validade: document.getElementById('validade').value,
-                imagem: document.getElementById('imagem').value
-            };
-            await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, {
-                method: id ? 'PUT' : 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(p)
-            });
+            const p = { nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value) || 0, preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0, estoque: parseInt(document.getElementById('estoque').value) || 0, validade: document.getElementById('validade').value, imagem: document.getElementById('imagem').value };
+            await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, { method: id ? 'PUT' : 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
             location.reload();
         }
 
         function prepararEdicao(p) {
-            document.getElementById('edit-id').value = p.id;
-            document.getElementById('nome').value = p.nome;
-            document.getElementById('preco').value = p.preco;
-            document.getElementById('preco_entrada').value = p.preco_entrada;
-            document.getElementById('estoque').value = p.estoque;
-            document.getElementById('validade').value = p.validade;
-            document.getElementById('imagem').value = p.imagem;
-            const img = document.getElementById('img-preview');
-            img.src = p.imagem; img.style.display = 'block';
-            document.getElementById('txt-foto').style.display = 'none';
-            window.scrollTo({top: 0, behavior: 'smooth'});
+            document.getElementById('edit-id').value = p.id; document.getElementById('nome').value = p.nome;
+            document.getElementById('preco').value = p.preco; document.getElementById('preco_entrada').value = p.preco_entrada;
+            document.getElementById('estoque').value = p.estoque; document.getElementById('validade').value = p.validade;
+            document.getElementById('imagem').value = p.imagem; document.getElementById('img-preview').src = p.imagem;
+            document.getElementById('img-preview').style.display = 'block'; document.getElementById('txt-foto').style.display = 'none';
         }
-
-        async function deletar(id) { if(confirm("Apagar produto?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregar(); } }
 
         window.onload = carregar;
     </script>
