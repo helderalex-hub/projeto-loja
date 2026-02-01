@@ -4,7 +4,6 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// 1. CORS - Permite que a tua loja no GitHub fale com este servidor
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -13,7 +12,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// 2. WEBHOOK STRIPE - Regista a Venda, baixa stock e captura dados do Cliente
+// WEBHOOK: Regista venda, baixa stock e captura morada
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -35,7 +34,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             for (const id of ids) {
                 const { data: p } = await supabase.from('produtos').select('*').eq('id', id).single();
                 if (p) {
-                    // Baixa o stock no Supabase
                     await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - 1) }).eq('id', id);
                     custoTotalVenda += (p.preco_entrada || 0);
                     itensVendidos.push({ nome: p.nome, preco: p.preco });
@@ -43,7 +41,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             }
 
             const totalRecebido = session.amount_total / 100;
-            // Regista na tabela de vendas
             await supabase.from('vendas').insert([{
                 cliente_nome: session.customer_details.name,
                 cliente_email: session.customer_details.email,
@@ -59,13 +56,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.json({ received: true });
 });
 
-app.use(express.json({ limit: '10mb' })); // Aumentado para suportar fotos base64
+app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Rota para o Render saber que o servidor está vivo
-app.get('/', (req, res) => res.send("Servidor Beleza & Cia: ATIVO ✅"));
+app.get('/', (req, res) => res.send("API Beleza & Cia Ativa"));
 
-// 3. LOGIN ADMIN
 app.post('/login-admin', (req, res) => {
     const { senha } = req.body;
     const senhaCorreta = process.env.SENHA_ADMIN || 'admin2026';
@@ -73,7 +68,6 @@ app.post('/login-admin', (req, res) => {
     else res.status(401).json({ sucesso: false });
 });
 
-// 4. CRUD DE PRODUTOS (Com suporte a fotos e validades)
 app.get('/produtos', async (req, res) => {
     const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
     res.json(data || []);
@@ -95,31 +89,14 @@ app.delete('/produtos/:id', async (req, res) => {
     res.json({ success: true });
 });
 
-// 5. RELATÓRIOS DE VENDAS (Diário, Semanal, Mensal)
 app.get('/vendas', async (req, res) => {
     const { periodo } = req.query;
     let query = supabase.from('vendas').select('*').order('data_venda', { ascending: false });
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    if (periodo === 'diario') {
-        query = query.gte('data_venda', hoje.toISOString());
-    } else if (periodo === 'semanal') {
-        const semana = new Date();
-        semana.setDate(hoje.getDate() - 7);
-        query = query.gte('data_venda', semana.toISOString());
-    } else if (periodo === 'mensal') {
-        const mes = new Date();
-        mes.setDate(1); mes.setHours(0,0,0,0);
-        query = query.gte('data_venda', mes.toISOString());
-    }
-
-    const { data, error } = await query;
-    if (error) return res.status(500).json(error);
+    if (periodo === 'diario') query = query.gte('data_venda', new Date().setHours(0,0,0,0));
+    const { data } = await query;
     res.json(data || []);
 });
 
-// 6. CHECKOUT STRIPE
 app.post('/checkout', async (req, res) => {
     try {
         const itens = req.body;
@@ -143,8 +120,5 @@ app.post('/checkout', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// 7. CONFIGURAÇÃO DA PORTA (RESOLVE O ERRO TIMEOUT NO RENDER)
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor online na porta ${PORT}`);
-});
+app.listen(PORT, '0.0.0.0', () => console.log(`Porta ${PORT}`));
