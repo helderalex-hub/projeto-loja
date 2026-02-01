@@ -81,12 +81,9 @@
             const msg = document.getElementById('msg-erro');
             const btn = document.getElementById('btnEntrar');
 
-            // Proteção extra: se não achar o campo, para tudo
-            if (!campoSenha) return;
+            if (!campoSenha || !campoSenha.value) return;
 
-            const valorSenha = campoSenha.value;
-            if (!valorSenha) return; 
-
+            // Feedback visual
             btn.innerText = "A VERIFICAR...";
             btn.disabled = true;
             msg.style.display = 'none';
@@ -95,15 +92,25 @@
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ senha: valorSenha })
+                    body: JSON.stringify({ senha: campoSenha.value })
                 });
+
+                // Diagnóstico de erro comum (Servidor desatualizado)
+                if (res.status === 404) {
+                    alert("Atenção: O servidor ainda não atualizou.\nVá ao Render e faça 'Manual Deploy' para ativar o login.");
+                    btn.innerText = "ENTRAR NO PAINEL";
+                    btn.disabled = false;
+                    return;
+                }
 
                 const data = await res.json();
 
                 if (data.sucesso) {
+                    // SUCESSO: Guarda token e entra
                     localStorage.setItem('token_gerente', data.token);
                     window.location.href = 'adm.html';
                 } else {
+                    // ERRO: Senha errada
                     msg.innerText = "Senha incorreta!";
                     msg.style.display = 'block';
                     btn.innerText = "ENTRAR NO PAINEL";
@@ -113,30 +120,21 @@
                 }
             } catch (error) {
                 console.error(error);
-                msg.innerText = "Erro ao ligar ao servidor.";
+                msg.innerText = "Erro de conexão. Verifique o Render.";
                 msg.style.display = 'block';
                 btn.innerText = "ENTRAR NO PAINEL";
                 btn.disabled = false;
             }
         }
 
-        // --- A CORREÇÃO PRINCIPAL ESTÁ AQUI ---
-        // window.onload garante que o HTML existe antes de tentar buscar o ID 'senha'
+        // Garante que o script só roda depois da página existir (Corrige o erro null)
         window.onload = function() {
             const campoSenha = document.getElementById('senha');
-            
             if (campoSenha) {
-                // Foca no campo assim que abre a página
                 campoSenha.focus();
-
-                // Adiciona o evento de tecla Enter
                 campoSenha.addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') {
-                        entrar();
-                    }
+                    if (e.key === 'Enter') entrar();
                 });
-            } else {
-                console.error("Erro Crítico: Campo de senha não encontrado no HTML.");
             }
         };
     </script>
