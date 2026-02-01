@@ -4,318 +4,193 @@
     <meta charset="UTF-8">
     <title>Painel Administrativo | Beleza & Cia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <script>
-        const tokenGuardado = localStorage.getItem('token_gerente');
-        const tokenEsperado = 'logado_sucesso_servidor';
-
-        if (tokenGuardado !== tokenEsperado) {
+        if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') {
             window.location.href = 'login-adm.html';
         }
     </script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
     <style>
         :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --label: #cbd5e1; --verde: #22c55e; --erro: #ef4444; --alerta: #f59e0b; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
         .container { max-width: 850px; margin: 0 auto; }
-        
-        /* Cabeçalho e Logout */
         .header-top { text-align: center; margin-bottom: 20px; position: relative; }
-        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.3s; }
-        .btn-sair:hover { background: var(--erro); border-color: var(--erro); color: white; }
-
-        /* Dashboard */
+        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card-dash { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; }
-        .card-dash h3 { margin: 0; font-size: 12px; color: var(--label); text-transform: uppercase; }
-        .card-dash p { margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: var(--rosa-claro); }
-
-        /* Área de Relatórios */
-        .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-        .btn-pdf { background: #475569; color: white; border: 1px solid var(--label); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
-        .btn-pdf:hover { background: var(--rosa); border-color: var(--rosa); }
-
-        /* Cadastro */
-        .card-cadastro { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap; }
-        
-        .area-foto { width: 200px; height: 200px; background: rgba(214, 51, 132, 0.05); border: 2px dashed var(--rosa); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; flex-shrink: 0; }
-        .area-foto img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; }
-        .area-foto span { font-size: 12px; color: var(--rosa-claro); text-align: center; padding: 10px; z-index: 1; font-weight: bold; }
-
+        .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-pdf { background: #475569; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-pdf:hover { background: var(--rosa); }
+        .card-cadastro { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; flex-wrap: wrap; }
+        .area-foto { width: 180px; height: 180px; border: 2px dashed var(--rosa); border-radius: 12px; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .area-foto img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
         .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 250px; }
-        .grid-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        label { font-size: 13px; color: var(--label); font-weight: 500; }
-        
-        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; box-sizing: border-box; font-size: 13px; }
-        input[type="date"] { color-scheme: dark; cursor: pointer; } 
-        input:focus { border-color: var(--rosa); outline: none; }
-        
-        .btn-principal { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: auto; transition: 0.3s; font-size: 14px; text-transform: uppercase; }
-        
-        /* Lista */
-        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); gap: 15px; }
-        .img-lista { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #0f172a; }
-        .info-principal { flex: 1; }
-        .nome-produto { font-size: 16px; color: var(--rosa-claro); font-weight: bold; }
-        .alerta-estoque { color: var(--erro); font-weight: bold; font-size: 12px; margin-left: 5px; }
-        .alerta-validade { font-weight: bold; font-size: 12px; margin-left: 5px; }
-        .btn-acao { padding: 6px 12px; border-radius: 6px; border: none; color: white; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
-        
-        @media (max-width: 600px) {
-            .card-cadastro { flex-direction: column; }
-            .area-foto { width: 100%; height: 150px; }
-            .btn-sair { position: static; display: block; width: 100%; margin-bottom: 10px; }
-        }
+        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; box-sizing: border-box; }
+        .btn-principal { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .img-lista { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
+        .btn-acao { padding: 5px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; font-size: 11px; margin-left: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header-top">
-            <h1 style="margin:0; font-size: 24px;">💎 Painel <span style="color:var(--rosa)">Administrativo</span></h1>
+            <h1>💎 Painel <span style="color:var(--rosa)">Administrativo</span></h1>
             <button class="btn-sair" onclick="sair()">🔒 SAIR</button>
         </div>
-        
+
         <div class="dashboard">
-            <div class="card-dash"><h3>Receita Estimada</h3><p id="dash-venda">€ 0.00</p></div>
-            <div class="card-dash"><h3>Custo Estoque</h3><p id="dash-custo">€ 0.00</p></div>
+            <div class="card-dash"><h3>Venda Bruta</h3><p id="dash-venda">€ 0.00</p></div>
+            <div class="card-dash"><h3>Custos</h3><p id="dash-custo">€ 0.00</p></div>
             <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
         </div>
 
         <div class="area-relatorios">
-            <span style="font-weight:bold; color:var(--label)">📑 Central de Relatórios:</span>
-            <button class="btn-pdf" onclick="gerarPDF('inventario')">📦 Inventário Completo</button>
+            <div style="width:100%; color:var(--label); font-size:13px; margin-bottom:5px;">GERIR VENDAS & EXPEDIÇÃO:</div>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('diario')" style="background:var(--rosa)">🚚 Guia de Envio (Hoje)</button>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('semanal')">📈 Semanal</button>
+            <button class="btn-pdf" onclick="gerarRelatorioVendas('mensal')">💰 Mensal</button>
+            <button class="btn-pdf" onclick="gerarPDF('inventario')" style="background:#1e293b">📦 Stock</button>
         </div>
 
         <div class="card-cadastro">
             <div class="area-foto" onclick="document.getElementById('input-file').click()">
                 <img id="img-preview" src="" style="display:none">
-                <span id="txt-foto">📷<br>FOTO<br><small>(Clique aqui)</small></span>
+                <span id="txt-foto">FOTO</span>
                 <input type="file" id="input-file" accept="image/*" style="display:none" onchange="processarFoto(this)">
                 <input type="hidden" id="imagem">
             </div>
-
             <div class="campos-texto">
                 <input type="hidden" id="edit-id">
-                
-                <div>
-                    <label>NOME DO PRODUTO</label>
-                    <input type="text" id="nome" placeholder="Ex: Batom Matte">
+                <input type="text" id="nome" placeholder="Nome do Produto">
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="preco_entrada" step="0.01" placeholder="Custo (€)">
+                    <input type="number" id="preco" step="0.01" placeholder="Venda (€)">
                 </div>
-
-                <div class="grid-duplo">
-                    <div>
-                        <label>CUSTO UNIT. (€)</label>
-                        <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
-                    </div>
-                    <div>
-                        <label>VENDA UNIT. (€)</label>
-                        <input type="number" id="preco" step="0.01" placeholder="0.00">
-                    </div>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="estoque" placeholder="Qtd">
+                    <input type="date" id="validade">
                 </div>
-
-                <div class="grid-duplo">
-                    <div>
-                        <label>ESTOQUE</label>
-                        <input type="number" id="estoque" placeholder="0">
-                    </div>
-                    <div>
-                        <label>VALIDADE</label>
-                        <input type="date" id="validade">
-                    </div>
-                </div>
-
-                <button class="btn-principal" id="btnSalvar" onclick="salvar()">Gravar no Inventário</button>
+                <button class="btn-principal" onclick="salvar()">Gravar Produto</button>
             </div>
         </div>
 
-        <div id="lista">A carregar inventário...</div>
+        <div id="seccao-vendas" style="margin-bottom:30px;">
+            <h2 style="font-size:16px; color:var(--rosa-claro)">📦 Últimas Encomendas</h2>
+            <div id="lista-vendas" style="background:var(--card); border-radius:12px; padding:10px; border:1px solid var(--borda); font-size:12px;"></div>
+        </div>
+
+        <h2 style="font-size:16px; color:var(--rosa-claro)">📋 Inventário</h2>
+        <div id="lista">A carregar...</div>
     </div>
 
     <script>
-        const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
-        let dadosGlobais = []; 
+        const API = 'https://projeto-loja-dzqv.onrender.com';
+        let dadosGlobais = [];
 
-        // --- FUNÇÃO DE SAIR (LOGOUT) ---
-        function sair() {
-            if(confirm("Deseja sair do Painel?")) {
-                localStorage.removeItem('token_gerente');
-                window.location.href = 'login-adm.html';
-            }
-        }
+        function sair() { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; }
 
-        // --- FUNÇÕES DE FOTO ---
         function processarFoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64 = e.target.result;
-                    document.getElementById('imagem').value = base64;
-                    atualizarPreview(base64);
+                reader.onload = e => {
+                    document.getElementById('imagem').value = e.target.result;
+                    document.getElementById('img-preview').src = e.target.result;
+                    document.getElementById('img-preview').style.display = 'block';
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function atualizarPreview(url) {
-            const img = document.getElementById('img-preview');
-            const txt = document.getElementById('txt-foto');
-            if (url) {
-                img.src = url; img.style.display = 'block'; txt.style.opacity = '0';
-            } else {
-                img.style.display = 'none'; txt.style.opacity = '1';
-            }
+        async function carregar() {
+            const res = await fetch(`${API}/produtos`);
+            dadosGlobais = await res.json();
+            const div = document.getElementById('lista');
+            div.innerHTML = '';
+            let v=0, c=0;
+            dadosGlobais.forEach(p => {
+                const q = p.estoque || 0;
+                v += (p.preco * q); c += (p.preco_entrada * q);
+                div.innerHTML += `
+                    <div class="produto-item">
+                        <img src="${p.imagem}" class="img-lista">
+                        <div style="flex:1">
+                            <b>${p.nome}</b><br>
+                            <small>Stock: ${q} | Val: ${p.validade || 'N/A'}</small>
+                        </div>
+                        <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
+                        <button class="btn-acao" style="background:var(--erro)" onclick="deletar('${p.id}')">X</button>
+                    </div>`;
+            });
+            document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`;
+            document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`;
+            document.getElementById('dash-lucro').innerText = `€ ${(v-c).toFixed(2)}`;
+            carregarVendas();
         }
 
-        // --- PDF ---
-        function gerarPDF(tipo) {
+        async function carregarVendas() {
+            const res = await fetch(`${API}/vendas`);
+            const vendas = await res.json();
+            const div = document.getElementById('lista-vendas');
+            div.innerHTML = vendas.length ? '' : 'Sem vendas.';
+            vendas.slice(0, 5).forEach(v => {
+                div.innerHTML += `<div style="padding:8px; border-bottom:1px solid #334155;"><b>${v.cliente_nome}</b> - €${v.total_venda.toFixed(2)}<br><small>${v.cliente_morada}</small></div>`;
+            });
+        }
+
+        async function gerarRelatorioVendas(periodo) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
-            doc.setFontSize(18);
-            doc.setTextColor(214, 51, 132); 
-            doc.text("Relatório de Inventário & Lucratividade", 14, 20);
+            const res = await fetch(`${API}/vendas?periodo=${periodo}`);
+            const dados = await res.json();
             
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-PT')}`, 14, 28);
+            doc.setTextColor(214, 51, 132);
+            doc.text(periodo === 'diario' ? "Guia de Envios (Hoje)" : `Relatorio ${periodo}`, 14, 20);
 
-            const linhas = dadosGlobais.map(p => {
-                const custo = parseFloat(p.preco_entrada || 0);
-                const venda = parseFloat(p.preco || 0);
-                const margem = venda - custo;
-                const margemPct = custo > 0 ? ((margem / custo) * 100).toFixed(1) + '%' : '100%';
-                
-                return [p.nome, p.estoque, `€ ${custo.toFixed(2)}`, `€ ${venda.toFixed(2)}`, `€ ${margem.toFixed(2)}`, margemPct];
-            });
+            let headers = [["Data", "Cliente", "Total", "Lucro"]];
+            let body = dados.map(v => [new Date(v.data_venda).toLocaleDateString(), v.cliente_nome, v.total_venda, v.lucro]);
 
-            doc.autoTable({
-                startY: 35,
-                head: [['Produto', 'Qtd', 'Custo', 'Venda', 'Lucro Un.', 'Margem %']],
-                body: linhas,
-                headStyles: { fillColor: [214, 51, 132] },
-                theme: 'grid'
-            });
+            if(periodo === 'diario') {
+                headers = [["Cliente", "Morada", "Itens"]];
+                body = dados.map(v => [v.cliente_nome, v.cliente_morada, v.itens.map(i=>i.nome).join(", ")]);
+            }
 
-            doc.save(`Inventario_${new Date().toISOString().slice(0,10)}.pdf`);
-        }
-
-        // --- LÓGICA DO PAINEL ---
-        async function carregar() {
-            const div = document.getElementById('lista');
-            try {
-                const res = await fetch(API);
-                dadosGlobais = await res.json(); 
-                div.innerHTML = '';
-                let v = 0, c = 0;
-
-                dadosGlobais.forEach(p => {
-                    const pV = parseFloat(p.preco || 0), pC = parseFloat(p.preco_entrada || 0), q = parseInt(p.estoque || 0);
-                    v += (pV * q); c += (pC * q);
-                    
-                    // --- VALIDADE INTELIGENTE (6 Meses) ---
-                    let dVal = 'N/A';
-                    let estiloValidade = 'color:var(--label)';
-                    let avisoValidade = '';
-
-                    if (p.validade) {
-                        const dataVal = new Date(p.validade);
-                        dVal = dataVal.toLocaleDateString('pt-PT');
-                        const hoje = new Date();
-                        
-                        // Diferença em dias
-                        const diffDias = Math.ceil((dataVal - hoje) / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDias < 0) {
-                            estiloValidade = 'color:var(--erro); font-weight:bold';
-                            avisoValidade = '⛔ VENCIDO';
-                        } else if (diffDias <= 180) { // Menos de 6 meses
-                            estiloValidade = 'color:var(--alerta); font-weight:bold';
-                            avisoValidade = '⏳ Vence em breve!';
-                        }
-                    }
-
-                    // --- ESTOQUE CRÍTICO ---
-                    const isCritico = q < 5;
-                    const estiloEstoque = isCritico ? 'color: var(--erro); font-weight: bold;' : '';
-                    const msgCritico = isCritico ? '<span class="alerta-estoque">⚠️ BAIXO!</span>' : '';
-
-                    div.innerHTML += `
-                        <div class="produto-item">
-                            <img src="${p.imagem || ''}" class="img-lista" onerror="this.src='https://via.placeholder.com/60?text=S/F'">
-                            <div class="info-principal">
-                                <span class="nome-produto">${p.nome}</span><br>
-                                <span style="color:var(--rosa)">€ ${pV.toFixed(2)}</span> 
-                                <small style="color:#64748b; margin-left:8px">Custo: € ${pC.toFixed(2)}</small><br>
-                                <small>Estoque: <b style="${estiloEstoque}">${q}</b>${msgCritico}</small> | 
-                                <small style="${estiloValidade}">Val: ${dVal} <span class="alerta-validade">${avisoValidade}</span></small>
-                            </div>
-                            <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
-                            <button class="btn-acao" style="background:#ef4444" onclick="deletar('${p.id}')">Apagar</button>
-                        </div>`;
-                });
-
-                document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`;
-                document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`;
-                document.getElementById('dash-lucro').innerText = `€ ${(v - c).toFixed(2)}`;
-            } catch (e) { div.innerHTML = "Erro ao carregar lista."; }
+            doc.autoTable({ startY: 30, head: headers, body: body, headStyles: {fillColor:[214,51,132]} });
+            doc.save(`Vendas_${periodo}.pdf`);
         }
 
         async function salvar() {
             const id = document.getElementById('edit-id').value;
-            const btn = document.getElementById('btnSalvar');
-            btn.innerText = "A GUARDAR..."; btn.disabled = true;
-
-            const produto = {
+            const p = {
                 nome: document.getElementById('nome').value,
-                preco: parseFloat(document.getElementById('preco').value) || 0,
-                preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0,
-                estoque: parseInt(document.getElementById('estoque').value) || 0,
-                validade: document.getElementById('validade').value || null,
+                preco: parseFloat(document.getElementById('preco').value),
+                preco_entrada: parseFloat(document.getElementById('preco_entrada').value),
+                estoque: parseInt(document.getElementById('estoque').value),
+                validade: document.getElementById('validade').value,
                 imagem: document.getElementById('imagem').value
             };
-
-            try {
-                await fetch(id ? `${API}/${id}` : API, {
-                    method: id ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(produto)
-                });
-                resetForm();
-                carregar();
-            } catch (e) { alert("Erro ao guardar!"); }
-            btn.innerText = "Gravar no Inventário"; btn.disabled = false;
+            await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, {
+                method: id ? 'PUT' : 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(p)
+            });
+            location.reload();
         }
 
         function prepararEdicao(p) {
             document.getElementById('edit-id').value = p.id;
             document.getElementById('nome').value = p.nome;
             document.getElementById('preco').value = p.preco;
-            document.getElementById('preco_entrada').value = p.preco_entrada || '';
+            document.getElementById('preco_entrada').value = p.preco_entrada;
             document.getElementById('estoque').value = p.estoque;
-            document.getElementById('validade').value = p.validade || '';
-            document.getElementById('imagem').value = p.imagem || '';
-            atualizarPreview(p.imagem);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('validade').value = p.validade;
+            document.getElementById('imagem').value = p.imagem;
+            document.getElementById('img-preview').src = p.imagem;
+            document.getElementById('img-preview').style.display = 'block';
         }
 
-        function resetForm() {
-            document.getElementById('edit-id').value = '';
-            ['nome', 'preco', 'preco_entrada', 'estoque', 'validade', 'imagem', 'input-file'].forEach(id => {
-                const el = document.getElementById(id); if(el) el.value = '';
-            });
-            atualizarPreview('');
-        }
-
-        async function deletar(id) {
-            if (confirm("Apagar produto permanentemente?")) {
-                await fetch(`${API}/${id}`, { method: 'DELETE' });
-                carregar();
-            }
-        }
+        async function deletar(id) { if(confirm("Apagar?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregar(); } }
 
         window.onload = carregar;
     </script>
