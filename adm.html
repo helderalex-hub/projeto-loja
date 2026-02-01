@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <script>
+        // Se não tiver o token, expulsa para o login
         if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') {
             window.location.href = 'login-adm.html';
         }
@@ -17,19 +18,25 @@
 
     <style>
         :root { 
-            --dark: #0f172a; --card: #1e293b; 
-            --rosa: #d63384; --rosa-claro: #fda4af; 
-            --texto: #f8fafc; --borda: #334155; 
-            --label: #cbd5e1; --verde: #22c55e; 
-            --erro: #ef4444; --alerta: #f59e0b; 
+            --dark: #0f172a; 
+            --card: #1e293b; 
+            --rosa: #d63384; 
+            --rosa-claro: #fda4af; 
+            --texto: #f8fafc; 
+            --borda: #334155; 
+            --label: #cbd5e1; 
+            --verde: #22c55e; 
+            --erro: #ef4444; 
+            --alerta: #f59e0b; 
         }
+        
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
         .container { max-width: 950px; margin: 0 auto; }
         
         /* Cabeçalho */
         .header-top { text-align: center; margin-bottom: 25px; position: relative; }
         h1 { margin: 0; font-size: 24px; color: var(--rosa-claro); text-transform: uppercase; letter-spacing: 1px; }
-        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.3s; }
         .btn-sair:hover { border-color: var(--erro); color: var(--erro); }
 
         /* Dashboard Numérico */
@@ -41,13 +48,13 @@
         /* Área do Gráfico */
         .area-grafico { grid-column: 1 / -1; background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; height: 320px; position: relative; }
 
-        /* Relatórios */
+        /* Botões de Relatório */
         .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .titulo-seccao { width: 100%; font-size: 13px; color: var(--rosa-claro); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-        .btn-pdf { background: #475569; color: white; border: 1px solid var(--borda); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .btn-pdf { background: #475569; color: white; border: 1px solid var(--borda); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.3s; }
         .btn-pdf:hover { background: var(--rosa); border-color: var(--rosa); }
 
-        /* Formulário */
+        /* Formulário de Cadastro */
         .card-cadastro { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; flex-wrap: wrap; }
         .area-foto { width: 180px; height: 180px; background: #000; border: 2px dashed var(--rosa); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
         .area-foto img { width: 100%; height: 100%; object-fit: contain; position: absolute; }
@@ -59,7 +66,7 @@
         input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; box-sizing: border-box; }
         .btn-principal { background: var(--rosa); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: auto; text-transform: uppercase; }
 
-        /* Listas */
+        /* Lista de Produtos */
         .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); gap: 15px; }
         .img-lista { width: 60px; height: 60px; border-radius: 8px; object-fit: contain; background: #000; border: 1px solid #333; }
         .info-principal { flex: 1; }
@@ -69,6 +76,7 @@
         .btn-acao { padding: 8px 14px; border-radius: 6px; border: none; color: white; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
         .btn-editar { background: #3b82f6; } .btn-apagar { background: var(--erro); }
         
+        /* Lista de Vendas */
         .lista-box { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid var(--borda); max-height: 250px; overflow-y: auto; }
         .venda-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; display: flex; justify-content: space-between; }
     </style>
@@ -120,56 +128,91 @@
             </div>
         </div>
 
-        <div style="margin-bottom:30px;"><h2 class="titulo-seccao" style="font-size:16px;">📦 Últimas Encomendas</h2><div id="lista-vendas" class="lista-box">A carregar...</div></div>
+        <div style="margin-bottom:30px;">
+            <h2 class="titulo-seccao" style="font-size:16px;">📦 Últimas Encomendas</h2>
+            <div id="lista-vendas" class="lista-box">A carregar...</div>
+        </div>
+
         <h2 class="titulo-seccao" style="font-size:16px; margin-top:30px;">📋 Gestão de Estoque</h2>
         <div id="lista">A carregar...</div>
     </div>
 
     <script>
+        // CONFIGURAÇÃO DA API
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let dadosGlobais = []; 
         let graficoInstance = null;
 
+        // FUNÇÃO DE LOGOUT
         function sair() { if(confirm("Deseja sair?")) { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; } }
+        
+        // FUNÇÃO DE IMAGEM
         function processarFoto(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { document.getElementById('imagem').value = e.target.result; const i = document.getElementById('img-preview'); i.src = e.target.result; i.style.display='block'; document.getElementById('txt-foto').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
         
+        // CARREGAR DADOS INICIAIS
         async function carregar() {
             const div = document.getElementById('lista');
             try {
-                // 1. Produtos
-                const res = await fetch(`${API}/produtos`); dadosGlobais = await res.json(); div.innerHTML = '';
-                let v = 0, c = 0; const hoje = new Date();
+                // 1. Buscar Produtos
+                const res = await fetch(`${API}/produtos`); 
+                dadosGlobais = await res.json(); 
+                div.innerHTML = '';
+                
+                let v = 0, c = 0; 
+                const hoje = new Date();
+
                 dadosGlobais.forEach(p => {
                     const pV = parseFloat(p.preco||0), pC = parseFloat(p.preco_entrada||0), q = parseInt(p.estoque||0);
                     v += (pV * q); c += (pC * q);
+                    
+                    // Lógica de Validade e Alertas
                     let dVal='N/A', eVal='color:var(--label)', aVal='';
                     if (p.validade) {
-                        const d = new Date(p.validade); dVal = d.toLocaleDateString('pt-PT');
+                        const d = new Date(p.validade); 
+                        dVal = d.toLocaleDateString('pt-PT');
                         const diff = (d - hoje)/(1000*60*60*24*30);
                         if(d<hoje) { eVal='color:var(--erro);font-weight:bold'; aVal='⛔ VENCIDO'; }
                         else if(diff<=6) { eVal='color:var(--alerta);font-weight:bold'; aVal='⏳ Vence Breve'; }
                     }
+                    
+                    // Aviso de Estoque Baixo (< 5)
                     const msgCritico = q < 5 ? '<span class="alerta-estoque">⚠️ BAIXO!</span>' : '';
                     const estiloQtd = q < 5 ? 'color:var(--erro); font-weight:bold' : '';
-                    div.innerHTML += `<div class="produto-item"><img src="${p.imagem||''}" class="img-lista"><div class="info-principal"><span class="nome-produto">${p.nome}</span><span style="color:white">€ ${pV.toFixed(2)}</span> <small style="color:#64748b; margin-left:8px">Custo: € ${pC.toFixed(2)}</small><br><small>Estoque: <b style="${estiloQtd}">${q}</b> ${msgCritico}</small> | <small style="${eVal}">Val: ${dVal} ${aVal}</small></div><button class="btn-acao btn-editar" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button><button class="btn-acao btn-apagar" onclick="deletar('${p.id}')">Apagar</button></div>`;
+                    
+                    div.innerHTML += `
+                        <div class="produto-item">
+                            <img src="${p.imagem||''}" class="img-lista">
+                            <div class="info-principal">
+                                <span class="nome-produto">${p.nome}</span>
+                                <span style="color:white">€ ${pV.toFixed(2)}</span> 
+                                <small style="color:#64748b; margin-left:8px">Custo: € ${pC.toFixed(2)}</small><br>
+                                <small>Estoque: <b style="${estiloQtd}">${q}</b> ${msgCritico}</small> | 
+                                <small style="${eVal}">Val: ${dVal} ${aVal}</small>
+                            </div>
+                            <button class="btn-acao btn-editar" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
+                            <button class="btn-acao btn-apagar" onclick="deletar('${p.id}')">Apagar</button>
+                        </div>`;
                 });
+                
+                // Atualizar Dashboard
                 document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`; 
                 document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`; 
                 document.getElementById('dash-lucro').innerText = `€ ${(v-c).toFixed(2)}`;
                 
-                // 2. Vendas e Gráfico
+                // 2. Buscar Vendas e Renderizar Gráfico
                 carregarVendas();
             } catch(e) { div.innerHTML = "Erro ao carregar lista."; }
         }
 
         async function carregarVendas() {
             try {
-                const res = await fetch(`${API}/vendas?periodo=mensal`); // Traz vendas do mês para o gráfico
+                // Pede dados mensais para preencher o gráfico
+                const res = await fetch(`${API}/vendas?periodo=mensal`); 
                 const vendas = await res.json();
                 const div = document.getElementById('lista-vendas');
                 div.innerHTML = vendas.length ? '' : 'Nenhuma venda.';
                 
-                // Lista apenas as 5 últimas
+                // Mostra as 5 últimas vendas
                 vendas.slice(0, 5).forEach(v => {
                     div.innerHTML += `<div class="venda-item"><div><b style="color:var(--rosa-claro)">${v.cliente_nome}</b><br><small style="color:#94a3b8">📍 ${v.cliente_morada}</small></div><div style="text-align:right"><span style="color:var(--verde); font-weight:bold;">+ €${parseFloat(v.total_venda).toFixed(2)}</span><br><small style="color:#64748b">${new Date(v.data_venda).toLocaleDateString('pt-PT')}</small></div></div>`;
                 });
@@ -178,23 +221,25 @@
             } catch(e){}
         }
 
+        // FUNÇÃO DO GRÁFICO (Chart.js)
         function renderizarGrafico(vendas) {
             const ctx = document.getElementById('graficoVendas').getContext('2d');
             
-            // Agrupar vendas por data
+            // Agrupa vendas por dia
             const dadosPorDia = {};
             vendas.forEach(v => {
                 const dia = new Date(v.data_venda).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
                 dadosPorDia[dia] = (dadosPorDia[dia] || 0) + parseFloat(v.total_venda);
             });
 
-            const labels = Object.keys(dadosPorDia).reverse(); // Ordenar datas
+            // Prepara dados para o gráfico (invertendo para ficar cronológico)
+            const labels = Object.keys(dadosPorDia).reverse();
             const valores = Object.values(dadosPorDia).reverse();
 
-            if(graficoInstance) graficoInstance.destroy();
+            if(graficoInstance) graficoInstance.destroy(); // Limpa gráfico anterior
 
             graficoInstance = new Chart(ctx, {
-                type: 'bar',
+                type: 'bar', // Tipo barra
                 data: {
                     labels: labels,
                     datasets: [{
@@ -216,6 +261,7 @@
             });
         }
 
+        // SALVAR PRODUTO
         async function salvar() {
             const id = document.getElementById('edit-id').value; const btn = document.getElementById('btnSalvar'); btn.innerText = "A GUARDAR..."; btn.disabled = true;
             const p = { nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value)||0, preco_entrada: parseFloat(document.getElementById('preco_entrada').value)||0, estoque: parseInt(document.getElementById('estoque').value)||0, validade: document.getElementById('validade').value||null, imagem: document.getElementById('imagem').value };
@@ -223,14 +269,19 @@
             btn.innerText = "Gravar no Inventário"; btn.disabled = false;
         }
 
+        // EDITAR PRODUTO
         function prepararEdicao(p) {
             document.getElementById('edit-id').value=p.id; document.getElementById('nome').value=p.nome; document.getElementById('preco').value=p.preco; document.getElementById('preco_entrada').value=p.preco_entrada||''; document.getElementById('estoque').value=p.estoque; document.getElementById('validade').value=p.validade||''; document.getElementById('imagem').value=p.imagem||'';
             const i=document.getElementById('img-preview'); i.src=p.imagem||''; i.style.display=p.imagem?'block':'none'; document.getElementById('txt-foto').style.display=p.imagem?'none':'block'; window.scrollTo({top:0, behavior:'smooth'});
         }
 
+        // APAGAR PRODUTO
         async function deletar(id) { if(confirm("Apagar permanentemente?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregar(); } }
+        
+        // LIMPAR FORMULÁRIO
         function resetForm() { document.getElementById('edit-id').value=''; ['nome','preco','preco_entrada','estoque','validade','imagem','input-file'].forEach(i=>document.getElementById(i).value=''); document.getElementById('img-preview').style.display='none'; document.getElementById('txt-foto').style.display='block'; }
         
+        // GERAR PDF VENDAS
         async function gerarRelatorioVendas(per) {
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
             try {
@@ -242,6 +293,7 @@
             } catch(e){ alert("Erro PDF"); }
         }
         
+        // GERAR PDF INVENTÁRIO
         async function gerarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("Inventário", 14, 20); const b = dadosGlobais.map(p=>[p.nome, p.estoque, `€${p.preco.toFixed(2)}`, p.validade ? new Date(p.validade).toLocaleDateString():'N/A']); doc.autoTable({startY:30, head:[['Produto','Estoque','Preço','Validade']], body:b}); doc.save("Inventario.pdf"); }
         
         window.onload = carregar;
