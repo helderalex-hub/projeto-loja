@@ -11,22 +11,32 @@
         header { background: #000; padding: 30px 20px; text-align: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
         header h1 { margin: 0; color: var(--rosa); text-transform: uppercase; letter-spacing: 5px; font-size: 26px; }
         
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        /* Barra de Status */
+        .barra-status { background: #1a1a1a; padding: 10px; text-align: center; font-size: 13px; color: #888; border-bottom: 1px solid #333; }
+        .destaque-num { color: white; font-weight: bold; }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; min-height: 60vh; }
+        
+        .vitrine { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 30px; 
+            padding-bottom: 100px;
+        }
         
         .produto-card { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid #222; transition: 0.4s; position: relative; display: flex; flex-direction: column; }
         .produto-card:hover { transform: translateY(-5px); border-color: var(--rosa); }
         
-        .produto-card.sem-estoque { opacity: 0.6; pointer-events: none; }
-        .produto-card.sem-estoque img { filter: grayscale(100%); }
+        /* Estilo para Indisponível (Sem Estoque OU Vencido) */
+        .produto-card.indisponivel { opacity: 0.6; pointer-events: none; }
+        .produto-card.indisponivel img { filter: grayscale(100%); }
         
         .img-container { width: 100%; height: 320px; background: #000; position: relative; overflow: hidden; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         .produto-card:hover .img-container img { transform: scale(1.05); }
         
-        /* Etiquetas */
-        .overlay-indisponivel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; text-transform: uppercase; display: none; z-index: 5; border: 1px solid #555; }
-        .sem-estoque .overlay-indisponivel { display: block; }
+        .overlay-indisponivel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; text-transform: uppercase; display: none; z-index: 5; border: 1px solid #555; text-align: center; width: 80%; }
+        .indisponivel .overlay-indisponivel { display: block; }
         
         .info { padding: 25px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .info h3 { margin: 0 0 10px; font-size: 18px; color: var(--rosa-claro); }
@@ -52,8 +62,10 @@
 <body>
     <header><h1>💎 Beleza & Companhia</h1></header>
     
+    <div id="barra-info" class="barra-status">A carregar inventário...</div>
+
     <div class="container">
-        <div id="vitrine" class="vitrine">A carregar produtos...</div>
+        <div id="vitrine" class="vitrine"></div>
     </div>
     
     <button id="btn-carrinho" onclick="finalizarCompra()">
@@ -66,6 +78,8 @@
 
         async function carregarProdutos() {
             const vitrine = document.getElementById('vitrine');
+            const barraInfo = document.getElementById('barra-info');
+
             try {
                 const res = await fetch(`${API}/produtos`);
                 if (!res.ok) throw new Error("Erro ao ligar ao servidor");
@@ -73,42 +87,46 @@
                 const produtos = await res.json();
                 vitrine.innerHTML = '';
                 
-                let produtosVisiveis = 0;
                 const hoje = new Date();
-                hoje.setHours(0,0,0,0); // Compara apenas a data (ignora horas)
+                hoje.setHours(0,0,0,0);
 
                 if(produtos.length === 0) {
-                    vitrine.innerHTML = "<p style='text-align:center; width:100%'>Nenhum produto disponível.</p>";
+                    vitrine.innerHTML = "<p style='text-align:center; width:100%'>Nenhum produto cadastrado.</p>";
+                    barraInfo.innerText = "Sistema vazio.";
                     return;
                 }
 
                 produtos.forEach(p => {
-                    // --- FILTRO DE SEGURANÇA ---
-                    // Se estiver VENCIDO, não mostra na loja.
+                    // 1. Verifica Validade
+                    let isVencido = false;
                     if (p.validade) {
                         const dataVal = new Date(p.validade);
-                        if (dataVal < hoje) {
-                            return; // Pula este produto (esconde)
-                        }
+                        if (dataVal < hoje) isVencido = true;
                     }
-                    // --------------------------
 
-                    produtosVisiveis++;
+                    // 2. Verifica Stock
                     const stock = parseInt(p.estoque) || 0;
-                    const emStock = stock > 0;
-                    const stockBaixo = emStock && stock <= 5;
+                    
+                    // 3. Regra de Disponibilidade (Tem stock E não está vencido)
+                    const disponivel = (stock > 0) && !isVencido;
+
+                    // 4. Texto do Overlay (Inteligente)
+                    let textoOverlay = "Esgotado"; // Padrão
+                    if (isVencido) textoOverlay = "Indisponível (Validade)";
+
+                    const stockBaixo = disponivel && stock <= 5;
                     const precoFormatado = parseFloat(p.preco || 0).toFixed(2);
                     const imagem = p.imagem || 'https://via.placeholder.com/400x500?text=Sem+Foto';
 
                     vitrine.innerHTML += `
-                        <div class="produto-card ${!emStock ? 'sem-estoque' : ''}">
+                        <div class="produto-card ${!disponivel ? 'indisponivel' : ''}">
                             <div class="img-container">
-                                <div class="overlay-indisponivel">Esgotado</div>
+                                <div class="overlay-indisponivel">${textoOverlay}</div>
                                 <img src="${imagem}" onerror="this.src='https://via.placeholder.com/400x500?text=Erro+Foto'">
                             </div>
                             <div class="info">
                                 <h3>${p.nome}</h3>
-                                ${emStock ? `
+                                ${disponivel ? `
                                     <div class="preco">€${precoFormatado}</div>
                                     ${stockBaixo ? `<div class="alerta-stock">⚠️ Restam apenas ${stock} un!</div>` : '<div style="height:29px"></div>'}
                                     
@@ -120,14 +138,12 @@
                                         </div>
                                         <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imagem}')">Comprar</button>
                                     </div>
-                                ` : `<div class="msg-indisponivel">Produto indisponível</div>`}
+                                ` : `<div class="msg-indisponivel">${isVencido ? 'Produto retirado' : 'Sem stock no momento'}</div>`}
                             </div>
                         </div>`;
                 });
 
-                if (produtosVisiveis === 0) {
-                    vitrine.innerHTML = "<p style='text-align:center; width:100%'>Não há produtos disponíveis no momento.</p>";
-                }
+                barraInfo.innerHTML = `Total de Produtos na Vitrine: <span class="destaque-num">${produtos.length}</span>`;
 
             } catch (e) { 
                 console.error(e);
