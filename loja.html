@@ -13,7 +13,7 @@
         
         .container { max-width: 1200px; margin: 30px auto; padding: 0 15px; min-height: 60vh; }
         
-        /* Vitrine Ajustada para 4 itens por linha */
+        /* Grid de 4 colunas */
         .vitrine { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -21,29 +21,42 @@
             padding-bottom: 100px;
         }
 
-        /* Responsividade para tablets e telemóveis */
         @media (max-width: 1024px) { .vitrine { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) { .vitrine { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 480px) { .vitrine { grid-template-columns: 1fr; } }
         
         .produto-card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid #222; transition: 0.3s; position: relative; display: flex; flex-direction: column; }
-        .produto-card:hover { border-color: var(--rosa); }
         
-        /* Estado Indisponível (Unificado para Sem Stock e Vencidos) */
+        /* Estado Indisponível */
         .produto-card.indisponivel { opacity: 0.5; pointer-events: none; }
         .produto-card.indisponivel img { filter: grayscale(100%); }
         
         .img-container { width: 100%; height: 250px; background: #000; position: relative; overflow: hidden; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
         
-        .overlay-indisponivel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 15px; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 12px; z-index: 5; border: 1px solid #444; text-align: center; }
+        /* Faixa com texto Amarelo */
+        .overlay-indisponivel { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: rgba(0,0,0,0.85); 
+            color: #f39c12; /* AMARELO */
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            font-size: 13px; 
+            z-index: 5; 
+            border: 1px solid #f39c12; 
+            display: none; 
+            white-space: nowrap;
+        }
         .indisponivel .overlay-indisponivel { display: block; }
         
         .info { padding: 15px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .info h3 { margin: 0 0 8px; font-size: 15px; color: var(--rosa-claro); }
         .preco { font-size: 20px; color: #fff; font-weight: 700; margin-bottom: 5px; }
-        
-        .alerta-stock { color: var(--alerta); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
         
         .compra-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; }
         .qtd-seletor { display: flex; align-items: center; background: #222; border-radius: 6px; border: 1px solid #333; }
@@ -85,7 +98,7 @@
                     const vencido = dataVal && dataVal < hoje;
                     const stock = parseInt(p.estoque) || 0;
                     
-                    // Regra Unificada: Indisponível se stock for 0 OU se estiver vencido
+                    // Lógica corrigida: Disponível APENAS se tiver estoque E não estiver vencido
                     const disponivel = (stock > 0) && !vencido;
 
                     const precoFormatado = parseFloat(p.preco || 0).toFixed(2);
@@ -109,7 +122,7 @@
                                         </div>
                                         <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imagem}')">Comprar</button>
                                     </div>
-                                ` : `<div style="color:#666; font-size:13px; margin: 10px 0;">Temporariamente indisponível</div>`}
+                                ` : `<div style="color:#666; font-size:13px; margin: 10px 0; font-style: italic;">Produto indisponível</div>`}
                             </div>
                         </div>`;
                 });
@@ -130,8 +143,9 @@
             }
             document.getElementById('cart-count').innerText = carrinho.length;
             const btn = event.target;
+            const textoOriginal = btn.innerText;
             btn.innerText = "OK!";
-            setTimeout(() => { btn.innerText = "Comprar"; document.getElementById(`qtd-${id}`).innerText = 1; }, 800);
+            setTimeout(() => { btn.innerText = textoOriginal; document.getElementById(`qtd-${id}`).innerText = 1; }, 800);
         }
 
         async function finalizarCompra() {
