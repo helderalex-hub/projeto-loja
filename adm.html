@@ -2,123 +2,146 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Gerente | Beleza & Cia</title>
+    <title>Gerente Pro | Beleza & Cia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --texto: #f8fafc; }
-        body { font-family: sans-serif; background: var(--dark); color: var(--texto); padding: 20px; }
+        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --texto: #f8fafc; --borda: #334155; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
         .container { max-width: 800px; margin: 0 auto; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; box-sizing: border-box; }
-        button { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        button:hover { opacity: 0.8; }
-        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-        .btn-acao { width: auto; padding: 8px 15px; margin-left: 5px; font-size: 12px; }
+        .card { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; margin-top: 10px; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        input:focus { border-color: var(--rosa); outline: none; }
+        button { background: var(--rosa); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; transition: 0.3s; font-size: 16px; }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .produto-item { background: var(--card); padding: 15px; margin-bottom: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .info-principal { flex: 1; }
+        .tag-validade { font-size: 11px; background: #334155; padding: 2px 8px; border-radius: 4px; color: #cbd5e1; }
+        .btn-acao { width: auto; padding: 8px 12px; margin-left: 5px; margin-top: 0; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="color:var(--rosa)">💎 Gestão de Inventário</h1>
+        <h1 style="text-align:center; letter-spacing: -1px;">💎 Gerente <span style="color:var(--rosa)">Pro</span></h1>
         
         <div class="card">
             <input type="hidden" id="edit-id">
-            <input type="text" id="nome" placeholder="Nome do Produto">
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="preco" placeholder="Preço Venda €">
-                <input type="number" id="estoque" placeholder="Quantidade">
+            
+            <label>NOME DO PRODUTO</label>
+            <input type="text" id="nome" placeholder="Ex: Batom Matte Rosa">
+            
+            <div class="grid-campos">
+                <div>
+                    <label>PREÇO CUSTO (€)</label>
+                    <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
+                </div>
+                <div>
+                    <label>PREÇO VENDA (€)</label>
+                    <input type="number" id="preco" step="0.01" placeholder="0.00">
+                </div>
             </div>
-            <input type="text" id="imagem" placeholder="Link da Imagem (URL)">
-            <button id="btnSalvar" onclick="salvar()">GRAVAR PRODUTO</button>
+
+            <div class="grid-campos">
+                <div>
+                    <label>STOCK ATUAL</label>
+                    <input type="number" id="estoque" placeholder="0">
+                </div>
+                <div>
+                    <label>VALIDADE</label>
+                    <input type="date" id="validade">
+                </div>
+            </div>
+
+            <label>URL DA IMAGEM</label>
+            <input type="text" id="imagem" placeholder="https://...">
+
+            <button id="btnSalvar" onclick="salvar()">GRAVAR NO INVENTÁRIO</button>
         </div>
 
-        <div id="lista">A carregar inventário...</div>
+        <div id="lista">A carregar produtos...</div>
     </div>
 
     <script>
-        // URL CORRETA DA SUA API NO RENDER
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
 
         async function carregar() {
             const div = document.getElementById('lista');
             try {
                 const res = await fetch(API);
-                if (!res.ok) throw new Error("Falha ao ler dados");
                 const dados = await res.json();
-                
                 div.innerHTML = '';
-                if (dados.length === 0) div.innerHTML = "Nenhum produto cadastrado.";
                 
                 dados.forEach(p => {
+                    const dataVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
                     div.innerHTML += `
                         <div class="produto-item">
-                            <div>
-                                <strong>${p.nome}</strong><br>
-                                <small>Stock: ${p.estoque} | Preço: €${p.preco}</small>
+                            <div class="info-principal">
+                                <strong style="font-size:16px">${p.nome}</strong><br>
+                                <span style="color:var(--rosa)">€${p.preco}</span> 
+                                <small style="color:#64748b; margin-left:10px">Custo: €${p.preco_entrada || 0}</small><br>
+                                <small>Stock: <b>${p.estoque}</b></small> 
+                                <span class="tag-validade">📅 ${dataVal}</span>
                             </div>
-                            <div>
+                            <div style="display:flex">
                                 <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>✏️</button>
                                 <button class="btn-acao" style="background:#ef4444" onclick="deletar('${p.id}')">🗑️</button>
                             </div>
                         </div>`;
                 });
-            } catch (e) {
-                div.innerHTML = "<b style='color:red'>Erro ao ligar ao Servidor. Verifique se o Render está LIVE.</b>";
-            }
+            } catch (e) { div.innerHTML = "Erro ao carregar lista."; }
         }
 
         async function salvar() {
             const id = document.getElementById('edit-id').value;
             const btn = document.getElementById('btnSalvar');
-            btn.innerText = "A GUARDAR..."; btn.disabled = true;
+            btn.innerText = "A PROCESSAR..."; btn.disabled = true;
 
             const produto = {
                 nome: document.getElementById('nome').value,
-                preco: parseFloat(document.getElementById('preco').value),
-                estoque: parseInt(document.getElementById('estoque').value),
+                preco: parseFloat(document.getElementById('preco').value) || 0,
+                preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0,
+                estoque: parseInt(document.getElementById('estoque').value) || 0,
+                validade: document.getElementById('validade').value || null,
                 imagem: document.getElementById('imagem').value
             };
 
             try {
-                const metodo = id ? 'PUT' : 'POST';
-                const url = id ? `${API}/${id}` : API;
-
-                await fetch(url, {
-                    method: metodo,
+                await fetch(id ? `${API}/${id}` : API, {
+                    method: id ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(produto)
                 });
-                
-                // Limpar formulário e recarregar
-                document.getElementById('edit-id').value = '';
-                document.getElementById('nome').value = '';
-                document.getElementById('preco').value = '';
-                document.getElementById('estoque').value = '';
-                document.getElementById('imagem').value = '';
-                btn.innerText = "GRAVAR PRODUTO"; btn.disabled = false;
+                resetForm();
                 carregar();
-            } catch (e) {
-                alert("Erro ao salvar!");
-                btn.innerText = "GRAVAR PRODUTO"; btn.disabled = false;
-            }
+            } catch (e) { alert("Erro ao guardar!"); }
+            btn.innerText = "GRAVAR NO INVENTÁRIO"; btn.disabled = false;
         }
 
         function prepararEdicao(p) {
             document.getElementById('edit-id').value = p.id;
             document.getElementById('nome').value = p.nome;
             document.getElementById('preco').value = p.preco;
+            document.getElementById('preco_entrada').value = p.preco_entrada || '';
             document.getElementById('estoque').value = p.estoque;
-            document.getElementById('imagem').value = p.imagem;
+            document.getElementById('validade').value = p.validade || '';
+            document.getElementById('imagem').value = p.imagem || '';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function resetForm() {
+            document.getElementById('edit-id').value = '';
+            const campos = ['nome', 'preco', 'preco_entrada', 'estoque', 'validade', 'imagem'];
+            campos.forEach(c => document.getElementById(c).value = '');
+        }
+
         async function deletar(id) {
-            if (confirm("Tem certeza que deseja eliminar este produto?")) {
+            if (confirm("Eliminar produto?")) {
                 await fetch(`${API}/${id}`, { method: 'DELETE' });
                 carregar();
             }
         }
 
-        // Iniciar
         window.onload = carregar;
     </script>
 </body>
