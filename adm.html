@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Painel Administrativo | Beleza & Cia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --label: #cbd5e1; --verde: #22c55e; --erro: #ef4444; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
@@ -14,6 +17,11 @@
         .card-dash { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; }
         .card-dash h3 { margin: 0; font-size: 12px; color: var(--label); text-transform: uppercase; }
         .card-dash p { margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: var(--rosa-claro); }
+
+        /* Área de Relatórios */
+        .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .btn-pdf { background: #475569; color: white; border: 1px solid var(--label); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
+        .btn-pdf:hover { background: var(--rosa); border-color: var(--rosa); }
 
         /* Cadastro */
         .card-cadastro { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; align-items: stretch; }
@@ -26,7 +34,11 @@
         .grid-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
         label { font-size: 13px; color: var(--label); font-weight: 500; }
+        
+        /* Inputs melhorados */
         input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; box-sizing: border-box; font-size: 13px; }
+        input[type="date"] { color-scheme: dark; cursor: pointer; } /* Melhora o calendário */
+        input:focus { border-color: var(--rosa); outline: none; }
         
         .btn-principal { background: var(--rosa); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: auto; transition: 0.3s; font-size: 14px; text-transform: uppercase; }
         
@@ -35,7 +47,6 @@
         .img-lista { width: 65px; height: 65px; border-radius: 8px; object-fit: cover; background: #0f172a; }
         .info-principal { flex: 1; }
         .nome-produto { font-size: 16px; color: var(--rosa-claro); font-weight: bold; }
-        
         .alerta-estoque { color: var(--erro); font-weight: bold; font-size: 12px; margin-left: 5px; }
         .btn-acao { padding: 6px 12px; border-radius: 6px; border: none; color: white; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
     </style>
@@ -45,15 +56,22 @@
         <h1 style="text-align:center; font-size: 24px;">💎 Painel <span style="color:var(--rosa)">Administrativo</span></h1>
         
         <div class="dashboard">
-            <div class="card-dash"><h3>Receita Total Estimada</h3><p id="dash-venda">€ 0.00</p></div>
-            <div class="card-dash"><h3>Custo Total</h3><p id="dash-custo">€ 0.00</p></div>
-            <div class="card-dash"><h3>Lucro</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
+            <div class="card-dash"><h3>Receita Estimada</h3><p id="dash-venda">€ 0.00</p></div>
+            <div class="card-dash"><h3>Custo Estoque</h3><p id="dash-custo">€ 0.00</p></div>
+            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
+        </div>
+
+        <div class="area-relatorios">
+            <span style="font-weight:bold; color:var(--label)">📑 Central de Relatórios:</span>
+            <button class="btn-pdf" onclick="gerarPDF('inventario')">📦 Inventário Completo</button>
+            <button class="btn-pdf" style="opacity:0.5; cursor:not-allowed" title="Requer histórico de vendas">📅 Vendas Mês (Em breve)</button>
+            <button class="btn-pdf" style="opacity:0.5; cursor:not-allowed" title="Requer histórico de vendas">📆 Vendas Dia (Em breve)</button>
         </div>
 
         <div class="card-cadastro">
             <div class="area-foto" onclick="document.getElementById('input-file').click()">
                 <img id="img-preview" src="" style="display:none">
-                <span id="txt-foto">📷<br>CLIQUE PARA CARREGAR FOTO<br><small>(Downloads / Arquivos)</small></span>
+                <span id="txt-foto">📷<br>CARREGAR FOTO<br><small>(Do Computador)</small></span>
                 <input type="file" id="input-file" accept="image/*" style="display:none" onchange="processarFoto(this)">
                 <input type="hidden" id="imagem">
             </div>
@@ -68,11 +86,11 @@
 
                 <div class="grid-duplo">
                     <div>
-                        <label>CUSTO (€)</label>
+                        <label>CUSTO UNIT. (€)</label>
                         <input type="number" id="preco_entrada" step="0.01" placeholder="0.00">
                     </div>
                     <div>
-                        <label>VENDA (€)</label>
+                        <label>VENDA UNIT. (€)</label>
                         <input type="number" id="preco" step="0.01" placeholder="0.00">
                     </div>
                 </div>
@@ -97,8 +115,9 @@
 
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com/produtos';
+        let dadosGlobais = []; // Guarda os dados para usar no PDF
 
-        // Converte a imagem do seu computador para texto (Base64)
+        // --- FUNÇÕES DE FOTO ---
         function processarFoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -115,33 +134,75 @@
             const img = document.getElementById('img-preview');
             const txt = document.getElementById('txt-foto');
             if (url) {
-                img.src = url;
-                img.style.display = 'block';
-                txt.style.opacity = '0';
+                img.src = url; img.style.display = 'block'; txt.style.opacity = '0';
             } else {
-                img.style.display = 'none';
-                txt.style.opacity = '1';
+                img.style.display = 'none'; txt.style.opacity = '1';
             }
         }
 
+        // --- FUNÇÕES DE RELATÓRIO PDF ---
+        function gerarPDF(tipo) {
+            if (tipo !== 'inventario') { alert("Precisamos configurar o histórico de vendas primeiro!"); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Título
+            doc.setFontSize(18);
+            doc.setTextColor(214, 51, 132); // Rosa
+            doc.text("Relatório de Inventário & Lucratividade", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-PT')}`, 14, 28);
+
+            // Preparar dados para a tabela
+            const linhas = dadosGlobais.map(p => {
+                const custo = parseFloat(p.preco_entrada || 0);
+                const venda = parseFloat(p.preco || 0);
+                const margem = venda - custo;
+                const margemPct = custo > 0 ? ((margem / custo) * 100).toFixed(1) + '%' : '100%';
+                
+                return [
+                    p.nome,
+                    p.estoque,
+                    `€ ${custo.toFixed(2)}`,
+                    `€ ${venda.toFixed(2)}`,
+                    `€ ${margem.toFixed(2)}`,
+                    margemPct
+                ];
+            });
+
+            // Gerar Tabela
+            doc.autoTable({
+                startY: 35,
+                head: [['Produto', 'Qtd', 'Custo', 'Venda', 'Lucro Unit.', 'Margem %']],
+                body: linhas,
+                headStyles: { fillColor: [214, 51, 132] }, // Cabeçalho Rosa
+                theme: 'grid'
+            });
+
+            // Salvar
+            doc.save(`Inventario_BelezaCia_${new Date().toISOString().slice(0,10)}.pdf`);
+        }
+
+        // --- LÓGICA DO PAINEL ---
         async function carregar() {
             const div = document.getElementById('lista');
             try {
                 const res = await fetch(API);
-                const dados = await res.json();
+                dadosGlobais = await res.json(); // Salva para o PDF
                 div.innerHTML = '';
                 let v = 0, c = 0;
 
-                dados.forEach(p => {
+                dadosGlobais.forEach(p => {
                     const pV = parseFloat(p.preco || 0), pC = parseFloat(p.preco_entrada || 0), q = parseInt(p.estoque || 0);
                     v += (pV * q); c += (pC * q);
-                    
                     const dVal = p.validade ? new Date(p.validade).toLocaleDateString('pt-PT') : 'N/A';
                     
-                    // Lógica de estoque crítico
                     const isCritico = q < 5;
                     const estiloEstoque = isCritico ? 'color: var(--erro); font-weight: bold;' : '';
-                    const msgCritico = isCritico ? '<span class="alerta-estoque">⚠️ ESTOQUE CRÍTICO!</span>' : '';
+                    const msgCritico = isCritico ? '<span class="alerta-estoque">⚠️ BAIXO!</span>' : '';
 
                     div.innerHTML += `
                         <div class="produto-item">
@@ -205,14 +266,13 @@
         function resetForm() {
             document.getElementById('edit-id').value = '';
             ['nome', 'preco', 'preco_entrada', 'estoque', 'validade', 'imagem', 'input-file'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.value = '';
+                const el = document.getElementById(id); if(el) el.value = '';
             });
             atualizarPreview('');
         }
 
         async function deletar(id) {
-            if (confirm("Apagar este produto permanentemente?")) {
+            if (confirm("Apagar produto permanentemente?")) {
                 await fetch(`${API}/${id}`, { method: 'DELETE' });
                 carregar();
             }
