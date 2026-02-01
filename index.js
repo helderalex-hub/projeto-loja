@@ -140,4 +140,18 @@ app.post('/checkout', async (req, res) => {
             payment_method_types: ['card'],
             line_items,
             mode: 'payment',
-            success_url: '
+            success_url: 'https://helderalex-hub.github.io/projeto-loja/sucesso.html',
+            cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
+            metadata: {
+                ids_produtos: itens.map(i => i.id).join(',')
+            }
+        });
+
+        res.json({ url: session.url });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
