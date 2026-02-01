@@ -2,31 +2,27 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Painel Admin | Beleza & Cia</title>
+    <title>Painel Administrativo | Beleza & Cia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --verde: #22c55e; }
+        :root { --dark: #0f172a; --card: #1e293b; --rosa: #d63384; --rosa-claro: #fda4af; --texto: #f8fafc; --borda: #334155; --verde: #22c55e; --erro: #ef4444; --alerta: #f59e0b; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
         .container { max-width: 850px; margin: 0 auto; }
         .header-top { text-align: center; margin-bottom: 20px; position: relative; }
         .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+        
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card-dash { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; }
+        
         .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
         .btn-pdf { background: #475569; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
-        .btn-pdf:hover { background: var(--rosa); }
-        .card-cadastro { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; flex-wrap: wrap; }
         
-        /* Ajuste Moderno da Imagem no Admin */
-        .area-foto { 
-            width: 180px; height: 180px; 
-            border: 2px dashed var(--rosa); border-radius: 12px; 
-            position: relative; cursor: pointer; 
-            background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; 
-        }
+        .card-cadastro { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; flex-wrap: wrap; }
+        /* NOVO LAYOUT DE IMAGEM */
+        .area-foto { width: 180px; height: 180px; border: 2px dashed var(--rosa); border-radius: 12px; cursor: pointer; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .area-foto img { width: 100%; height: 100%; object-fit: contain; }
         
         .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 250px; }
@@ -35,8 +31,7 @@
         
         .produto-item { background: var(--card); padding: 12px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .img-lista { width: 50px; height: 50px; border-radius: 6px; object-fit: contain; background: #000; }
-        .btn-acao { padding: 5px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; font-size: 11px; }
-        .venda-item { padding: 8px; border-bottom: 1px solid #334155; font-size: 12px; }
+        .btn-acao { padding: 6px 12px; border-radius: 6px; border: none; color: white; cursor: pointer; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -48,7 +43,7 @@
 
         <div class="dashboard">
             <div class="card-dash"><h3>Venda Bruta</h3><p id="dash-venda">€ 0.00</p></div>
-            <div class="card-dash"><h3>Custos Stock</h3><p id="dash-custo">€ 0.00</p></div>
+            <div class="card-dash"><h3>Custos</h3><p id="dash-custo">€ 0.00</p></div>
             <div class="card-dash"><h3>Lucro</h3><p id="dash-lucro" style="color:var(--verde)">€ 0.00</p></div>
         </div>
 
@@ -56,13 +51,12 @@
             <button class="btn-pdf" onclick="gerarRelatorioVendas('diario')" style="background:var(--rosa)">🚚 Envio (Hoje)</button>
             <button class="btn-pdf" onclick="gerarRelatorioVendas('semanal')">📈 Semanal</button>
             <button class="btn-pdf" onclick="gerarRelatorioVendas('mensal')">💰 Mensal</button>
-            <button class="btn-pdf" onclick="gerarPDF('inventario')" style="background:#1e293b">📦 Stock</button>
         </div>
 
         <div class="card-cadastro">
             <div class="area-foto" onclick="document.getElementById('input-file').click()">
                 <img id="img-preview" src="" style="display:none">
-                <span id="txt-foto">FOTO</span>
+                <span id="txt-foto">📷 FOTO</span>
                 <input type="file" id="input-file" accept="image/*" style="display:none" onchange="processarFoto(this)">
                 <input type="hidden" id="imagem">
             </div>
@@ -74,8 +68,8 @@
             </div>
         </div>
 
-        <div style="margin-bottom:30px;"><h2 style="font-size:16px;color:var(--rosa-claro)">📦 Últimas Encomendas</h2><div id="lista-vendas" style="background:var(--card); border-radius:12px; padding:10px; border:1px solid var(--borda);"></div></div>
-        <h2 style="font-size:16px;color:var(--rosa-claro)">📋 Stock</h2><div id="lista"></div>
+        <h2 style="font-size:16px;color:var(--rosa-claro)">📋 Stock & Gestão</h2>
+        <div id="lista">A carregar...</div>
     </div>
 
     <script>
@@ -83,6 +77,7 @@
         let dadosGlobais = [];
 
         function sair() { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; }
+        
         function processarFoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -101,26 +96,71 @@
             dadosGlobais = await res.json();
             const div = document.getElementById('lista'); div.innerHTML = '';
             let v=0, c=0;
+            const hoje = new Date();
+
             dadosGlobais.forEach(p => {
-                const q = p.estoque || 0; v += (p.preco * q); c += (p.preco_entrada * q);
-                div.innerHTML += `<div class="produto-item"><img src="${p.imagem}" class="img-lista">
-                    <div style="flex:1"><b>${p.nome}</b><br><small>Stock: ${q} | Val: ${p.validade || 'N/A'}</small></div>
-                    <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
-                </div>`;
+                const q = p.estoque || 0;
+                v += (p.preco * q); c += (p.preco_entrada * q);
+                
+                let corVal = 'var(--label)';
+                if(p.validade) {
+                    const diff = (new Date(p.validade) - hoje) / (1000 * 60 * 60 * 24 * 30);
+                    if(diff < 0) corVal = 'var(--erro)';
+                    else if(diff < 6) corVal = 'var(--alerta)';
+                }
+
+                div.innerHTML += `
+                    <div class="produto-item">
+                        <img src="${p.imagem}" class="img-lista">
+                        <div style="flex:1">
+                            <b>${p.nome}</b><br>
+                            <small>Stock: ${q} | <span style="color:${corVal}">Val: ${p.validade || 'N/A'}</span></small>
+                        </div>
+                        <button class="btn-acao" style="background:#3b82f6" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button>
+                        <button class="btn-acao" style="background:var(--erro)" onclick="deletar('${p.id}')">Apagar</button>
+                    </div>`;
             });
             document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`;
             document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`;
             document.getElementById('dash-lucro').innerText = `€ ${(v-c).toFixed(2)}`;
-            carregarVendas();
         }
 
-        async function carregarVendas() {
-            const res = await fetch(`${API}/vendas`);
-            const vendas = await res.json();
-            const div = document.getElementById('lista-vendas'); div.innerHTML = vendas.length ? '' : 'Sem vendas.';
-            vendas.slice(0, 5).forEach(v => {
-                div.innerHTML += `<div class="venda-item"><b>${v.cliente_nome}</b> - €${v.total_venda.toFixed(2)}<br><small>${v.cliente_morada}</small></div>`;
+        async function salvar() {
+            const id = document.getElementById('edit-id').value;
+            const p = { 
+                nome: document.getElementById('nome').value, 
+                preco: parseFloat(document.getElementById('preco').value) || 0, 
+                preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0, 
+                estoque: parseInt(document.getElementById('estoque').value) || 0, 
+                validade: document.getElementById('validade').value, 
+                imagem: document.getElementById('imagem').value 
+            };
+            await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, { 
+                method: id ? 'PUT' : 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(p) 
             });
+            location.reload();
+        }
+
+        function prepararEdicao(p) {
+            document.getElementById('edit-id').value = p.id;
+            document.getElementById('nome').value = p.nome;
+            document.getElementById('preco').value = p.preco;
+            document.getElementById('preco_entrada').value = p.preco_entrada;
+            document.getElementById('estoque').value = p.estoque;
+            document.getElementById('validade').value = p.validade;
+            document.getElementById('imagem').value = p.imagem;
+            const img = document.getElementById('img-preview');
+            img.src = p.imagem; img.style.display = 'block';
+            document.getElementById('txt-foto').style.display = 'none';
+        }
+
+        async function deletar(id) { 
+            if(confirm("Deseja apagar este produto permanentemente?")) { 
+                await fetch(`${API}/produtos/${id}`, { method: 'DELETE' }); 
+                carregar(); 
+            } 
         }
 
         async function gerarRelatorioVendas(periodo) {
@@ -130,22 +170,7 @@
             doc.text(periodo === 'diario' ? "Guia de Envios" : `Relatorio ${periodo}`, 14, 20);
             let h = [["Data", "Cliente", "Total", "Lucro"]], b = dados.map(v => [new Date(v.data_venda).toLocaleDateString(), v.cliente_nome, v.total_venda, v.lucro]);
             if(periodo === 'diario') { h = [["Cliente", "Morada", "Itens"]]; b = dados.map(v => [v.cliente_nome, v.cliente_morada, v.itens.map(i=>i.nome).join(", ")]); }
-            doc.autoTable({ startY: 30, head: h, body: b }); doc.save(`Relatorio_${periodo}.pdf`);
-        }
-
-        async function salvar() {
-            const id = document.getElementById('edit-id').value;
-            const p = { nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value) || 0, preco_entrada: parseFloat(document.getElementById('preco_entrada').value) || 0, estoque: parseInt(document.getElementById('estoque').value) || 0, validade: document.getElementById('validade').value, imagem: document.getElementById('imagem').value };
-            await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, { method: id ? 'PUT' : 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
-            location.reload();
-        }
-
-        function prepararEdicao(p) {
-            document.getElementById('edit-id').value = p.id; document.getElementById('nome').value = p.nome;
-            document.getElementById('preco').value = p.preco; document.getElementById('preco_entrada').value = p.preco_entrada;
-            document.getElementById('estoque').value = p.estoque; document.getElementById('validade').value = p.validade;
-            document.getElementById('imagem').value = p.imagem; document.getElementById('img-preview').src = p.imagem;
-            document.getElementById('img-preview').style.display = 'block'; document.getElementById('txt-foto').style.display = 'none';
+            doc.autoTable({ startY: 30, head: h, body: b }); doc.save(`Vendas_${periodo}.pdf`);
         }
 
         window.onload = carregar;
