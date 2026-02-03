@@ -2,25 +2,28 @@ const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 const nodemailer = require('nodemailer');
+const dns = require('dns'); // <--- NOVO: Biblioteca de DNS
+
+// --- CORREÇÃO TÉCNICA OBRIGATÓRIA PARA RENDER ---
+// Força o Node.js a usar IPv4. Resolve o erro ETIMEDOUT no Gmail.
+dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 
-// --- CONFIGURAÇÃO DO EMAIL (MODO ANTI-BLOQUEIO RENDER) ---
+// --- CONFIGURAÇÃO DO EMAIL (GMAIL SIMPLIFICADO) ---
+// Usamos o 'service: gmail' que já traz as portas corretas embutidas
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,              // Porta Padrão (STARTTLS)
-    secure: false,          // false para porta 587
+    service: 'gmail', 
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
     tls: {
-        rejectUnauthorized: false // <--- O SEGREDO: Ignora erros de certificado que causam timeout
-    },
-    connectionTimeout: 10000 // 10 segundos
+        rejectUnauthorized: false // Aceita conexões mesmo se o certificado variar
+    }
 });
 
-// --- GERADOR DE ID (LUST STORE) ---
+// --- GERADOR DE ID ---
 function gerarIdLust() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; 
     let codigo = '';
@@ -47,6 +50,7 @@ async function enviarEmailsInstantaneos(venda) {
                 </div>
                 <pre style="font-family: inherit; background: #eee; padding: 10px;">${itensLista}</pre>
                 <p><b>Total: €${venda.total_venda.toFixed(2)}</b></p>
+                <p style="font-size: 13px; color: #666;">Obrigado pela preferência.</p>
             </div>
         </div>
     `;
@@ -55,13 +59,14 @@ async function enviarEmailsInstantaneos(venda) {
     const mailOptionsAdmin = { from: `"Sistema Lust" <${process.env.EMAIL_USER}>`, to: process.env.EMAIL_USER, subject: `💰 NOVA VENDA: #${venda.codigo_pedido}`, text: `NOVA VENDA!\nCliente: ${venda.cliente_nome}\nTotal: €${venda.total_venda}\nItens:\n${itensLista}` };
 
     try {
-        console.log("Tentando enviar emails...");
+        console.log("Tentando enviar emails via IPv4...");
+        await transporter.verify(); // Testa a conexão antes de enviar
         await transporter.sendMail(mailOptionsCliente);
         await transporter.sendMail(mailOptionsAdmin);
         console.log(`[EMAIL] SUCESSO!`);
         return true;
     } catch (error) {
-        console.error("[ERRO EMAIL DETALHADO]", error);
+        console.error("[ERRO EMAIL]", error.message);
         return false;
     }
 }
@@ -72,21 +77,6 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') return res.status(200).end();
     next();
-});
-
-// ROTA RELATÓRIO DIÁRIO
-app.get('/admin/resumo-diario', async (req, res) => {
-    const { key } = req.query;
-    if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const { data: vendas } = await supabase.from('vendas').select('*').gte('data_venda', hoje.toISOString());
-    if (!vendas || vendas.length === 0) return res.send("Sem vendas hoje.");
-    let tFat = 0; vendas.forEach(v => tFat += parseFloat(v.total_venda));
-    try {
-        await transporter.sendMail({ from: `"Sistema Lust" <${process.env.EMAIL_USER}>`, to: process.env.EMAIL_USER, subject: `📊 Fecho: €${tFat.toFixed(2)}`, text: `Total: €${tFat.toFixed(2)}` });
-        res.send("Enviado ✅");
-    } catch (e) { res.status(500).send("Erro: " + e.message); }
 });
 
 // WEBHOOK
@@ -119,7 +109,9 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
             const novaVenda = { cliente_nome: details.name, cliente_email: session.customer_details.email, cliente_morada: morada, itens: itensVendidos, codigo_pedido: codigoPedido, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos };
             await supabase.from('vendas').insert([novaVenda]);
-            await enviarEmailsInstantaneos(novaVenda);
+            
+            // Tenta enviar email, mas não bloqueia o webhook se falhar
+            enviarEmailsInstantaneos(novaVenda).catch(console.error);
         }
     }
     res.json({ received: true });
@@ -136,13 +128,28 @@ app.get('/pedido/:codigo', async (req, res) => {
     res.json(data);
 });
 
+// ROTA RELATÓRIO DIÁRIO
+app.get('/admin/resumo-diario', async (req, res) => {
+    const { key } = req.query;
+    if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const { data: vendas } = await supabase.from('vendas').select('*').gte('data_venda', hoje.toISOString());
+    if (!vendas || vendas.length === 0) return res.send("Sem vendas hoje.");
+    let tFat = 0; vendas.forEach(v => tFat += parseFloat(v.total_venda));
+    try {
+        await transporter.sendMail({ from: `"Sistema Lust" <${process.env.EMAIL_USER}>`, to: process.env.EMAIL_USER, subject: `📊 Fecho: €${tFat.toFixed(2)}`, text: `Total: €${tFat.toFixed(2)}` });
+        res.send("Enviado ✅");
+    } catch (e) { res.status(500).send("Erro: " + e.message); }
+});
+
 // ROTA REENVIAR (Admin)
 app.post('/reenviar-email/:id', async (req, res) => {
     const { data: venda } = await supabase.from('vendas').select('*').eq('id', req.params.id).single();
     if(venda) { 
         const sucesso = await enviarEmailsInstantaneos(venda); 
         if (sucesso) res.json({ sucesso: true });
-        else res.status(500).json({ erro: "Ver logs servidor" });
+        else res.status(500).json({ erro: "Veja os logs do servidor" });
     } else { res.status(404).json({ erro: "Venda off" }); }
 });
 
