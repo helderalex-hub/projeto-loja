@@ -1,27 +1,43 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
-const nodemailer = require('nodemailer');
-const dns = require('dns'); // <--- NOVO: Biblioteca de DNS
-
-// --- CORREÇÃO TÉCNICA OBRIGATÓRIA PARA RENDER ---
-// Força o Node.js a usar IPv4. Resolve o erro ETIMEDOUT no Gmail.
-dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 
-// --- CONFIGURAÇÃO DO EMAIL (GMAIL SIMPLIFICADO) ---
-// Usamos o 'service: gmail' que já traz as portas corretas embutidas
-const transporter = nodemailer.createTransport({
-    service: 'gmail', 
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false // Aceita conexões mesmo se o certificado variar
+// --- FUNÇÃO DE EMAIL VIA BREVO API (HTTPS - PORTA 443) ---
+// Esta função nunca falha por bloqueio de porta SMTP
+async function enviarEmailViaBrevo(para, assunto, htmlContent) {
+    const url = 'https://api.brevo.com/v3/smtp/email';
+    const options = {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'api-key': process.env.BREVO_KEY, // A chave que pegou no site
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+            sender: { name: "Lust Store", email: process.env.EMAIL_USER }, // O seu email de cadastro
+            to: [{ email: para }],
+            subject: assunto,
+            htmlContent: htmlContent
+        })
+    };
+
+    try {
+        const response = await fetch(url, options);
+        if (response.ok) {
+            console.log(`[BREVO] Email enviado para ${para}`);
+            return true;
+        } else {
+            const erro = await response.text();
+            console.error(`[ERRO BREVO]`, erro);
+            return false;
+        }
+    } catch (err) {
+        console.error("[ERRO FETCH]", err);
+        return false;
     }
-});
+}
 
 // --- GERADOR DE ID ---
 function gerarIdLust() {
@@ -31,44 +47,43 @@ function gerarIdLust() {
     return `LS-${codigo}`;
 }
 
-// --- FUNÇÃO DE ENVIO DE EMAIL ---
-async function enviarEmailsInstantaneos(venda) {
-    const itensLista = venda.itens.map(i => `• ${i.nome} (€${i.preco})`).join('\n');
+// --- ORQUESTRADOR DE EMAILS ---
+async function processarEmailsVenda(venda) {
+    const itensLista = venda.itens.map(i => `<li>${i.nome} (€${i.preco})</li>`).join('');
     
-    // HTML Cliente
+    // 1. Email Cliente
     const htmlCliente = `
-        <div style="font-family: 'Segoe UI', sans-serif; color: #333; max-width: 600px; border: 1px solid #eee;">
-            <div style="background: #0f172a; padding: 20px; text-align: center;">
-                <h1 style="color: #cca43b; margin: 0; font-size: 24px; letter-spacing: 2px;">LUST STORE</h1>
+        <div style="font-family:sans-serif; color:#333; max-width:600px; border:1px solid #eee;">
+            <div style="background:#0f172a; padding:20px; text-align:center;">
+                <h1 style="color:#cca43b; margin:0;">LUST STORE</h1>
             </div>
-            <div style="padding: 20px;">
-                <h2 style="color: #0f172a;">Encomenda Confirmada!</h2>
+            <div style="padding:20px;">
+                <h2>Encomenda Confirmada!</h2>
                 <p>Olá <b>${venda.cliente_nome}</b>,</p>
-                <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #cca43b; margin: 20px 0;">
-                    <p style="margin:0; font-size: 12px; color: #64748b;">ID DO PEDIDO</p>
-                    <p style="margin:0; font-size: 20px; font-weight: bold; color: #0f172a;">#${venda.codigo_pedido}</p>
+                <div style="background:#f8fafc; padding:15px; border-left:4px solid #cca43b; margin:20px 0;">
+                    <p style="margin:0; font-size:12px; color:#64748b;">ID PEDIDO</p>
+                    <p style="margin:0; font-size:20px; font-weight:bold; color:#0f172a;">#${venda.codigo_pedido}</p>
                 </div>
-                <pre style="font-family: inherit; background: #eee; padding: 10px;">${itensLista}</pre>
+                <h3>Resumo:</h3>
+                <ul>${itensLista}</ul>
                 <p><b>Total: €${venda.total_venda.toFixed(2)}</b></p>
-                <p style="font-size: 13px; color: #666;">Obrigado pela preferência.</p>
             </div>
         </div>
     `;
 
-    const mailOptionsCliente = { from: `"Lust Store" <${process.env.EMAIL_USER}>`, to: venda.cliente_email, subject: `💎 Pedido Confirmado: #${venda.codigo_pedido}`, html: htmlCliente };
-    const mailOptionsAdmin = { from: `"Sistema Lust" <${process.env.EMAIL_USER}>`, to: process.env.EMAIL_USER, subject: `💰 NOVA VENDA: #${venda.codigo_pedido}`, text: `NOVA VENDA!\nCliente: ${venda.cliente_nome}\nTotal: €${venda.total_venda}\nItens:\n${itensLista}` };
+    // 2. Email Admin
+    const htmlAdmin = `
+        <h3>💰 NOVA VENDA: #${venda.codigo_pedido}</h3>
+        <p><b>Cliente:</b> ${venda.cliente_nome} (${venda.cliente_email})</p>
+        <p><b>Total:</b> €${venda.total_venda.toFixed(2)}</p>
+        <p><b>Lucro:</b> €${venda.lucro.toFixed(2)}</p>
+        <hr>
+        <h4>Itens para Embalar:</h4>
+        <ul>${itensLista}</ul>
+    `;
 
-    try {
-        console.log("Tentando enviar emails via IPv4...");
-        await transporter.verify(); // Testa a conexão antes de enviar
-        await transporter.sendMail(mailOptionsCliente);
-        await transporter.sendMail(mailOptionsAdmin);
-        console.log(`[EMAIL] SUCESSO!`);
-        return true;
-    } catch (error) {
-        console.error("[ERRO EMAIL]", error.message);
-        return false;
-    }
+    await enviarEmailViaBrevo(venda.cliente_email, `💎 Pedido Confirmado: #${venda.codigo_pedido}`, htmlCliente);
+    await enviarEmailViaBrevo(process.env.EMAIL_USER, `💰 Venda: #${venda.codigo_pedido} (€${venda.total_venda})`, htmlAdmin);
 }
 
 app.use((req, res, next) => {
@@ -77,6 +92,23 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') return res.status(200).end();
     next();
+});
+
+// --- ROTA RELATÓRIO DIÁRIO (BREVO) ---
+app.get('/admin/resumo-diario', async (req, res) => {
+    const { key } = req.query;
+    if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
+    
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const { data: vendas } = await supabase.from('vendas').select('*').gte('data_venda', hoje.toISOString());
+    
+    if (!vendas || vendas.length === 0) return res.send("Sem vendas hoje.");
+
+    let tFat = 0; vendas.forEach(v => tFat += parseFloat(v.total_venda));
+    
+    await enviarEmailViaBrevo(process.env.EMAIL_USER, `📊 Fecho Diário: €${tFat.toFixed(2)}`, `<p>Total faturado hoje: <b>€${tFat.toFixed(2)}</b></p>`);
+    res.send("Relatório Enviado via Brevo ✅");
 });
 
 // WEBHOOK
@@ -110,8 +142,8 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             const novaVenda = { cliente_nome: details.name, cliente_email: session.customer_details.email, cliente_morada: morada, itens: itensVendidos, codigo_pedido: codigoPedido, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos };
             await supabase.from('vendas').insert([novaVenda]);
             
-            // Tenta enviar email, mas não bloqueia o webhook se falhar
-            enviarEmailsInstantaneos(novaVenda).catch(console.error);
+            // DISPARO BREVO
+            processarEmailsVenda(novaVenda).catch(console.error);
         }
     }
     res.json({ received: true });
@@ -120,7 +152,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
+app.get('/', (req, res) => res.send("API Lust Store: ONLINE (BREVO EDITION) 💎"));
 app.get('/pedido/:codigo', async (req, res) => {
     const { codigo } = req.params;
     const { data, error } = await supabase.from('vendas').select('cliente_nome, cliente_morada, itens, total_frete, total_venda').eq('codigo_pedido', codigo).single();
@@ -128,32 +160,16 @@ app.get('/pedido/:codigo', async (req, res) => {
     res.json(data);
 });
 
-// ROTA RELATÓRIO DIÁRIO
-app.get('/admin/resumo-diario', async (req, res) => {
-    const { key } = req.query;
-    if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const { data: vendas } = await supabase.from('vendas').select('*').gte('data_venda', hoje.toISOString());
-    if (!vendas || vendas.length === 0) return res.send("Sem vendas hoje.");
-    let tFat = 0; vendas.forEach(v => tFat += parseFloat(v.total_venda));
-    try {
-        await transporter.sendMail({ from: `"Sistema Lust" <${process.env.EMAIL_USER}>`, to: process.env.EMAIL_USER, subject: `📊 Fecho: €${tFat.toFixed(2)}`, text: `Total: €${tFat.toFixed(2)}` });
-        res.send("Enviado ✅");
-    } catch (e) { res.status(500).send("Erro: " + e.message); }
-});
-
-// ROTA REENVIAR (Admin)
+// ROTA REENVIAR (BREVO)
 app.post('/reenviar-email/:id', async (req, res) => {
     const { data: venda } = await supabase.from('vendas').select('*').eq('id', req.params.id).single();
     if(venda) { 
-        const sucesso = await enviarEmailsInstantaneos(venda); 
-        if (sucesso) res.json({ sucesso: true });
-        else res.status(500).json({ erro: "Veja os logs do servidor" });
+        await processarEmailsVenda(venda);
+        res.json({ sucesso: true });
     } else { res.status(404).json({ erro: "Venda off" }); }
 });
 
-// Rotas CRUD
+// Rotas CRUD (Mantidas iguais)
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 app.get('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true }); res.json(data || []); });
 app.post('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').insert([req.body]).select(); res.json(data ? data[0] : null); });
