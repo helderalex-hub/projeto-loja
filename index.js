@@ -4,17 +4,16 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// --- FUNÇÃO AUXILIAR: GERADOR DE ID LUST STORE ---
+// --- LÓGICA DO ID LUST STORE ---
 function gerarIdLust() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sem I, O, 0, 1 para evitar confusão
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; 
     let codigo = '';
     for (let i = 0; i < 4; i++) {
         codigo += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return `LS-${codigo}`; // Exemplo: LS-A9X2
+    return `LS-${codigo}`;
 }
 
-// 1. Configuração de Permissões
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -23,16 +22,12 @@ app.use((req, res, next) => {
     next();
 });
 
-// 2. WEBHOOK STRIPE
+// WEBHOOK
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
-
-    try {
-        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+    try { event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET); } 
+    catch (err) { return res.status(400).send(`Webhook Error: ${err.message}`); }
 
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
@@ -40,12 +35,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
         if (session.metadata && session.metadata.ids_produtos) {
             const ids = session.metadata.ids_produtos.split(',');
-            const codigoPedido = session.metadata.codigo_pedido || 'N/A'; // RECUPERA O ID CURTO
+            const codigoPedido = session.metadata.codigo_pedido || 'N/A';
             
             let custoProdutos = 0;
             let itensVendidos = [];
 
-            // Baixar Estoque
             for (const id of ids) {
                 const { data: p } = await supabase.from('produtos').select('*').eq('id', id).single();
                 if (p) {
@@ -54,27 +48,24 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                     itensVendidos.push({ nome: p.nome, preco: p.preco });
                 }
             }
-
-            // Separar Valores
-            const valorTotalCentimos = session.amount_total;
-            const valorFreteCentimos = session.total_details?.amount_shipping || 0;
-            const receitaProdutos = (valorTotalCentimos - valorFreteCentimos) / 100;
-
+            
+            const total = session.amount_total; 
+            const frete = session.total_details?.amount_shipping || 0;
+            const receitaLiq = (total - frete) / 100;
             const details = session.shipping_details || session.customer_details;
             const addr = details.address;
             const morada = addr ? `${addr.line1}, ${addr.postal_code} ${addr.city}, ${addr.country}` : 'N/A';
 
-            // Gravar Venda com ID Curto
             await supabase.from('vendas').insert([{
                 cliente_nome: details.name,
                 cliente_email: session.customer_details.email,
                 cliente_morada: morada,
                 itens: itensVendidos,
-                codigo_pedido: codigoPedido, // GRAVA NO BANCO
-                total_venda: valorTotalCentimos / 100,
-                total_frete: valorFreteCentimos / 100,
+                codigo_pedido: codigoPedido,
+                total_venda: total / 100,
+                total_frete: frete / 100,
                 total_custo: custoProdutos,
-                lucro: receitaProdutos - custoProdutos
+                lucro: receitaLiq - custoProdutos
             }]);
         }
     }
@@ -86,6 +77,19 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 
 app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
 
+// --- NOVA ROTA: BUSCAR DETALHES DO PEDIDO PARA A TELA DE SUCESSO ---
+app.get('/pedido/:codigo', async (req, res) => {
+    const { codigo } = req.params;
+    const { data, error } = await supabase
+        .from('vendas')
+        .select('cliente_nome, cliente_morada, itens, total_frete, total_venda')
+        .eq('codigo_pedido', codigo)
+        .single();
+        
+    if (error || !data) return res.status(404).json({ erro: 'Pedido não encontrado' });
+    res.json(data);
+});
+
 // --- ROTAS ADMIN ---
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 app.get('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true }); res.json(data || []); });
@@ -94,11 +98,11 @@ app.put('/produtos/:id', async (req, res) => { const b = {...req.body}; delete b
 app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos').delete().eq('id', req.params.id); res.json({ success: true }); });
 app.get('/vendas', async (req, res) => { const { periodo } = req.query; let q = supabase.from('vendas').select('*').order('data_venda', { ascending: false }); const h = new Date(); h.setHours(0,0,0,0); if(periodo === 'diario') q = q.gte('data_venda', h.toISOString()); else if(periodo === 'mensal') { const m = new Date(); m.setDate(1); m.setHours(0,0,0,0); q = q.gte('data_venda', m.toISOString()); } const { data } = await q; res.json(data || []); });
 
-// --- CHECKOUT COM GERAÇÃO DE ID ---
+// --- CHECKOUT ---
 app.post('/checkout', async (req, res) => {
     try {
         const itens = req.body;
-        const novoIdPedido = gerarIdLust(); // GERA O ID ÚNICO (Ex: LS-A1B2)
+        const novoIdPedido = gerarIdLust(); 
 
         let total = 0;
         const line_items = itens.map(i => {
@@ -120,10 +124,8 @@ app.post('/checkout', async (req, res) => {
             shipping_options: s_options,
             line_items: line_items,
             mode: 'payment',
-            // PASSA O ID NA URL DE SUCESSO PARA O CLIENTE VER
             success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`,
             cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
-            // GUARDA O ID NA METADATA PARA O WEBHOOK LER
             metadata: { 
                 ids_produtos: itens.map(i => i.id).join(','),
                 codigo_pedido: novoIdPedido 
