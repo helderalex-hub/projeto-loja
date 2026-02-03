@@ -1,17 +1,23 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
-const nodemailer = require('nodemailer'); // <--- ISTO FALTAVA
+const nodemailer = require('nodemailer');
 
 const app = express();
 
-// --- CONFIGURAÇÃO DO EMAIL (GMAIL) ---
+// --- CONFIGURAÇÃO DO EMAIL (CORRIGIDA PARA EVITAR TIMEOUT) ---
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com', // Forçamos o endereço direto
+    port: 465,              // Porta Segura (SSL) - Menos bloqueada que a padrão
+    secure: true,           // Usa SSL
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    // Definições de Timeout (Para não desistir logo)
+    connectionTimeout: 10000, // 10 segundos
+    greetingTimeout: 10000,
+    socketTimeout: 10000
 });
 
 // --- GERADOR DE ID (LUST STORE) ---
@@ -58,7 +64,7 @@ async function enviarEmailsInstantaneos(venda) {
     try {
         await transporter.sendMail(mailOptionsCliente);
         await transporter.sendMail(mailOptionsAdmin);
-        console.log(`[EMAIL] Enviados para venda #${venda.codigo_pedido}`);
+        console.log(`[EMAIL] SUCESSO! Enviados para venda #${venda.codigo_pedido}`);
         return true;
     } catch (error) {
         console.error("[ERRO EMAIL]", error);
@@ -74,7 +80,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// --- ROTA SECRETA: RELATÓRIO DIÁRIO (Para o Cron-job das 18:00) ---
+// --- ROTA SECRETA: RELATÓRIO DIÁRIO ---
 app.get('/admin/resumo-diario', async (req, res) => {
     const { key } = req.query;
     if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
@@ -94,10 +100,10 @@ app.get('/admin/resumo-diario', async (req, res) => {
             text: `Total Faturado Hoje: €${tFat.toFixed(2)}\nNúmero de Vendas: ${vendas.length}`
         });
         res.send("Relatório Enviado ✅");
-    } catch (e) { res.status(500).send("Erro email"); }
+    } catch (e) { res.status(500).send("Erro email: " + e.message); }
 });
 
-// WEBHOOK STRIPE (O GATILHO)
+// WEBHOOK STRIPE
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -135,8 +141,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             };
 
             await supabase.from('vendas').insert([novaVenda]);
-            
-            // DISPARAR EMAILS IMEDIATOS <--- ISTO FALTAVA NO SEU CÓDIGO
             await enviarEmailsInstantaneos(novaVenda);
         }
     }
@@ -156,7 +160,7 @@ app.get('/pedido/:codigo', async (req, res) => {
     res.json(data);
 });
 
-// --- ROTA DE REENVIAR EMAIL (Para o Botão do Admin) ---
+// --- ROTA DE REENVIAR EMAIL ---
 app.post('/reenviar-email/:id', async (req, res) => {
     const { data: venda } = await supabase.from('vendas').select('*').eq('id', req.params.id).single();
     if(venda) { 
@@ -168,7 +172,7 @@ app.post('/reenviar-email/:id', async (req, res) => {
     }
 });
 
-// Rotas Admin e Checkout (Mantidas iguais)
+// Rotas CRUD
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 app.get('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true }); res.json(data || []); });
 app.post('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').insert([req.body]).select(); res.json(data ? data[0] : null); });
