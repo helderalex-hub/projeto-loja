@@ -4,7 +4,17 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// 1. Configuração de Permissões (CORS)
+// --- FUNÇÃO AUXILIAR: GERADOR DE ID LUST STORE ---
+function gerarIdLust() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sem I, O, 0, 1 para evitar confusão
+    let codigo = '';
+    for (let i = 0; i < 4; i++) {
+        codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `LS-${codigo}`; // Exemplo: LS-A9X2
+}
+
+// 1. Configuração de Permissões
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -13,7 +23,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// 2. WEBHOOK STRIPE (Inteligência de Dados: Frete vs Lucro)
+// 2. WEBHOOK STRIPE
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -30,10 +40,12 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
         if (session.metadata && session.metadata.ids_produtos) {
             const ids = session.metadata.ids_produtos.split(',');
+            const codigoPedido = session.metadata.codigo_pedido || 'N/A'; // RECUPERA O ID CURTO
+            
             let custoProdutos = 0;
             let itensVendidos = [];
 
-            // A. Baixar Estoque e Calcular Custo da Mercadoria
+            // Baixar Estoque
             for (const id of ids) {
                 const { data: p } = await supabase.from('produtos').select('*').eq('id', id).single();
                 if (p) {
@@ -43,28 +55,26 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 }
             }
 
-            // B. Separar o Dinheiro (Frete vs Produto)
-            const valorTotalCentimos = session.amount_total; 
+            // Separar Valores
+            const valorTotalCentimos = session.amount_total;
             const valorFreteCentimos = session.total_details?.amount_shipping || 0;
-            
-            // Receita Real de Produtos = Total Pago - Frete
             const receitaProdutos = (valorTotalCentimos - valorFreteCentimos) / 100;
 
-            // C. Capturar Morada
             const details = session.shipping_details || session.customer_details;
             const addr = details.address;
             const morada = addr ? `${addr.line1}, ${addr.postal_code} ${addr.city}, ${addr.country}` : 'N/A';
 
-            // D. Gravar Venda com Dados Separados
+            // Gravar Venda com ID Curto
             await supabase.from('vendas').insert([{
                 cliente_nome: details.name,
                 cliente_email: session.customer_details.email,
                 cliente_morada: morada,
                 itens: itensVendidos,
-                total_venda: valorTotalCentimos / 100,   // O que o cliente pagou no total
-                total_frete: valorFreteCentimos / 100,   // O valor que foi para o frete
-                total_custo: custoProdutos,              // O custo da mercadoria
-                lucro: receitaProdutos - custoProdutos   // Lucro Real (Sem contar o frete como ganho)
+                codigo_pedido: codigoPedido, // GRAVA NO BANCO
+                total_venda: valorTotalCentimos / 100,
+                total_frete: valorFreteCentimos / 100,
+                total_custo: custoProdutos,
+                lucro: receitaProdutos - custoProdutos
             }]);
         }
     }
@@ -74,48 +84,22 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Rota de Teste (Rebranding Aplicado)
-app.get('/', (req, res) => res.send("API Lust Store: ONLINE ✅"));
+app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
 
 // --- ROTAS ADMIN ---
-app.post('/login-admin', (req, res) => {
-    const { senha } = req.body;
-    if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' });
-    else res.status(401).json({ sucesso: false });
-});
+app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
+app.get('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true }); res.json(data || []); });
+app.post('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').insert([req.body]).select(); res.json(data ? data[0] : null); });
+app.put('/produtos/:id', async (req, res) => { const b = {...req.body}; delete b.id; delete b.created_at; const { data } = await supabase.from('produtos').update(b).eq('id', req.params.id).select(); res.json(data ? data[0] : null); });
+app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos').delete().eq('id', req.params.id); res.json({ success: true }); });
+app.get('/vendas', async (req, res) => { const { periodo } = req.query; let q = supabase.from('vendas').select('*').order('data_venda', { ascending: false }); const h = new Date(); h.setHours(0,0,0,0); if(periodo === 'diario') q = q.gte('data_venda', h.toISOString()); else if(periodo === 'mensal') { const m = new Date(); m.setDate(1); m.setHours(0,0,0,0); q = q.gte('data_venda', m.toISOString()); } const { data } = await q; res.json(data || []); });
 
-app.get('/produtos', async (req, res) => {
-    const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true });
-    res.json(data || []);
-});
-app.post('/produtos', async (req, res) => {
-    const { data } = await supabase.from('produtos').insert([req.body]).select();
-    res.json(data ? data[0] : null);
-});
-app.put('/produtos/:id', async (req, res) => {
-    const b = {...req.body}; delete b.id; delete b.created_at;
-    const { data } = await supabase.from('produtos').update(b).eq('id', req.params.id).select();
-    res.json(data ? data[0] : null);
-});
-app.delete('/produtos/:id', async (req, res) => {
-    await supabase.from('produtos').delete().eq('id', req.params.id);
-    res.json({ success: true });
-});
-
-app.get('/vendas', async (req, res) => {
-    const { periodo } = req.query;
-    let q = supabase.from('vendas').select('*').order('data_venda', { ascending: false });
-    const h = new Date(); h.setHours(0,0,0,0);
-    if(periodo === 'diario') q = q.gte('data_venda', h.toISOString()); 
-    else if(periodo === 'mensal') { const m = new Date(); m.setDate(1); m.setHours(0,0,0,0); q = q.gte('data_venda', m.toISOString()); } 
-    const { data } = await q;
-    res.json(data || []);
-});
-
-// --- CHECKOUT COM REGRAS DE FRETE (LUST STORE) ---
+// --- CHECKOUT COM GERAÇÃO DE ID ---
 app.post('/checkout', async (req, res) => {
     try {
         const itens = req.body;
+        const novoIdPedido = gerarIdLust(); // GERA O ID ÚNICO (Ex: LS-A1B2)
+
         let total = 0;
         const line_items = itens.map(i => {
             total += Math.round(i.preco * 100);
@@ -136,9 +120,14 @@ app.post('/checkout', async (req, res) => {
             shipping_options: s_options,
             line_items: line_items,
             mode: 'payment',
-            success_url: 'https://helderalex-hub.github.io/projeto-loja/sucesso.html',
+            // PASSA O ID NA URL DE SUCESSO PARA O CLIENTE VER
+            success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`,
             cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
-            metadata: { ids_produtos: itens.map(i => i.id).join(',') }
+            // GUARDA O ID NA METADATA PARA O WEBHOOK LER
+            metadata: { 
+                ids_produtos: itens.map(i => i.id).join(','),
+                codigo_pedido: novoIdPedido 
+            }
         });
         res.json({ url: session.url });
     } catch (e) { res.status(500).json({ error: e.message }); }
