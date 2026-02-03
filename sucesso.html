@@ -1,3 +1,238 @@
-<h1>🎉 Pagamento Aprovado!</h1>
-<p>Obrigado pela sua compra. Enviamos o recibo por e-mail.</p>
-<a href="loja.html">Voltar para a loja</a>
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Encomenda Confirmada | Lust Store</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root { --dark: #0f172a; --gold: #cca43b; --texto: #f8fafc; --card: #1e293b; --border: #334155; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: var(--texto); margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        
+        .card-sucesso { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            width: 100%; 
+            max-width: 500px; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        
+        .header { background: rgba(204, 164, 59, 0.1); padding: 30px; text-align: center; border-bottom: 1px solid var(--border); }
+        .icon { font-size: 50px; display: block; margin-bottom: 10px; }
+        h1 { color: var(--gold); margin: 0; text-transform: uppercase; letter-spacing: 2px; font-size: 22px; }
+        .subtitulo { color: #94a3b8; font-size: 14px; margin-top: 5px; }
+
+        .conteudo { padding: 30px; }
+        
+        .box-info { margin-bottom: 20px; }
+        .label { font-size: 11px; color: var(--gold); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px; }
+        .valor { font-size: 14px; line-height: 1.5; color: #fff; }
+        
+        .pedido-id { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: 1px; background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 1px dashed var(--gold); margin-bottom: 25px; }
+        
+        .lista-itens { background: #0f172a; border-radius: 8px; padding: 15px; }
+        .item-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+        .item-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .item-nome { color: #e2e8f0; }
+        .item-preco { color: var(--gold); font-weight: bold; }
+
+        .estimativa { margin-top: 25px; background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 15px; }
+        .estimativa-icon { font-size: 20px; }
+        .estimativa-text { font-size: 13px; color: #86efac; }
+        .estimativa-data { display: block; font-weight: bold; color: #fff; margin-top: 2px; }
+
+        .btn-group { margin-top: 30px; display: grid; gap: 10px; }
+        .btn { display: block; width: 100%; text-align: center; padding: 15px; font-weight: bold; text-transform: uppercase; border-radius: 8px; transition: 0.3s; box-sizing: border-box; cursor: pointer; border: none; font-size: 14px; }
+        .btn-gold { background: var(--gold); color: #000; text-decoration: none; }
+        .btn-gold:hover { background: #fff; }
+        .btn-pdf { background: #334155; color: #fff; border: 1px solid #475569; }
+        .btn-pdf:hover { background: var(--gold); color: #000; border-color: var(--gold); }
+
+        .loader { text-align: center; padding: 40px; color: var(--gold); }
+    </style>
+</head>
+<body>
+
+    <div class="card-sucesso" id="card-principal">
+        <div class="loader">A carregar detalhes do pedido...</div>
+    </div>
+
+    <script>
+        const API = 'https://projeto-loja-dzqv.onrender.com';
+        let dadosPedido = null; // Variável global para guardar os dados para o PDF
+        let codigoPedidoGlobal = "";
+
+        async function carregarPedido() {
+            const params = new URLSearchParams(window.location.search);
+            const codigo = params.get('pedido');
+            codigoPedidoGlobal = codigo;
+            const card = document.getElementById('card-principal');
+
+            if (!codigo) {
+                card.innerHTML = `<div class="conteudo" style="text-align:center"><h2 style="color:red">Erro</h2><p>Código de pedido não encontrado.</p><a href="loja.html" class="btn btn-gold">Voltar</a></div>`;
+                return;
+            }
+
+            try {
+                // Pequeno delay para dar tempo ao webhook
+                await new Promise(r => setTimeout(r, 1500));
+
+                const res = await fetch(`${API}/pedido/${codigo}`);
+                const dados = await res.json();
+
+                if (dados.erro) throw new Error("Pedido ainda a processar...");
+
+                dadosPedido = dados; // Guardar na global
+
+                // Lógica de Estimativa
+                let estimativa = "5 a 10 dias úteis";
+                const pais = dados.cliente_morada.toUpperCase();
+                const fretePago = parseFloat(dados.total_frete);
+
+                if (pais.includes("PORTUGAL")) {
+                    estimativa = fretePago > 5 ? "1 a 2 dias úteis (Expresso)" : "2 a 4 dias úteis";
+                } else if (pais.includes("SPAIN") || pais.includes("ESPANHA")) {
+                    estimativa = "3 a 5 dias úteis";
+                } else if (fretePago >= 25) {
+                    estimativa = "2 a 3 dias úteis (Avião)";
+                }
+
+                // Renderizar Itens
+                let itensHTML = '';
+                dados.itens.forEach(item => {
+                    itensHTML += `
+                        <div class="item-row">
+                            <span class="item-nome">${item.nome}</span>
+                            <span class="item-preco">€${parseFloat(item.preco).toFixed(2)}</span>
+                        </div>`;
+                });
+
+                card.innerHTML = `
+                    <div class="header">
+                        <span class="icon">💎</span>
+                        <h1>Pagamento Confirmado</h1>
+                        <div class="subtitulo">Obrigado pela sua preferência.</div>
+                    </div>
+                    <div class="conteudo">
+                        <div class="pedido-id">#${codigo}</div>
+                        
+                        <div class="box-info">
+                            <span class="label">Resumo do Pedido</span>
+                            <div class="lista-itens">
+                                ${itensHTML}
+                                <div class="item-row" style="margin-top:10px; border-top:1px dashed #334155; padding-top:10px;">
+                                    <span class="item-nome">Envio</span>
+                                    <span class="item-preco">€${fretePago.toFixed(2)}</span>
+                                </div>
+                                <div class="item-row" style="margin-top:5px; font-size:15px;">
+                                    <span class="item-nome" style="color:#fff; font-weight:bold;">TOTAL</span>
+                                    <span class="item-preco" style="color:#fff;">€${parseFloat(dados.total_venda).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="box-info">
+                            <span class="label">Enviado para:</span>
+                            <div class="valor">
+                                <b>${dados.cliente_nome}</b><br>
+                                ${dados.cliente_morada}
+                            </div>
+                        </div>
+
+                        <div class="estimativa">
+                            <div class="estimativa-icon">🚚</div>
+                            <div class="estimativa-text">
+                                Previsão de Entrega:
+                                <span class="estimativa-data">${estimativa}</span>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button onclick="gerarPDF()" class="btn btn-pdf">📄 Baixar Comprovativo (PDF)</button>
+                            <a href="loja.html" class="btn btn-gold">Voltar à Loja</a>
+                        </div>
+                    </div>
+                `;
+
+            } catch (e) {
+                card.innerHTML = `
+                    <div class="header"><span class="icon">✅</span><h1>Sucesso!</h1></div>
+                    <div class="conteudo">
+                        <p style="text-align:center; color:#ccc;">Pedido registado. A processar detalhes...</p>
+                        <div class="pedido-id">#${codigo}</div>
+                        <a href="loja.html" class="btn btn-gold">Voltar à Loja</a>
+                    </div>`;
+            }
+        }
+
+        // FUNÇÃO PARA GERAR O PDF DO CLIENTE
+        function gerarPDF() {
+            if (!dadosPedido) return alert("Erro ao gerar PDF. Tente recarregar.");
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Cabeçalho Gold
+            doc.setFillColor(204, 164, 59); // #cca43b
+            doc.rect(0, 0, 210, 25, 'F');
+            
+            doc.setFontSize(18);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.text("LUST STORE", 105, 12, null, null, "center");
+            doc.setFontSize(10);
+            doc.text("Comprovativo de Compra", 105, 19, null, null, "center");
+
+            // Info do Pedido
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`ID do Pedido: #${codigoPedidoGlobal}`, 14, 40);
+            const dataHoje = new Date().toLocaleDateString('pt-PT');
+            doc.text(`Data: ${dataHoje}`, 14, 46);
+
+            // Info Cliente
+            doc.setFont("helvetica", "bold");
+            doc.text("Enviado para:", 14, 58);
+            doc.setFont("helvetica", "normal");
+            doc.text(dadosPedido.cliente_nome, 14, 64);
+            const moradaSplit = doc.splitTextToSize(dadosPedido.cliente_morada, 100);
+            doc.text(moradaSplit, 14, 70);
+
+            // Tabela de Itens
+            const corpoTabela = dadosPedido.itens.map(i => [i.nome, `€ ${parseFloat(i.preco).toFixed(2)}`]);
+            
+            // Totais
+            const frete = parseFloat(dadosPedido.total_frete);
+            const total = parseFloat(dadosPedido.total_venda);
+            
+            // Adicionar Frete e Total à tabela
+            corpoTabela.push(['Envio', `€ ${frete.toFixed(2)}`]);
+            
+            doc.autoTable({
+                startY: 85,
+                head: [['Produto', 'Preço']],
+                body: corpoTabela,
+                foot: [['TOTAL PAGO', `€ ${total.toFixed(2)}`]],
+                headStyles: { fillColor: [204, 164, 59] }, // Gold
+                footStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59], fontStyle: 'bold' }, // Dark Blue + Gold Text
+                theme: 'grid'
+            });
+
+            // Rodapé
+            const finalY = doc.lastAutoTable.finalY + 20;
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text("Obrigado pela sua preferência. Para dúvidas: suporte@luststore.com", 105, finalY, null, null, "center");
+
+            doc.save(`Recibo_LustStore_${codigoPedidoGlobal}.pdf`);
+        }
+
+        window.onload = carregarPedido;
+    </script>
+</body>
+</html>
