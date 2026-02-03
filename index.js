@@ -5,19 +5,19 @@ const nodemailer = require('nodemailer');
 
 const app = express();
 
-// --- CONFIGURAÇÃO DO EMAIL (CORRIGIDA PARA EVITAR TIMEOUT) ---
+// --- CONFIGURAÇÃO DO EMAIL (MODO ANTI-BLOQUEIO RENDER) ---
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Forçamos o endereço direto
-    port: 465,              // Porta Segura (SSL) - Menos bloqueada que a padrão
-    secure: true,           // Usa SSL
+    host: 'smtp.gmail.com',
+    port: 587,              // Porta Padrão (STARTTLS)
+    secure: false,          // false para porta 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    // Definições de Timeout (Para não desistir logo)
-    connectionTimeout: 10000, // 10 segundos
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    tls: {
+        rejectUnauthorized: false // <--- O SEGREDO: Ignora erros de certificado que causam timeout
+    },
+    connectionTimeout: 10000 // 10 segundos
 });
 
 // --- GERADOR DE ID (LUST STORE) ---
@@ -28,11 +28,11 @@ function gerarIdLust() {
     return `LS-${codigo}`;
 }
 
-// --- FUNÇÃO DE ENVIO DE EMAIL (CLIENTE + ADMIN) ---
+// --- FUNÇÃO DE ENVIO DE EMAIL ---
 async function enviarEmailsInstantaneos(venda) {
     const itensLista = venda.itens.map(i => `• ${i.nome} (€${i.preco})`).join('\n');
     
-    // 1. Email Estilizado para o CLIENTE
+    // HTML Cliente
     const htmlCliente = `
         <div style="font-family: 'Segoe UI', sans-serif; color: #333; max-width: 600px; border: 1px solid #eee;">
             <div style="background: #0f172a; padding: 20px; text-align: center;">
@@ -41,33 +41,27 @@ async function enviarEmailsInstantaneos(venda) {
             <div style="padding: 20px;">
                 <h2 style="color: #0f172a;">Encomenda Confirmada!</h2>
                 <p>Olá <b>${venda.cliente_nome}</b>,</p>
-                <p>Obrigado pela sua preferência. A sua encomenda foi registada com sucesso.</p>
-                
                 <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #cca43b; margin: 20px 0;">
                     <p style="margin:0; font-size: 12px; color: #64748b;">ID DO PEDIDO</p>
                     <p style="margin:0; font-size: 20px; font-weight: bold; color: #0f172a;">#${venda.codigo_pedido}</p>
                 </div>
-
-                <h3>📦 Resumo:</h3>
                 <pre style="font-family: inherit; background: #eee; padding: 10px;">${itensLista}</pre>
-                
-                <p><b>Total Pago: €${venda.total_venda.toFixed(2)}</b></p>
-                <p style="font-size: 13px; color: #666;">Enviaremos o código de rastreio assim que a encomenda for expedida.</p>
+                <p><b>Total: €${venda.total_venda.toFixed(2)}</b></p>
             </div>
         </div>
     `;
 
-    // 2. Email Alerta para o ADMIN
-    const mailOptionsCliente = { from: `"Lust Store" <${process.env.EMAIL_USER}>`, to: venda.cliente_email, subject: `💎 Encomenda Confirmada: #${venda.codigo_pedido}`, html: htmlCliente };
+    const mailOptionsCliente = { from: `"Lust Store" <${process.env.EMAIL_USER}>`, to: venda.cliente_email, subject: `💎 Pedido Confirmado: #${venda.codigo_pedido}`, html: htmlCliente };
     const mailOptionsAdmin = { from: `"Sistema Lust" <${process.env.EMAIL_USER}>`, to: process.env.EMAIL_USER, subject: `💰 NOVA VENDA: #${venda.codigo_pedido}`, text: `NOVA VENDA!\nCliente: ${venda.cliente_nome}\nTotal: €${venda.total_venda}\nItens:\n${itensLista}` };
 
     try {
+        console.log("Tentando enviar emails...");
         await transporter.sendMail(mailOptionsCliente);
         await transporter.sendMail(mailOptionsAdmin);
-        console.log(`[EMAIL] SUCESSO! Enviados para venda #${venda.codigo_pedido}`);
+        console.log(`[EMAIL] SUCESSO!`);
         return true;
     } catch (error) {
-        console.error("[ERRO EMAIL]", error);
+        console.error("[ERRO EMAIL DETALHADO]", error);
         return false;
     }
 }
@@ -80,7 +74,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// --- ROTA SECRETA: RELATÓRIO DIÁRIO ---
+// ROTA RELATÓRIO DIÁRIO
 app.get('/admin/resumo-diario', async (req, res) => {
     const { key } = req.query;
     if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
@@ -88,22 +82,14 @@ app.get('/admin/resumo-diario', async (req, res) => {
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const { data: vendas } = await supabase.from('vendas').select('*').gte('data_venda', hoje.toISOString());
     if (!vendas || vendas.length === 0) return res.send("Sem vendas hoje.");
-
-    let tFat = 0;
-    vendas.forEach(v => tFat += parseFloat(v.total_venda));
-
+    let tFat = 0; vendas.forEach(v => tFat += parseFloat(v.total_venda));
     try {
-        await transporter.sendMail({
-            from: `"Sistema Lust" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_USER,
-            subject: `📊 Fecho Diário: €${tFat.toFixed(2)}`,
-            text: `Total Faturado Hoje: €${tFat.toFixed(2)}\nNúmero de Vendas: ${vendas.length}`
-        });
-        res.send("Relatório Enviado ✅");
-    } catch (e) { res.status(500).send("Erro email: " + e.message); }
+        await transporter.sendMail({ from: `"Sistema Lust" <${process.env.EMAIL_USER}>`, to: process.env.EMAIL_USER, subject: `📊 Fecho: €${tFat.toFixed(2)}`, text: `Total: €${tFat.toFixed(2)}` });
+        res.send("Enviado ✅");
+    } catch (e) { res.status(500).send("Erro: " + e.message); }
 });
 
-// WEBHOOK STRIPE
+// WEBHOOK
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -127,19 +113,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                     itensVendidos.push({ nome: p.nome, preco: p.preco });
                 }
             }
-            
-            const total = session.amount_total / 100;
-            const frete = (session.total_details?.amount_shipping || 0) / 100;
-            const receitaLiq = total - frete;
-            const details = session.shipping_details || session.customer_details;
+            const total = session.amount_total / 100; const frete = (session.total_details?.amount_shipping || 0) / 100;
+            const receitaLiq = total - frete; const details = session.shipping_details || session.customer_details;
             const morada = details.address ? `${details.address.line1}, ${details.address.postal_code} ${details.address.city}, ${details.address.country}` : 'N/A';
 
-            const novaVenda = {
-                cliente_nome: details.name, cliente_email: session.customer_details.email, cliente_morada: morada,
-                itens: itensVendidos, codigo_pedido: codigoPedido, total_venda: total, total_frete: frete,
-                total_custo: custoProdutos, lucro: receitaLiq - custoProdutos
-            };
-
+            const novaVenda = { cliente_nome: details.name, cliente_email: session.customer_details.email, cliente_morada: morada, itens: itensVendidos, codigo_pedido: codigoPedido, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos };
             await supabase.from('vendas').insert([novaVenda]);
             await enviarEmailsInstantaneos(novaVenda);
         }
@@ -151,8 +129,6 @@ app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
-
-// Rota Detalhes Pedido
 app.get('/pedido/:codigo', async (req, res) => {
     const { codigo } = req.params;
     const { data, error } = await supabase.from('vendas').select('cliente_nome, cliente_morada, itens, total_frete, total_venda').eq('codigo_pedido', codigo).single();
@@ -160,16 +136,14 @@ app.get('/pedido/:codigo', async (req, res) => {
     res.json(data);
 });
 
-// --- ROTA DE REENVIAR EMAIL ---
+// ROTA REENVIAR (Admin)
 app.post('/reenviar-email/:id', async (req, res) => {
     const { data: venda } = await supabase.from('vendas').select('*').eq('id', req.params.id).single();
     if(venda) { 
         const sucesso = await enviarEmailsInstantaneos(venda); 
         if (sucesso) res.json({ sucesso: true });
-        else res.status(500).json({ erro: "Falha no envio (ver logs)" });
-    } else { 
-        res.status(404).json({ erro: "Venda não encontrada" }); 
-    }
+        else res.status(500).json({ erro: "Ver logs servidor" });
+    } else { res.status(404).json({ erro: "Venda off" }); }
 });
 
 // Rotas CRUD
@@ -185,10 +159,7 @@ app.post('/checkout', async (req, res) => {
         const itens = req.body;
         const novoIdPedido = gerarIdLust(); 
         let total = 0;
-        const line_items = itens.map(i => {
-            total += Math.round(i.preco * 100);
-            return { price_data: { currency: 'eur', product_data: { name: i.nome }, unit_amount: Math.round(i.preco * 100) }, quantity: 1 };
-        });
+        const line_items = itens.map(i => { total += Math.round(i.preco * 100); return { price_data: { currency: 'eur', product_data: { name: i.nome }, unit_amount: Math.round(i.preco * 100) }, quantity: 1 }; });
         const s_options = [
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 6000 ? 0 : 450, currency: 'eur' }, display_name: 'Portugal: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 4 } } } },
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 800, currency: 'eur' }, display_name: 'Portugal: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 1 }, maximum: { unit: 'business_day', value: 2 } } } },
@@ -196,16 +167,7 @@ app.post('/checkout', async (req, res) => {
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 12500 ? 0 : 1250, currency: 'eur' }, display_name: 'Europa: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 5 }, maximum: { unit: 'business_day', value: 10 } } } },
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 2500, currency: 'eur' }, display_name: 'Europa: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 3 } } } }
         ];
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] },
-            shipping_options: s_options,
-            line_items: line_items,
-            mode: 'payment',
-            success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`,
-            cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html',
-            metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido }
-        });
+        const session = await stripe.checkout.sessions.create({ payment_method_types: ['card'], shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] }, shipping_options: s_options, line_items: line_items, mode: 'payment', success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html', metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido } });
         res.json({ url: session.url });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
