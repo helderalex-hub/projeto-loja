@@ -4,77 +4,41 @@
     <meta charset="UTF-8">
     <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     
+    <meta name="description" content="Lust Store - A sua loja de beleza e cosmética de luxo. Encontre os produtos mais exclusivos e premium.">
+    <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
+    <meta property="og:description" content="Descubra a nossa coleção exclusiva de produtos de beleza premium.">
+    <meta property="og:image" content="https://helderalex-hub.github.io/projeto-loja/social-share.jpg">
+    <meta property="og:url" content="https://projeto-loja-dzqv.onrender.com">
+    <meta property="og:type" content="website">
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        :root { 
-            --dark: #0f172a; 
-            --gold: #cca43b; 
-            --gold-light: #fcd34d;
-            --texto: #334155; 
-            --bg-page: #f8fafc;
-        }
-        
+        :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; }
         
-        /* BARRA DE PORTES */
-        .frete-bar { 
-            background: #000; color: var(--gold-light); 
-            font-size: 11px; text-align: center; padding: 8px; 
-            font-weight: bold; letter-spacing: 1px; 
-        }
+        .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
-        /* HEADER */
-        header { 
-            background: var(--dark); padding: 25px; text-align: center; 
-            border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
-        }
+        header { background: var(--dark); padding: 25px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         .header-content { display: flex; flex-direction: column; align-items: center; }
         .logo-img { height: 50px; margin-bottom: 10px; display: block; }
-        header h1 { 
-            margin: 0; font-family: 'Playfair Display', serif; color: white; 
-            font-size: 22px; letter-spacing: 1px; text-transform: uppercase; font-weight: 400; 
-        }
+        header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; font-weight: 400; }
         header h1 span { color: var(--gold); }
 
         .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
         .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
         
-        /* CARTÃO DE PRODUTO */
-        .produto-card { 
-            background: white; border-radius: 8px; overflow: hidden; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; 
-            display: flex; flex-direction: column; border: 1px solid transparent;
-            position: relative;
-        }
+        .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; display: flex; flex-direction: column; border: 1px solid transparent; position: relative; }
         .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         
-        /* ÁREA DA IMAGEM (ESTILO FARFETCH/NIKE) */
-        .img-container { 
-            width: 100%; height: 280px; 
-            background: #f1f5f9; /* Fundo cinza suave */
-            position: relative; overflow: hidden; 
-            display: flex; align-items: center; justify-content: center;
-        }
-        .img-container img { 
-            width: 90%; height: 90%; /* Margem de respiro */
-            object-fit: contain; /* NUNCA CORTA A IMAGEM */
-            transition: transform 0.5s ease; 
-            mix-blend-mode: multiply; /* Fusão suave com o fundo */
-        }
-        .produto-card:hover img { transform: scale(1.08); } /* Zoom suave */
+        .img-container { width: 100%; height: 280px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .img-container img { width: 90%; height: 90%; object-fit: contain; transition: transform 0.5s ease; mix-blend-mode: multiply; }
+        .produto-card:hover img { transform: scale(1.08); }
         
-        /* ESTADO ESGOTADO */
         .produto-card.esgotado { opacity: 0.6; pointer-events: none; }
         .produto-card.esgotado img { filter: grayscale(100%); }
-        .overlay-esgotado {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8); color: white; padding: 8px 15px;
-            font-weight: bold; font-size: 12px; border: 1px solid white; display: none;
-        }
+        .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 15px; font-weight: bold; font-size: 12px; border: 1px solid white; display: none; }
         .produto-card.esgotado .overlay-esgotado { display: block; }
 
         .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
@@ -83,35 +47,21 @@
         .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
         .alerta-estoque { color: #ef4444; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
         
-        /* BOTÕES DE COMPRA */
         .compra-row { display: flex; gap: 10px; margin-top: auto; }
         .qtd-seletor { display: flex; align-items: center; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
         .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; height: 100%; }
         .qtd-btn:hover { color: var(--gold); background: var(--dark); }
         
-        .btn-comprar { 
-            background: var(--dark); color: white; border: none; padding: 12px; 
-            border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; 
-            text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; 
-        }
+        .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
         .btn-comprar:hover { background: var(--gold); color: var(--dark); }
         .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
         
-        /* CARRINHO FLUTUANTE */
-        #btn-carrinho { 
-            position: fixed; bottom: 30px; right: 30px; 
-            background: var(--gold); color: var(--dark); padding: 15px 30px; 
-            border-radius: 50px; font-weight: bold; cursor: pointer; border: none; 
-            z-index:1000; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); 
-            text-transform: uppercase; letter-spacing: 1px; display: none; 
-        }
+        #btn-carrinho { position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; z-index:1000; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; display: none; }
         .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-    
     <div class="frete-bar">PORTES GRÁTIS: PT > 60€ | ES > 85€ | EUROPA > 125€</div>
-    
     <header>
         <div class="header-content">
             <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
@@ -125,9 +75,7 @@
         </div>
     </div>
     
-    <button id="btn-carrinho" onclick="finalizarCompra()">
-        🛒 Finalizar <span id="cart-count">0</span>
-    </button>
+    <button id="btn-carrinho" onclick="finalizarCompra()">🛒 Finalizar <span id="cart-count">0</span></button>
     
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com';
@@ -139,25 +87,16 @@
                 const res = await fetch(`${API}/produtos`);
                 todosProdutos = await res.json();
                 renderizarProdutos(todosProdutos);
-            } catch(e) { 
-                document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; 
-            }
+            } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; }
         }
 
         function renderizarProdutos(lista) {
-            const vitrine = document.getElementById('vitrine');
-            vitrine.innerHTML = '';
-            
-            if (lista.length === 0) { 
-                vitrine.innerHTML = "<p style='text-align:center; width:100%'>Sem produtos disponíveis.</p>"; 
-                return; 
-            }
+            const vitrine = document.getElementById('vitrine'); vitrine.innerHTML = '';
+            if (lista.length === 0) { vitrine.innerHTML = "<p style='text-align:center; width:100%'>Sem produtos disponíveis.</p>"; return; }
 
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0;
                 const esgotado = stock <= 0;
-                
-                // Lógica simples de marca (opcional)
                 let marca = "Exclusive";
                 if(p.nome.toLowerCase().includes('nike')) marca = "Nike";
                 else if(p.nome.toLowerCase().includes('adidas')) marca = "Adidas";
@@ -197,43 +136,23 @@
         function addCarrinho(id, nome, preco) { 
             const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText); 
             for(let i=0; i<qtd; i++) carrinho.push({id, nome, preco}); 
-            
             document.getElementById('cart-count').innerText = carrinho.length;
             document.getElementById('btn-carrinho').style.display = 'block';
-
-            const btn = event.target; 
-            const textoOriginal = btn.innerText;
-            btn.innerText = "Adicionado!"; 
-            btn.style.background = "#cca43b"; btn.style.color = "#000";
-            
-            setTimeout(() => { 
-                btn.innerText = textoOriginal; 
-                btn.style.background = ""; 
-                btn.style.color = ""; 
-                document.getElementById(`qtd-${id}`).innerText = 1; 
-            }, 1000); 
+            const btn = event.target; const textoOriginal = btn.innerText;
+            btn.innerText = "Adicionado!"; btn.style.background = "#cca43b"; btn.style.color = "#000";
+            setTimeout(() => { btn.innerText = textoOriginal; btn.style.background = ""; btn.style.color = ""; document.getElementById(`qtd-${id}`).innerText = 1; }, 1000); 
         }
 
         async function finalizarCompra() { 
             if (!carrinho.length) return alert("Carrinho vazio!"); 
-            const btn = document.getElementById('btn-carrinho'); 
-            const txtOriginal = btn.innerHTML;
+            const btn = document.getElementById('btn-carrinho'); const txtOriginal = btn.innerHTML;
             btn.disabled = true; btn.innerHTML = "A PROCESSAR...";
-            
             try {
-                const res = await fetch(`${API}/checkout`, { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify(carrinho) 
-                }); 
+                const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(carrinho) }); 
                 const d = await res.json(); 
                 if(d.url) window.location.href = d.url; 
-                else throw new Error("Erro ao gerar pagamento");
-            } catch(e) { 
-                alert("Erro ao conectar ao checkout."); 
-                btn.disabled = false; 
-                btn.innerHTML = txtOriginal; 
-            }
+                else throw new Error("Sem URL");
+            } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerHTML = txtOriginal; }
         }
         
         window.onload = carregarProdutos;
