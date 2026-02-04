@@ -14,7 +14,7 @@
     <style>
         :root { 
             --dark: #0f172a; --card: #1e293b; --gold: #cca43b; --texto: #f8fafc; --borda: #334155; 
-            --verde: #10b981; --erro: #ef4444; 
+            --verde: #10b981; --erro: #ef4444; --campo-edit: #e2e8f0; /* Cinza quase branco */
         }
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
@@ -36,6 +36,7 @@
         .card-dash h3 { margin: 0; font-size: 9px; color: #94a3b8; text-transform: uppercase; }
         .card-dash p { margin: 8px 0 0; font-size: 18px; font-weight: bold; }
 
+        /* FORMULÁRIO DE CADASTRO */
         .card-form { 
             background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); 
             margin-bottom: 30px; display: flex; gap: 20px; align-items: flex-start;
@@ -52,9 +53,8 @@
         
         label { display: block; font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; font-weight: bold; }
         
-        /* INPUTS SEM SETAS (Chrome, Safari, Edge, Opera) */
+        /* INPUTS GERAIS - REMOVER SETAS */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        /* Firefox */
         input[type=number] { -moz-appearance: textfield; }
 
         input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
@@ -62,15 +62,27 @@
 
         .btn-principal { background: var(--gold); color: #0f172a; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; grid-column: span 3; margin-top: 5px; }
 
+        /* TABELA DE INVENTÁRIO "SISTEMA OPERACIONAL" */
         .tabela-container { background: var(--card); border-radius: 8px; border: 1px solid var(--borda); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 950px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1000px; }
         th { text-align: left; padding: 12px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; font-size: 10px; }
         td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
         .img-table { width: 50px; height: 50px; object-fit: contain; background: white; border-radius: 4px; cursor: pointer; border: 1px solid var(--borda); }
 
-        .input-inline { background: rgba(15, 23, 42, 0.5); border: 1px solid transparent; padding: 6px; color: white; width: 100%; font-size: 12px; border-radius: 3px; }
-        .input-inline:focus { background: #0f172a; border-color: var(--gold); outline: none; }
+        /* CAMPOS EDITÁVEIS CLAROS NA TABELA */
+        .input-inline { 
+            background: var(--campo-edit); 
+            border: 1px solid #cbd5e1; 
+            padding: 8px; 
+            color: #0f172a; /* Texto escuro no fundo claro */
+            width: 100%; 
+            font-size: 13px; 
+            font-weight: 600;
+            border-radius: 4px; 
+            box-sizing: border-box;
+        }
+        .input-inline:focus { background: #ffffff; border-color: var(--gold); outline: none; box-shadow: 0 0 5px rgba(204,164,59,0.5); }
         
         .btn-mini { background: none; border: 1px solid var(--borda); color: #94a3b8; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 10px; }
 
@@ -139,11 +151,11 @@
                 <thead>
                     <tr>
                         <th width="70">Foto</th>
-                        <th>Nome</th>
-                        <th width="110">Custo (€)</th>
-                        <th width="110">Venda (€)</th>
-                        <th width="90">Stock</th>
-                        <th width="150">Validade</th>
+                        <th>Nome do Produto</th>
+                        <th width="120">Custo (€)</th>
+                        <th width="120">Venda (€)</th>
+                        <th width="100">Stock</th>
+                        <th width="160">Validade</th>
                         <th width="50"></th>
                     </tr>
                 </thead>
@@ -172,7 +184,9 @@
         event.currentTarget.classList.add('active');
     }
 
-    function fmtEur(v) { return `€${parseFloat(v || 0).toFixed(2)}`; }
+    // Função utilitária para garantir 2 decimais
+    function fmt(v) { return parseFloat(v || 0).toFixed(2); }
+    function fmtEur(v) { return `€${fmt(v)}`; }
 
     function atualizarDash() {
         let custo = 0, valor = 0;
@@ -198,11 +212,11 @@
                 <tr>
                     <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
                     <td><input type="text" class="input-inline" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"></td>
-                    <td><input type="number" class="input-inline" step="0.01" value="${parseFloat(p.preco_entrada).toFixed(2)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
-                    <td><input type="number" class="input-inline" step="0.01" value="${parseFloat(p.preco).toFixed(2)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
+                    <td><input type="number" class="input-inline" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
+                    <td><input type="number" class="input-inline" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
                     <td><input type="number" class="input-inline" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td>
                     <td><input type="date" class="input-inline" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)"></td>
-                    <td><button onclick="apagarProduto(${p.id})" class="btn-mini" style="border:none">✕</button></td>
+                    <td><button onclick="apagarProduto(${p.id})" class="btn-mini" style="border:none; color:var(--erro)">✕</button></td>
                 </tr>`;
         });
     }
@@ -238,7 +252,14 @@
     }
 
     async function salvarProduto() {
-        const p = { nome: document.getElementById('p-nome').value, validade: document.getElementById('p-validade').value, preco_entrada: parseFloat(document.getElementById('p-custo').value) || 0, preco: parseFloat(document.getElementById('p-venda').value) || 0, estoque: parseInt(document.getElementById('p-stock').value) || 0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Lust' };
+        const p = { 
+            nome: document.getElementById('p-nome').value, 
+            validade: document.getElementById('p-validade').value, 
+            preco_entrada: parseFloat(document.getElementById('p-custo').value) || 0, 
+            preco: parseFloat(document.getElementById('p-venda').value) || 0, 
+            estoque: parseInt(document.getElementById('p-stock').value) || 0, 
+            imagem: fotoBase64 || 'https://placehold.co/300x300?text=Lust' 
+        };
         await fetch(`${API}/produtos`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) });
         location.reload();
     }
@@ -248,7 +269,7 @@
         vendas.forEach(v => {
             tb.innerHTML += `<tr>
                 <td>${new Date(v.data_venda).toLocaleDateString()}</td>
-                <td style="color:var(--gold)">#${v.codigo_pedido}</td>
+                <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
                 <td>${v.cliente_nome}</td>
                 <td>${fmtEur(v.total_venda)}</td>
                 <td>
@@ -264,6 +285,7 @@
         const ctx = canvas.getContext('2d');
         const hoje = new Date();
         const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+        const labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
         const dados = new Array(diasNoMes).fill(0);
         vendas.forEach(v => {
             const d = new Date(v.data_venda);
@@ -271,12 +293,12 @@
         });
         new Chart(ctx, {
             type: 'bar',
-            data: { labels: Array.from({length: diasNoMes}, (_, i) => i + 1), datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] },
+            data: { labels, datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] },
             options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#334155'}, ticks:{color:'#94a3b8'}}, x:{ticks:{color:'#94a3b8'}} } }
         });
     }
 
-    async function apagarProduto(id) { if(confirm("Apagar produto?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
+    async function apagarProduto(id) { if(confirm("Apagar produto definitivamente?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
     
     function gerarEtiqueta(cod) {
         const v = vendas.find(x => x.codigo_pedido === cod);
