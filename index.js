@@ -4,51 +4,30 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// --- CONFIGURAÇÃO VISUAL ---
 const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
 
-// --- EMAIL VIA BREVO API ---
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
         method: 'POST',
-        headers: {
-            'accept': 'application/json',
-            'api-key': process.env.BREVO_KEY,
-            'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-            sender: { name: "Lust Store", email: process.env.EMAIL_USER },
-            to: [{ email: para }],
-            subject: assunto,
-            htmlContent: htmlContent
-        })
+        headers: { 'accept': 'application/json', 'api-key': process.env.BREVO_KEY, 'content-type': 'application/json' },
+        body: JSON.stringify({ sender: { name: "Lust Store", email: process.env.EMAIL_USER }, to: [{ email: para }], subject: assunto, htmlContent: htmlContent })
     };
-
-    try {
-        const response = await fetch(url, options);
-        return response.ok;
-    } catch (err) {
-        console.error("[ERRO FETCH]", err);
-        return false;
-    }
+    try { const r = await fetch(url, options); return r.ok; } catch (e) { console.error(e); return false; }
 }
 
-// --- GERADOR DE ID ---
 function gerarIdLust() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; 
-    let codigo = '';
-    for (let i = 0; i < 4; i++) codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+    let codigo = ''; for (let i = 0; i < 4; i++) codigo += chars.charAt(Math.floor(Math.random() * chars.length));
     return `LS-${codigo}`;
 }
 
-// --- ORQUESTRADOR DE EMAILS ---
 async function processarEmailsVenda(venda) {
-    const itensLista = venda.itens.map(i => 
-        `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">${i.nome} <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`
-    ).join('');
+    const itensLista = venda.itens.map(i => `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">${i.nome} <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`).join('');
     
-    // Email Cliente
+    // Define prazo estimado baseado no tipo de frete (simples lógica visual)
+    const prazo = venda.total_frete > 7 ? "1 a 2 dias úteis (Expresso)" : "2 a 5 dias úteis (Standard)";
+
     const htmlCliente = `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0;">
             <div style="background-color: #0f172a; padding: 40px 20px; text-align: center; border-bottom: 4px solid #cca43b;">
@@ -57,26 +36,33 @@ async function processarEmailsVenda(venda) {
             </div>
             <div style="padding: 40px 30px;">
                 <h2 style="color: #0f172a; margin-top: 0; font-weight: 300;">Olá, ${venda.cliente_nome}.</h2>
-                <p style="color: #64748b; font-size: 16px; line-height: 1.5;">Agradecemos a sua preferência. A sua encomenda foi confirmada.</p>
-                <div style="background: #f8fafc; padding: 20px; border-left: 4px solid #cca43b; margin: 30px 0;">
-                    <p style="margin:0; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">ID do Pedido</p>
-                    <p style="margin:5px 0 0 0; font-size: 26px; font-weight: bold; color: #0f172a;">#${venda.codigo_pedido}</p>
+                <p style="color: #64748b; font-size: 16px; line-height: 1.5;">Agradecemos a sua preferência. A sua encomenda <b>#${venda.codigo_pedido}</b> foi confirmada.</p>
+                
+                <div style="background: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e2e8f0;">
+                    <p style="margin:0; font-size: 14px; color: #334155;">🚚 <strong>Estimativa de Entrega:</strong><br>${prazo} após envio.</p>
                 </div>
-                <h3 style="color: #0f172a; border-bottom: 1px solid #cca43b; padding-bottom: 10px; margin-top: 40px;">Detalhes da Compra</h3>
+
+                <h3 style="color: #0f172a; border-bottom: 1px solid #cca43b; padding-bottom: 10px; margin-top: 40px;">Resumo da Compra</h3>
                 <ul style="list-style: none; padding: 0; margin: 0;">${itensLista}</ul>
-                <div style="margin-top: 20px; text-align: right;">
-                    <p style="font-size: 18px; color: #0f172a;">Total: <b style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</b></p>
+                
+                <div style="margin-top: 20px; text-align: right; border-top: 2px solid #f1f5f9; padding-top: 10px;">
+                    <p style="margin: 5px 0; color: #64748b;">Subtotal: €${(venda.total_venda - venda.total_frete).toFixed(2)}</p>
+                    <p style="margin: 5px 0; color: #64748b;">Envio: €${venda.total_frete.toFixed(2)}</p>
+                    <p style="font-size: 20px; color: #0f172a; margin-top: 10px;">Total: <b style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</b></p>
                 </div>
+            </div>
+             <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+                <p>© 2026 Lust Store. Todos os direitos reservados.</p>
             </div>
         </div>
     `;
 
-    // Email Admin
     const htmlAdmin = `
         <h3>💰 NOVA VENDA: #${venda.codigo_pedido}</h3>
-        <p><b>Cliente:</b> ${venda.cliente_nome} (${venda.cliente_email})</p>
-        <p><b>Total:</b> €${venda.total_venda.toFixed(2)}</p>
-        <hr><h4>Itens:</h4><ul>${itensLista}</ul>
+        <p><b>Cliente:</b> ${venda.cliente_nome}</p>
+        <p><b>Total Pago:</b> €${venda.total_venda.toFixed(2)} (Frete: €${venda.total_frete})</p>
+        <p><b>Lucro Líquido:</b> <span style="color:green">€${venda.lucro.toFixed(2)}</span></p>
+        <hr><h4>Itens para Embalar:</h4><ul>${itensLista}</ul>
     `;
 
     await enviarEmailViaBrevo(venda.cliente_email, `💎 Pedido Confirmado: #${venda.codigo_pedido}`, htmlCliente);
@@ -130,7 +116,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-app.get('/', (req, res) => res.send("API Lust Store: ONLINE (CORRIGIDA) 💎"));
+app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
 app.get('/pedido/:codigo', async (req, res) => {
     const { codigo } = req.params;
     const { data, error } = await supabase.from('vendas').select('*').eq('codigo_pedido', codigo).single();
@@ -167,9 +153,7 @@ app.post('/checkout', async (req, res) => {
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'], 
             shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] }, 
-            shipping_options: s_options, 
-            line_items: line_items, 
-            mode: 'payment', 
+            shipping_options: s_options, line_items: line_items, mode: 'payment', 
             success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, 
             cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html', 
             metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido } 
