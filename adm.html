@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Lust Store | Painel Administrativo</title>
+    <title>Lust Store | Sistema de Gestão</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
     
@@ -31,43 +31,49 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
+        /* DASHBOARD */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card-dash { background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--borda); text-align: center; border-bottom: 3px solid var(--gold); }
         .card-dash h3 { margin: 0; font-size: 9px; color: #94a3b8; text-transform: uppercase; }
         .card-dash p { margin: 8px 0 0; font-size: 18px; font-weight: bold; }
 
-        /* NOVO LAYOUT DO FORMULÁRIO (FOTO À FRENTE) */
+        /* FORMULÁRIO COMPACTO */
         .card-form { 
-            background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--borda); 
-            margin-bottom: 30px; display: flex; gap: 25px; align-items: flex-start;
+            background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); 
+            margin-bottom: 30px; display: flex; gap: 20px; align-items: flex-start;
         }
         .area-upload { 
-            flex: 0 0 160px; height: 160px; border: 2px dashed var(--borda); 
+            flex: 0 0 140px; height: 140px; border: 2px dashed var(--borda); 
             border-radius: 8px; cursor: pointer; display: flex; flex-direction: column;
             align-items: center; justify-content: center; text-align: center; overflow: hidden; position: relative;
         }
         .area-upload img { width: 100%; height: 100%; object-fit: contain; background: white; }
-        .label-upload { font-size: 9px; color: #64748b; padding: 10px; text-transform: uppercase; }
 
-        .campos-container { flex: 1; }
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .campos-container { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .full-width { grid-column: span 3; }
         
-        label { display: block; font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; }
-        .btn-principal { background: var(--gold); color: #000; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        label { display: block; font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; font-weight: bold; }
+        input { width: 100%; padding: 8px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        
+        .btn-principal { background: var(--gold); color: #0f172a; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; grid-column: span 3; margin-top: 5px; }
 
-        /* TABELAS */
-        .tabela-container { background: var(--card); border-radius: 8px; border: 1px solid var(--borda); overflow-x: auto; margin-top: 20px;}
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        /* TABELA DE INVENTÁRIO COMPLETA */
+        .tabela-container { background: var(--card); border-radius: 8px; border: 1px solid var(--borda); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; }
         th { text-align: left; padding: 12px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; font-size: 10px; }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        .produto-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #334155; }
-        .img-mini { width: 50px; height: 50px; background: white; object-fit: contain; border-radius: 4px; }
+        .img-table { width: 45px; height: 45px; object-fit: contain; background: white; border-radius: 4px; cursor: pointer; border: 1px solid var(--borda); }
+        .img-table:hover { border-color: var(--gold); }
 
-        .status-tag { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; text-transform: uppercase; }
+        .input-inline { background: transparent; border: 1px solid transparent; padding: 4px; color: white; width: 100%; font-size: 12px; }
+        .input-inline:focus { background: #0f172a; border-color: var(--gold); outline: none; }
+        
+        .status-tag { font-size: 9px; padding: 2px 5px; border-radius: 3px; font-weight: bold; text-transform: uppercase; }
         .critico { background: rgba(239, 68, 68, 0.2); color: var(--erro); }
-        .alerta { background: rgba(245, 158, 11, 0.2); color: var(--alerta); }
+        
+        .btn-mini { background: none; border: 1px solid var(--borda); color: #94a3b8; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        .btn-mini:hover { color: var(--gold); border-color: var(--gold); }
 
         .grafico-box { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); height: 300px; margin-bottom: 30px; }
         
@@ -79,7 +85,7 @@
 <div class="container">
     <div class="header-top">
         <img src="logo.png" class="logo-adm" onerror="this.style.display='none'">
-        <h1>Lust Store - <span>Painel Administrativo</span></h1>
+        <h1>Lust Store - <span>Gestão Operacional</span></h1>
     </div>
 
     <div class="tabs">
@@ -96,10 +102,10 @@
             <div class="card-dash"><h3>Lucro Mês</h3><p id="dash-lucro-mes" style="color:var(--verde)">...</p></div>
         </div>
 
-        <div style="margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button onclick="gerarRelatorioFinanceiro('semanal')" class="tab-btn" style="background:var(--card); border:1px solid var(--borda)">📅 Semanal</button>
-            <button onclick="gerarRelatorioFinanceiro('mensal')" class="tab-btn" style="background:var(--card); border:1px solid var(--borda)">📅 Mensal</button>
-            <button onclick="gerarEtiquetasDia()" class="tab-btn" style="background:var(--verde); color:white">📦 Etiquetas de Hoje</button>
+        <div style="margin-bottom: 20px; display: flex; gap: 8px;">
+            <button onclick="gerarRelatorioFinanceiro('semanal')" class="btn-mini">📅 Semanal</button>
+            <button onclick="gerarRelatorioFinanceiro('mensal')" class="btn-mini">📅 Mensal</button>
+            <button onclick="gerarEtiquetasDia()" class="btn-mini" style="border-color:var(--verde); color:var(--verde)">📦 Etiquetas Hoje</button>
         </div>
 
         <div class="grafico-box">
@@ -120,40 +126,52 @@
         <div class="card-form">
             <div class="area-upload" onclick="document.getElementById('file-input').click()">
                 <img id="preview-img" style="display:none">
-                <span id="label-upload" class="label-upload">📸 Foto</span>
+                <span id="label-upload" style="font-size:9px; color:#64748b; text-transform:uppercase;">📸 Foto</span>
                 <input type="file" id="file-input" hidden onchange="processarFoto(this)">
             </div>
             
             <div class="campos-container">
-                <div class="grid-inputs">
-                    <div style="grid-column: span 2;"><label>Nome do Produto</label><input type="text" id="p-nome"></div>
-                    <div><label>Validade</label><input type="date" id="p-validade"></div>
-                </div>
-                <div class="grid-inputs">
-                    <div><label>Custo (€)</label><input type="number" id="p-custo" step="0.01"></div>
-                    <div><label>Venda (€)</label><input type="number" id="p-venda" step="0.01"></div>
-                    <div><label>Stock</label><input type="number" id="p-stock"></div>
-                </div>
-                <input type="hidden" id="edit-id">
-                <button class="btn-principal" onclick="salvarProduto()">Salvar Produto</button>
+                <div class="full-width"><label>Nome do Produto</label><input type="text" id="p-nome"></div>
+                <div><label>Custo (€)</label><input type="number" id="p-custo" step="0.01"></div>
+                <div><label>Venda (€)</label><input type="number" id="p-venda" step="0.01"></div>
+                <div><label>Stock</label><input type="number" id="p-stock"></div>
+                <div class="full-width"><label>Validade (dd/mm/aaaa)</label><input type="date" id="p-validade"></div>
+                <button class="btn-principal" onclick="salvarProduto()">+ Adicionar ao Catálogo</button>
             </div>
         </div>
 
-        <div id="lista-inventario" class="tabela-container">
-            </div>
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="60">Foto</th>
+                        <th>Produto</th>
+                        <th width="100">Custo (€)</th>
+                        <th width="100">Venda (€)</th>
+                        <th width="80">Stock</th>
+                        <th width="120">Validade</th>
+                        <th width="100">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-inventario-tabela">
+                    </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
+<input type="file" id="table-file-input" hidden onchange="processarFotoTabela(this)">
+
 <script>
     const API = "https://projeto-loja-dzqv.onrender.com";
-    let produtos = [], vendas = [], fotoBase64 = "";
+    let produtos = [], vendas = [], fotoBase64 = "", itemSendoEditadoNaTabela = null;
 
     async function iniciar() {
         try {
             const [resP, resV] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`)]);
             produtos = await resP.json(); vendas = await resV.json();
             atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico();
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Erro ao carregar dados:", e); }
     }
 
     function openTab(id) {
@@ -165,7 +183,7 @@
 
     function atualizarDash() {
         let custo = 0, valor = 0;
-        produtos.forEach(p => { custo += (p.preco_entrada || 0) * p.estoque; valor += p.preco * p.estoque; });
+        produtos.forEach(p => { custo += (parseFloat(p.preco_entrada) || 0) * p.estoque; valor += p.preco * p.estoque; });
         const hoje = new Date();
         let vMes = 0, lMes = 0;
         vendas.forEach(v => {
@@ -182,23 +200,110 @@
     }
 
     function renderizarInventario() {
-        const div = document.getElementById('lista-inventario'); div.innerHTML = '';
+        const tbody = document.getElementById('lista-inventario-tabela');
+        tbody.innerHTML = '';
+        
         produtos.forEach(p => {
-            const critico = p.estoque <= 0 ? 'critico' : (p.estoque < 5 ? 'alerta' : '');
-            div.innerHTML += `
-                <div class="produto-item">
-                    <img src="${p.imagem}" class="img-mini" onerror="this.src='https://placehold.co/50?text=Ls'">
-                    <div style="flex:1">
-                        <b>${p.nome}</b><br>
-                        <span class="status-tag ${critico}">${p.estoque <= 0 ? 'ESGOTADO' : 'Stock: '+p.estoque}</span>
-                        <small style="color:#94a3b8">Custo: €${p.preco_entrada} | Venda: €${p.preco}</small>
-                    </div>
-                    <button onclick="prepararEdicao(${p.id})" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:18px">✎</button>
-                    <button onclick="apagarProduto(${p.id})" style="background:none; border:none; color:var(--erro); cursor:pointer; font-size:18px">✕</button>
-                </div>`;
+            const statusCritico = p.estoque <= 0 ? 'critico' : '';
+            tbody.innerHTML += `
+                <tr id="row-${p.id}">
+                    <td>
+                        <img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})" title="Clique para trocar foto">
+                    </td>
+                    <td>
+                        <input type="text" class="input-inline" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" class="input-inline" step="0.01" value="${p.preco_entrada}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" class="input-inline" step="0.01" value="${p.preco}" onchange="updateItem(${p.id}, 'preco', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" class="input-inline ${statusCritico}" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)">
+                    </td>
+                    <td>
+                        <input type="date" class="input-inline" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)">
+                    </td>
+                    <td>
+                        <button onclick="apagarProduto(${p.id})" class="btn-mini" style="color:var(--erro)">✕</button>
+                    </td>
+                </tr>`;
         });
     }
 
+    // UPDATE DIRETO NA TABELA
+    async function updateItem(id, campo, valor) {
+        const p = produtos.find(x => x.id === id);
+        p[campo] = valor;
+        try {
+            await fetch(`${API}/produtos/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(p)
+            });
+            atualizarDash(); // Atualiza dashboard sem recarregar tudo
+        } catch(e) { alert("Erro ao salvar alteração."); }
+    }
+
+    // TROCA DE FOTO NA TABELA
+    function trocarFotoTabela(id) {
+        itemSendoEditadoNaTabela = id;
+        document.getElementById('table-file-input').click();
+    }
+
+    function processarFotoTabela(input) {
+        if(input.files && input.files[0]) {
+            const r = new FileReader();
+            r.onload = async (e) => {
+                const id = itemSendoEditadoNaTabela;
+                const p = produtos.find(x => x.id === id);
+                p.imagem = e.target.result;
+                await fetch(`${API}/produtos/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(p)
+                });
+                renderizarInventario();
+            };
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // CADASTRO NOVO PRODUTO
+    function processarFoto(input) {
+        if(input.files && input.files[0]) {
+            const r = new FileReader();
+            r.onload = e => { 
+                fotoBase64 = e.target.result; 
+                document.getElementById('preview-img').src = fotoBase64; 
+                document.getElementById('preview-img').style.display='block'; 
+                document.getElementById('label-upload').style.display='none'; 
+            };
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function salvarProduto() {
+        const p = { 
+            nome: document.getElementById('p-nome').value, 
+            validade: document.getElementById('p-validade').value, 
+            preco_entrada: parseFloat(document.getElementById('p-custo').value) || 0, 
+            preco: parseFloat(document.getElementById('p-venda').value) || 0, 
+            estoque: parseInt(document.getElementById('p-stock').value) || 0, 
+            imagem: fotoBase64 || 'https://placehold.co/300x300?text=Sem+Foto'
+        };
+        if(!p.nome) return alert("Insira o nome do produto.");
+        
+        await fetch(`${API}/produtos`, { 
+            method: 'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify(p) 
+        });
+        location.reload();
+    }
+
+    // FINANCEIRO (MESMA LÓGICA)
     function renderizarVendas() {
         const tb = document.getElementById('lista-vendas'); tb.innerHTML = '';
         vendas.forEach(v => {
@@ -206,17 +311,19 @@
                 <td>${new Date(v.data_venda).toLocaleDateString()}</td>
                 <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
                 <td>${v.cliente_nome}</td>
-                <td>€${v.total_venda.toFixed(2)}</td>
+                <td>€${parseFloat(v.total_venda).toFixed(2)}</td>
                 <td>
-                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" title="Etiqueta" style="border:none; background:none; cursor:pointer; font-size:16px">📦</button>
-                    <button onclick="gerarPDFPedido('${v.codigo_pedido}')" title="Recibo" style="border:none; background:none; cursor:pointer; font-size:16px">📄</button>
+                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" title="Etiqueta" style="border:none; background:none; cursor:pointer">📦</button>
+                    <button onclick="gerarPDFPedido('${v.codigo_pedido}')" title="Recibo" style="border:none; background:none; cursor:pointer">📄</button>
                 </td>
             </tr>`;
         });
     }
 
     function renderizarGrafico() {
-        const ctx = document.getElementById('graficoVendas').getContext('2d');
+        const canvas = document.getElementById('graficoVendas');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
         const hoje = new Date();
         const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
         const labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
@@ -234,55 +341,9 @@
         });
     }
 
-    function processarFoto(input) {
-        if(input.files && input.files[0]) {
-            const r = new FileReader();
-            r.onload = e => { 
-                fotoBase64 = e.target.result; 
-                const img = document.getElementById('preview-img');
-                img.src = fotoBase64; img.style.display='block'; 
-                document.getElementById('label-upload').style.display='none'; 
-            };
-            r.readAsDataURL(input.files[0]);
-        }
-    }
-
-    async function salvarProduto() {
-        const id = document.getElementById('edit-id').value;
-        const p = { 
-            nome: document.getElementById('p-nome').value, 
-            validade: document.getElementById('p-validade').value, 
-            preco_entrada: parseFloat(document.getElementById('p-custo').value), 
-            preco: parseFloat(document.getElementById('p-venda').value), 
-            estoque: parseInt(document.getElementById('p-stock').value), 
-            imagem: fotoBase64 
-        };
-        await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, { 
-            method: id?'PUT':'POST', 
-            headers:{'Content-Type':'application/json'}, 
-            body: JSON.stringify(p) 
-        });
-        location.reload();
-    }
-
-    function prepararEdicao(id) {
-        const p = produtos.find(x => x.id === id);
-        document.getElementById('p-nome').value = p.nome;
-        document.getElementById('p-custo').value = p.preco_entrada;
-        document.getElementById('p-venda').value = p.preco;
-        document.getElementById('p-stock').value = p.estoque;
-        document.getElementById('p-validade').value = p.validade || '';
-        document.getElementById('edit-id').value = p.id;
-        fotoBase64 = p.imagem;
-        const img = document.getElementById('preview-img');
-        img.src = p.imagem; img.style.display='block';
-        document.getElementById('label-upload').style.display='none';
-        openTab('inventario'); window.scrollTo(0,0);
-    }
-
-    async function apagarProduto(id) { if(confirm("Apagar produto?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
+    async function apagarProduto(id) { if(confirm("Apagar produto definitivamente?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
     
-    // PDFS (IDENTIDADE MANTIDA)
+    // PDFS (MANTIDOS)
     function gerarEtiqueta(cod) {
         const v = vendas.find(x => x.codigo_pedido === cod);
         const { jsPDF } = window.jspdf;
@@ -305,7 +366,7 @@
         doc.autoTable({
             startY: 40, 
             head:[['Data','Pedido','Custo','Frete','Venda','Lucro']],
-            body: vendas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, v.total_custo, v.total_frete, v.total_venda, v.lucro]),
+            body: vendas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, `€${v.total_custo}`, `€${v.total_frete}`, `€${v.total_venda}`, `€${v.lucro}`]),
             headStyles:{fillColor:[15,23,42], textColor:[204,164,59]}
         });
         doc.save(`Financeiro_${per}.pdf`);
@@ -319,7 +380,7 @@
         doc.setTextColor(0,0,0); doc.setFontSize(12); doc.text(`Recibo: #${v.codigo_pedido}`, 14, 45);
         const body = v.itens.map(i => [i.nome, `€${i.preco}`]);
         body.push(['Frete', `€${v.total_frete}`]);
-        body.push(['TOTAL', `€${v.total_venda.toFixed(2)}`]);
+        body.push(['TOTAL', `€${v.total_venda}`]);
         doc.autoTable({ startY: 55, head:[['Item', 'Valor']], body: body });
         doc.save(`Recibo_${cod}.pdf`);
     }
