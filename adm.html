@@ -4,383 +4,462 @@
     <meta charset="UTF-8">
     <title>Admin | Lust Store</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
         :root { 
-            --dark: #0f172a; --card: #1e293b; 
-            --gold: #cca43b; --gold-light: #fde047; 
-            --texto: #f8fafc; --borda: #334155; 
-            --verde: #22c55e; --erro: #ef4444; 
+            --dark: #0f172a; 
+            --card: #1e293b; 
+            --gold: #cca43b; 
+            --gold-hover: #eab308;
+            --texto: #f8fafc; 
+            --borda: #334155; 
+            --verde: #10b981; 
+            --erro: #ef4444; 
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: var(--texto); padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; } /* Aumentei a largura para caber a tabela */
         
-        .header-top { text-align: center; margin-bottom: 25px; position: relative; }
-        h1 { margin: 0; font-size: 24px; color: var(--gold); text-transform: uppercase; letter-spacing: 2px; }
-        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #cbd5e1; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.3s; }
-        .btn-sair:hover { border-color: var(--gold); color: var(--gold); }
+        body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 80px; }
+        
+        /* HEADER DE LUXO */
+        .header-top { 
+            text-align: center; margin-bottom: 30px; position: relative; 
+            border-bottom: 1px solid var(--borda); padding-bottom: 20px;
+        }
+        .logo-adm { height: 50px; display: block; margin: 0 auto 5px; }
+        h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold); letter-spacing: 1px; }
+        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #94a3b8; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
+        .btn-sair:hover { border-color: var(--erro); color: var(--erro); }
 
-        /* DASHBOARD */
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; border-left: 4px solid var(--gold); }
-        .card-dash h3 { margin: 0; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-        .card-dash p { margin: 8px 0 0; font-size: 18px; font-weight: bold; color: var(--gold-light); }
+        /* DASHBOARD CARDS */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card-dash { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); text-align: center; border-bottom: 3px solid var(--gold); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; }
+        .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: bold; color: white; font-family: 'Playfair Display', serif; }
 
-        /* TABELA AVANÇADA DE PEDIDOS */
-        .tabela-container { overflow-x: auto; background: var(--card); border-radius: 12px; border: 1px solid var(--borda); padding: 5px; }
+        /* BOTÕES DE AÇÃO */
+        .area-relatorios { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .label-acao { width:100%; color:var(--gold); font-weight:bold; font-size:12px; margin-bottom:10px; text-transform:uppercase; letter-spacing: 1px; }
+        
+        .btn-pdf { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; transition: 0.3s; letter-spacing: 0.5px; }
+        .btn-pdf:hover { background: var(--gold); color: var(--dark); }
+        .btn-destaque { background: var(--gold); color: var(--dark); }
+
+        /* FORMULÁRIO PRODUTO */
+        .card-cadastro { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--borda); margin-bottom: 30px; display: flex; gap: 25px; flex-wrap: wrap; }
+        .area-foto { width: 150px; height: 150px; background: #0f172a; border: 2px dashed var(--borda); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; transition: 0.3s; }
+        .area-foto:hover { border-color: var(--gold); }
+        .area-foto img { width: 100%; height: 100%; object-fit: contain; }
+        .txt-foto { font-size: 10px; color: #64748b; text-align: center; }
+
+        .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 280px; }
+        .grid-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        label { font-size: 10px; color: var(--gold); font-weight: bold; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        input:focus { border-color: var(--gold); outline: none; }
+        
+        .btn-salvar { background: var(--gold); color: var(--dark); border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: auto; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .btn-salvar:hover { background: var(--gold-hover); }
+
+        /* TABELA VENDAS */
+        .tabela-container { overflow-x: auto; background: var(--card); border-radius: 8px; border: 1px solid var(--borda); padding: 10px; margin-bottom: 40px; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 15px; font-size: 12px; color: var(--gold); text-transform: uppercase; border-bottom: 2px solid var(--borda); }
+        th { text-align: left; padding: 15px; font-size: 11px; color: #94a3b8; text-transform: uppercase; border-bottom: 1px solid var(--borda); letter-spacing: 1px; }
         td { padding: 15px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e2e8f0; vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
         tr:hover { background: rgba(255,255,255,0.02); }
 
-        .btn-acao { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-right: 5px; transition: 0.2s; }
+        .btn-acao { border: none; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; margin-right: 5px; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-acao:hover { transform: scale(1.1); }
-        .btn-recibo { background: #3b82f6; color: white; } /* Azul */
-        .btn-etiqueta { background: var(--gold); color: black; } /* Dourado */
-        .btn-email { background: var(--verde); color: white; } /* Verde */
+        .btn-recibo { background: #3b82f6; color: white; }
+        .btn-etiqueta { background: var(--gold); color: var(--dark); }
+        .btn-email { background: var(--verde); color: white; }
 
-        /* OUTROS ESTILOS */
-        .area-relatorios { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn-pdf { background: #334155; color: white; border: 1px solid var(--borda); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.3s; }
-        .btn-pdf:hover { background: var(--gold); border-color: var(--gold); color: #000; }
-        
-        .card-cadastro { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--borda); margin-bottom: 25px; display: flex; gap: 20px; flex-wrap: wrap; }
-        .area-foto { width: 180px; height: 180px; background: #000; border: 2px dashed var(--gold); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        .area-foto img { width: 100%; height: 100%; object-fit: contain; }
-        .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 250px; }
-        .grid-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        label { font-size: 11px; color: #cbd5e1; font-weight: 600; display: block; margin-bottom: 4px; letter-spacing: 1px; }
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 8px; }
-        .btn-principal { background: var(--gold); color: #000; border: none; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: auto; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .img-lista { width: 60px; height: 60px; border-radius: 8px; object-fit: contain; background: #000; border: 1px solid #333; }
-        
-        .area-grafico { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); height: 350px; margin-top: 40px; }
+        /* LISTA INVENTÁRIO (VISUAL LOJA) */
+        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--borda); transition: 0.2s; }
+        .produto-item:hover { border-color: var(--gold); }
+        .img-lista { width: 60px; height: 60px; border-radius: 4px; object-fit: contain; background: #fff; }
+        .info-prod { flex: 1; }
+        .info-prod b { color: white; font-size: 14px; }
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; text-transform: uppercase; margin-left: 5px; }
+        .badge-ok { background: rgba(16, 185, 129, 0.2); color: var(--verde); }
+        .badge-warn { background: rgba(239, 68, 68, 0.2); color: var(--erro); animation: pulsar 2s infinite; }
+        @keyframes pulsar { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .area-grafico { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); height: 350px; margin-top: 40px; }
     </style>
 </head>
 <body>
     <div class="container">
+        
         <div class="header-top">
-            <h1>💎 Lust Store <span style="font-size:14px; color:#64748b; vertical-align:middle;">ADMIN</span></h1>
-            <button class="btn-sair" onclick="sair()">🔒 SAIR</button>
+            <img src="logo.png" alt="LUST" class="logo-adm" onerror="this.style.display='none'">
+            <h1>ADMINISTRAÇÃO</h1>
+            <button class="btn-sair" onclick="sair()">Sair 🔒</button>
         </div>
         
         <div class="dashboard">
-            <div class="card-dash"><h3>Venda Bruta (Estoque)</h3><p id="dash-venda">€ 0.00</p></div>
-            <div class="card-dash"><h3>Custo Estoque</h3><p id="dash-custo">€ 0.00</p></div>
-            <div class="card-dash"><h3>Lucro Estimado</h3><p id="dash-lucro-est">€ 0.00</p></div>
-            <div class="card-dash" style="border-color: var(--verde);"><h3>Vendas (7 Dias)</h3><p id="dash-venda-semana" style="color:var(--verde)">€ 0.00</p></div>
-            <div class="card-dash" style="border-color: var(--verde);"><h3>Lucro Real (7 Dias)</h3><p id="dash-lucro-semana" style="color:var(--verde)">€ 0.00</p></div>
+            <div class="card-dash"><h3>Valor em Estoque</h3><p id="dash-venda">...</p></div>
+            <div class="card-dash"><h3>Custo Total</h3><p id="dash-custo">...</p></div>
+            <div class="card-dash"><h3>Lucro Projetado</h3><p id="dash-lucro-est">...</p></div>
+            <div class="card-dash"><h3>Faturação (Total)</h3><p id="dash-total-vendas">...</p></div>
         </div>
 
         <div class="area-relatorios">
-            <div style="width:100%; color:var(--gold); font-weight:bold; font-size:13px; margin-bottom:5px; text-transform:uppercase;">📑 Ações em Massa:</div>
-            <button class="btn-pdf" onclick="gerarEtiquetasDoDia()" style="background:var(--gold); color:black;">🏷️ Etiquetas (Hoje)</button>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('mensal')">💰 Rel. Mensal</button>
-            <button class="btn-pdf" onclick="gerarRelatorioVendas('semanal')">📈 Rel. Semanal</button>
-            <button class="btn-pdf" onclick="gerarPDF('inventario')">📦 Inventário</button>
+            <div class="label-acao">Exportar Relatórios Oficiais</div>
+            <button onclick="baixarPDF('vendas')" class="btn-pdf btn-destaque">📄 Vendas (PDF)</button>
+            <button onclick="baixarPDF('inventario')" class="btn-pdf">📦 Inventário (PDF)</button>
         </div>
 
         <div class="card-cadastro">
-            <div class="area-foto" onclick="document.getElementById('input-file').click()">
-                <img id="img-preview" src="" style="display:none">
-                <span id="txt-foto">📷<br>ADICIONAR FOTO</span>
-                <input type="file" id="input-file" accept="image/*" style="display:none" onchange="processarFoto(this)">
-                <input type="hidden" id="imagem">
+            <div class="area-foto" onclick="document.getElementById('img-input').click()">
+                <img id="preview-img" style="display:none">
+                <span id="aviso-foto" class="txt-foto">+ FOTO DO<br>PRODUTO</span>
+                <input type="file" id="img-input" accept="image/*" hidden onchange="lerImagem(this)">
             </div>
+            
             <div class="campos-texto">
+                <div class="grid-duplo">
+                    <div><label>Nome do Produto</label><input type="text" id="nome"></div>
+                    <div><label>Preço (€)</label><input type="number" id="preco" step="0.01"></div>
+                </div>
+                <div class="grid-duplo">
+                    <div><label>Custo (€)</label><input type="number" id="custo" step="0.01"></div>
+                    <div><label>Estoque (Qtd)</label><input type="number" id="estoque"></div>
+                </div>
                 <input type="hidden" id="edit-id">
-                <div><label>NOME</label><input type="text" id="nome"></div>
-                <div class="grid-duplo">
-                    <div><label>CUSTO (€)</label><input type="number" id="preco_entrada" step="0.01"></div>
-                    <div><label>VENDA (€)</label><input type="number" id="preco" step="0.01"></div>
-                </div>
-                <div class="grid-duplo">
-                    <div><label>ESTOQUE</label><input type="number" id="estoque"></div>
-                    <div><label>VALIDADE</label><input type="date" id="validade"></div>
-                </div>
-                <button class="btn-principal" id="btnSalvar" onclick="salvar()">Gravar Produto</button>
+                <button onclick="salvarProduto()" class="btn-salvar" id="btn-salvar">Adicionar ao Catálogo</button>
+                <button onclick="cancelarEdicao()" id="btn-cancelar" style="display:none; background:#334155; border:none; color:white; padding:10px; border-radius:4px; cursor:pointer;">Cancelar Edição</button>
             </div>
         </div>
 
-        <div style="margin-bottom:30px;">
-            <h2 style="font-size:16px; color:var(--gold); text-transform:uppercase; margin-bottom:10px;">📦 Gestão de Encomendas</h2>
-            <div class="tabela-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>ID Pedido</th>
-                            <th>Cliente</th>
-                            <th>Itens</th>
-                            <th>Valores</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-vendas-body">
-                        <tr><td colspan="6" style="text-align:center">A carregar vendas...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <h3 style="color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-size:14px; margin-bottom:10px;">Últimas Vendas</h3>
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>ID Pedido</th>
+                        <th>Cliente</th>
+                        <th>Itens</th>
+                        <th>Total</th>
+                        <th>Lucro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-vendas"></tbody>
+            </table>
         </div>
-        
-        <h2 style="font-size:16px; color:var(--gold); text-transform:uppercase;">📋 Inventário</h2>
-        <div id="lista">A carregar...</div>
 
-        <h2 style="font-size:16px; color:var(--gold); margin-top:40px; text-transform:uppercase;">📊 Performance (30 Dias)</h2>
-        <div class="area-grafico"><canvas id="graficoVendas"></canvas></div>
+        <h3 style="color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-size:14px; margin-bottom:10px; margin-top:40px;">Gestão de Inventário</h3>
+        <div id="lista-inventario"></div>
+
+        <div class="area-grafico">
+            <canvas id="graficoVendas"></canvas>
+        </div>
+
     </div>
 
     <script>
-        const API = 'https://projeto-loja-dzqv.onrender.com';
-        let dadosGlobais = []; 
-        let vendasGlobais = []; // Cache das vendas
-        let graficoInstance = null;
-
-        function sair() { if(confirm("Deseja sair?")) { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; } }
-        function processarFoto(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { document.getElementById('imagem').value = e.target.result; const i = document.getElementById('img-preview'); i.src = e.target.result; i.style.display='block'; document.getElementById('txt-foto').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
+        // --- COLOQUE O SEU URL DO RENDER AQUI ---
+        const API_URL = "https://lust-store-backend.onrender.com";
         
-        async function carregar() {
-            const div = document.getElementById('lista');
+        let produtosCache = [];
+        let vendasCache = [];
+        let imagemBase64 = "";
+
+        async function iniciar() {
+            await carregarDados();
+            renderizarGrafico();
+        }
+
+        async function carregarDados() {
             try {
-                // Carregar Produtos
-                const res = await fetch(`${API}/produtos`); dadosGlobais = await res.json(); div.innerHTML = '';
-                let v = 0, c = 0; const hoje = new Date();
-                dadosGlobais.forEach(p => {
-                    const pV = parseFloat(p.preco||0), pC = parseFloat(p.preco_entrada||0), q = parseInt(p.estoque||0);
-                    v += (pV * q); c += (pC * q);
-                    let validadeInfo = p.validade ? (new Date(p.validade) < hoje ? `<span style="color:var(--erro)">⛔ VENCIDO</span>` : new Date(p.validade).toLocaleDateString('pt-PT')) : 'N/A';
-                    div.innerHTML += `<div class="produto-item"><img src="${p.imagem||''}" class="img-lista"><div style="flex:1"><b>${p.nome}</b><br><small>Estoque: ${q} | Val: ${validadeInfo}</small></div><button class="btn-pdf" onclick='prepararEdicao(${JSON.stringify(p)})'>Editar</button><button class="btn-pdf" style="background:var(--erro); border:none;" onclick="deletar('${p.id}')">X</button></div>`;
-                });
-                document.getElementById('dash-venda').innerText = `€ ${v.toFixed(2)}`; 
-                document.getElementById('dash-custo').innerText = `€ ${c.toFixed(2)}`; 
-                document.getElementById('dash-lucro-est').innerText = `€ ${(v-c).toFixed(2)}`;
+                const [resProd, resVend] = await Promise.all([
+                    fetch(`${API_URL}/produtos`),
+                    fetch(`${API_URL}/vendas`)
+                ]);
+                produtosCache = await resProd.json();
+                vendasCache = await resVend.json();
                 
-                // Carregar Vendas
-                carregarVendas();
-            } catch(e) { div.innerHTML = "Erro ao carregar."; }
-        }
-
-        async function carregarVendas() {
-            try {
-                const res = await fetch(`${API}/vendas?periodo=mensal`); 
-                vendasGlobais = await res.json(); // Guarda em cache global
-                const tbody = document.getElementById('tabela-vendas-body'); 
-                tbody.innerHTML = vendasGlobais.length ? '' : '<tr><td colspan="6" style="text-align:center">Nenhuma venda registada.</td></tr>';
-                
-                vendasGlobais.forEach((v, index) => {
-                    const totalFrete = v.total_frete ? parseFloat(v.total_frete).toFixed(2) : '0.00';
-                    const idVisual = v.codigo_pedido || ("#LS-" + v.id);
-                    const dataFormatada = new Date(v.data_venda).toLocaleDateString('pt-PT') + ' <small style="color:#64748b">' + new Date(v.data_venda).toLocaleTimeString('pt-PT').substr(0,5) + '</small>';
-                    
-                    // Resumo de Itens
-                    let itensTexto = "";
-                    if(v.itens) {
-                        v.itens.forEach(i => itensTexto += `<div>• ${i.nome}</div>`);
-                    }
-
-                    // Construção da Linha
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${dataFormatada}</td>
-                            <td><b style="color:var(--gold); font-size:14px;">${idVisual}</b></td>
-                            <td>
-                                <b>${v.cliente_nome}</b><br>
-                                <small style="color:#94a3b8">${v.cliente_email}</small>
-                            </td>
-                            <td>${itensTexto}</td>
-                            <td>
-                                <span style="color:var(--verde)">€${parseFloat(v.total_venda).toFixed(2)}</span><br>
-                                <small>Frete: €${totalFrete}</small>
-                            </td>
-                            <td>
-                                <button class="btn-acao btn-recibo" title="Baixar Recibo (PDF Cliente)" onclick="gerarReciboIndividual(${index})">📄</button>
-                                <button class="btn-acao btn-etiqueta" title="Baixar Etiqueta Envio" onclick="gerarEtiquetaIndividual(${index})">🏷️</button>
-                                <button class="btn-acao btn-email" title="Reenviar Email" onclick="reenviarEmail('${v.id}')">📧</button>
-                            </td>
-                        </tr>`;
-                });
-                
-                // Atualiza Dashboards
-                const hoje = new Date(); const seteDiasAtras = new Date(); seteDiasAtras.setDate(hoje.getDate() - 7);
-                let totalVendasSemana = 0; let lucroRealSemana = 0;
-                vendasGlobais.forEach(v => {
-                    if(new Date(v.data_venda) >= seteDiasAtras) { totalVendasSemana += parseFloat(v.total_venda || 0); lucroRealSemana += parseFloat(v.lucro || 0); }
-                });
-                document.getElementById('dash-venda-semana').innerText = `€ ${totalVendasSemana.toFixed(2)}`;
-                document.getElementById('dash-lucro-semana').innerText = `€ ${lucroRealSemana.toFixed(2)}`;
-                renderizarGrafico(vendasGlobais);
-
-            } catch(e){ console.error(e); }
-        }
-
-        // --- FUNÇÕES DE AÇÃO DA TABELA ---
-
-        // 1. GERAR RECIBO INDIVIDUAL (Igual ao do Sucesso.html)
-        function gerarReciboIndividual(index) {
-            const v = vendasGlobais[index];
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Header Gold
-            doc.setFillColor(204, 164, 59); doc.rect(0, 0, 210, 25, 'F');
-            doc.setFontSize(18); doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold");
-            doc.text("LUST STORE", 105, 12, null, null, "center");
-            doc.setFontSize(10); doc.text("Comprovativo de Compra (Cópia Admin)", 105, 19, null, null, "center");
-
-            doc.setTextColor(0, 0, 0); doc.setFontSize(10);
-            doc.text(`ID: #${v.codigo_pedido || v.id}`, 14, 40);
-            doc.text(`Data: ${new Date(v.data_venda).toLocaleDateString('pt-PT')}`, 14, 46);
-
-            doc.setFont("helvetica", "bold"); doc.text("Cliente:", 14, 58);
-            doc.setFont("helvetica", "normal"); doc.text(`${v.cliente_nome}\n${v.cliente_email}`, 14, 64);
-            const moradaSplit = doc.splitTextToSize(v.cliente_morada, 100); doc.text(moradaSplit, 14, 75);
-
-            const corpo = v.itens.map(i => [i.nome, `€ ${parseFloat(i.preco).toFixed(2)}`]);
-            corpo.push(['Envio', `€ ${parseFloat(v.total_frete).toFixed(2)}`]);
-            
-            doc.autoTable({
-                startY: 90, head: [['Produto', 'Preço']], body: corpo,
-                foot: [['TOTAL', `€ ${parseFloat(v.total_venda).toFixed(2)}`]],
-                headStyles: { fillColor: [204, 164, 59] },
-                footStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, theme: 'grid'
-            });
-
-            doc.save(`Recibo_${v.codigo_pedido}.pdf`);
-        }
-
-        // 2. GERAR ETIQUETA INDIVIDUAL (10x15)
-        function gerarEtiquetaIndividual(index) {
-            const v = vendasGlobais[index];
-            const { jsPDF } = window.jspdf; 
-            const doc = new jsPDF({ unit: 'mm', format: [100, 150] });
-            
-            const idDisplay = v.codigo_pedido || ("LS-" + v.id);
-            const hoje = new Date().toLocaleDateString('pt-PT');
-
-            doc.setFontSize(8); doc.text("REMETENTE: LUST STORE", 10, 10);
-            doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text(`PEDIDO: #${idDisplay}`, 55, 10);
-
-            doc.setFontSize(10); doc.text("DESTINATÁRIO:", 10, 20);
-            doc.setFontSize(14); doc.text(v.cliente_nome.toUpperCase().substring(0, 25), 10, 27);
-            
-            doc.setFontSize(11); doc.setFont("helvetica", "normal");
-            const moradaSplit = doc.splitTextToSize(v.cliente_morada, 85); doc.text(moradaSplit, 10, 35);
-            doc.line(5, 70, 95, 70);
-            
-            doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("CONTEÚDO:", 10, 78);
-            doc.setFont("helvetica", "normal");
-            
-            const itensAgrupados = {};
-            if(v.itens) v.itens.forEach(i => itensAgrupados[i.nome] = (itensAgrupados[i.nome] || 0) + 1);
-            let yPos = 85;
-            Object.entries(itensAgrupados).forEach(([nome, qtd]) => { doc.text(`[ ] ${qtd}x ${nome}`, 10, yPos); yPos += 6; });
-            
-            doc.setFontSize(8); doc.text(`${hoje} | Lust Store`, 10, 140);
-            doc.save(`Etiqueta_${idDisplay}.pdf`);
-        }
-
-        // 3. REENVIAR EMAIL
-        async function reenviarEmail(id) {
-            if(!confirm("Tem a certeza que deseja reenviar os emails de confirmação para este pedido?")) return;
-            
-            try {
-                const btn = event.target; 
-                const originalText = btn.innerText;
-                btn.innerText = "⏳"; btn.disabled = true;
-
-                const res = await fetch(`${API}/reenviar-email/${id}`, { method: 'POST' });
-                const json = await res.json();
-
-                if (json.sucesso) {
-                    alert("✅ Emails reenviados com sucesso!");
-                } else {
-                    alert("❌ Erro ao enviar. Verifique os logs do servidor.");
-                }
-                btn.innerText = originalText; btn.disabled = false;
-            } catch (e) {
-                alert("Erro de conexão.");
+                atualizarDashboard();
+                renderizarInventario();
+                renderizarVendas();
+            } catch (error) {
+                console.error("Erro ao carregar:", error);
+                alert("Erro ao conectar ao servidor.");
             }
         }
 
-        // --- FUNÇÕES GERAIS (MANTIDAS) ---
-        function renderizarGrafico(vendas) {
-            const ctx = document.getElementById('graficoVendas').getContext('2d');
-            const dadosPorDia = {};
-            vendas.forEach(v => {
-                const dia = new Date(v.data_venda).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
-                dadosPorDia[dia] = (dadosPorDia[dia] || 0) + parseFloat(v.total_venda);
+        // --- DASHBOARD & INVENTÁRIO ---
+        function atualizarDashboard() {
+            let valorVenda = 0, custoTotal = 0, lucroEst = 0;
+            produtosCache.forEach(p => {
+                valorVenda += (p.preco * p.estoque);
+                custoTotal += ((p.preco_entrada || 0) * p.estoque);
             });
-            const labels = Object.keys(dadosPorDia).reverse(); const valores = Object.values(dadosPorDia).reverse();
-            if(graficoInstance) graficoInstance.destroy();
-            graficoInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Vendas (€)', data: valores, backgroundColor: '#cca43b', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { display: false } } } } });
+            lucroEst = valorVenda - custoTotal;
+
+            let totalFaturado = 0;
+            vendasCache.forEach(v => totalFaturado += v.total_venda);
+
+            document.getElementById('dash-venda').innerText = `€${valorVenda.toFixed(2)}`;
+            document.getElementById('dash-custo').innerText = `€${custoTotal.toFixed(2)}`;
+            document.getElementById('dash-lucro-est').innerText = `€${lucroEst.toFixed(2)}`;
+            document.getElementById('dash-total-vendas').innerText = `€${totalFaturado.toFixed(2)}`;
         }
 
-        async function salvar() {
-            const id = document.getElementById('edit-id').value; const btn = document.getElementById('btnSalvar'); btn.innerText = "..."; btn.disabled = true;
-            const p = { nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value)||0, preco_entrada: parseFloat(document.getElementById('preco_entrada').value)||0, estoque: parseInt(document.getElementById('estoque').value)||0, validade: document.getElementById('validade').value||null, imagem: document.getElementById('imagem').value };
-            await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, { method: id?'PUT':'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p) });
-            resetForm(); carregar(); btn.innerText = "Gravar Produto"; btn.disabled = false;
-        }
-        function prepararEdicao(p) { document.getElementById('edit-id').value=p.id; document.getElementById('nome').value=p.nome; document.getElementById('preco').value=p.preco; document.getElementById('preco_entrada').value=p.preco_entrada||''; document.getElementById('estoque').value=p.estoque; document.getElementById('validade').value=p.validade||''; document.getElementById('imagem').value=p.imagem||''; const i=document.getElementById('img-preview'); i.src=p.imagem||''; i.style.display=p.imagem?'block':'none'; document.getElementById('txt-foto').style.display=p.imagem?'none':'block'; window.scrollTo({top:0, behavior:'smooth'}); }
-        async function deletar(id) { if(confirm("Apagar?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregar(); } }
-        function resetForm() { document.getElementById('edit-id').value=''; ['nome','preco','preco_entrada','estoque','validade','imagem','input-file'].forEach(i=>document.getElementById(i).value=''); document.getElementById('img-preview').style.display='none'; document.getElementById('txt-foto').style.display='block'; }
-        
-        async function gerarEtiquetasDoDia() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: [100, 150] });
-            try {
-                const vendasHoje = vendasGlobais.filter(v => new Date(v.data_venda).toLocaleDateString('pt-PT') === new Date().toLocaleDateString('pt-PT'));
-                if (vendasHoje.length === 0) { alert("Sem vendas hoje."); return; }
-                vendasHoje.forEach((venda, index) => {
-                    if (index > 0) doc.addPage([100, 150]);
-                    const idDisplay = venda.codigo_pedido || ("LS-" + venda.id);
-                    doc.setFontSize(8); doc.text("REMETENTE: LUST STORE", 10, 10);
-                    doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text(`PEDIDO: #${idDisplay}`, 55, 10);
-                    doc.setFontSize(10); doc.text("DESTINATÁRIO:", 10, 20);
-                    doc.setFontSize(14); doc.text(venda.cliente_nome.toUpperCase().substring(0, 25), 10, 27);
-                    doc.setFontSize(11); doc.setFont("helvetica", "normal");
-                    const moradaSplit = doc.splitTextToSize(venda.cliente_morada, 85); doc.text(moradaSplit, 10, 35);
-                    doc.line(5, 70, 95, 70);
-                    doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("CONTEÚDO:", 10, 78);
-                    doc.setFont("helvetica", "normal");
-                    const itensAgrupados = {}; if(venda.itens) venda.itens.forEach(i => itensAgrupados[i.nome] = (itensAgrupados[i.nome] || 0) + 1);
-                    let yPos = 85; Object.entries(itensAgrupados).forEach(([nome, qtd]) => { doc.text(`[ ] ${qtd}x ${nome}`, 10, yPos); yPos += 6; });
-                    doc.setFontSize(8); doc.text(`${new Date().toLocaleDateString('pt-PT')} | Lust Store`, 10, 140);
-                });
-                doc.save(`Etiquetas_LS_HOJE.pdf`);
-            } catch(e) { alert("Erro Etiquetas"); }
+        function renderizarInventario() {
+            const div = document.getElementById('lista-inventario');
+            div.innerHTML = '';
+            
+            produtosCache.forEach(p => {
+                let statusBadge = `<span class="badge badge-ok">Em Stock: ${p.estoque}</span>`;
+                if(p.estoque <= 0) statusBadge = `<span class="badge badge-warn">ESGOTADO</span>`;
+                else if(p.estoque < 4) statusBadge = `<span class="badge badge-warn">BAIXO: ${p.estoque}</span>`;
+
+                div.innerHTML += `
+                    <div class="produto-item">
+                        <img src="${p.imagem}" class="img-lista" onerror="this.src='https://placehold.co/60x60?text=Lust'">
+                        <div class="info-prod">
+                            <b>${p.nome}</b> ${statusBadge}<br>
+                            <span style="font-size:11px; color:#94a3b8">Preço: €${p.preco} | Custo: €${p.preco_entrada || 0}</span>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="editarProduto(${p.id})" style="background:#3b82f6; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;">✎</button>
+                            <button onclick="apagarProduto(${p.id})" style="background:#ef4444; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        async function gerarRelatorioVendas(per) {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            try {
-                const res = await fetch(`${API}/vendas?periodo=${per}`); const dados = await res.json();
-                let tRec = 0, tLuc = 0, tFre = 0;
-                dados.forEach(v => { tRec += parseFloat(v.total_venda||0); tLuc += parseFloat(v.lucro||0); tFre += parseFloat(v.total_frete||0); });
-                doc.setFontSize(18); doc.setTextColor(204, 164, 59); doc.text(`LUST STORE - ${per.toUpperCase()}`, 14, 20);
-                doc.setFontSize(10); doc.setTextColor(0,0,0);
-                doc.text(`RECEITA: €${tRec.toFixed(2)} | FRETE: €${tFre.toFixed(2)} | LUCRO: €${tLuc.toFixed(2)}`, 14, 28);
-                const corpo = dados.map(v => {
-                    const idDisplay = v.codigo_pedido || "---"; 
-                    const grp = {}; if(v.itens) v.itens.forEach(i => grp[i.nome] = (grp[i.nome] || 0) + 1);
-                    const lista = Object.entries(grp).map(([n, q]) => `${q}x ${n}`).join(", ");
-                    return [new Date(v.data_venda).toLocaleDateString('pt-PT'), idDisplay, v.cliente_nome, lista, `€${parseFloat(v.total_venda).toFixed(2)}`];
-                });
-                doc.autoTable({ startY: 35, head: [['Data', 'ID', 'Cliente', 'Itens', 'Total']], body: corpo, foot: [['', '', '', 'TOTAL:', `€${tRec.toFixed(2)}`]], headStyles:{fillColor:[204, 164, 59]}, footStyles:{fillColor:[240,240,240], textColor:[0,0,0], fontStyle:'bold'}, theme:'grid' });
-                doc.save(`Relatorio_${per}.pdf`);
-            } catch(e){ console.error(e); alert("Erro PDF"); }
+        // --- PDF DE LUXO (Com a Marca) ---
+        function baixarPDF(tipo) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // CABEÇALHO DA MARCA (FUNDO AZUL + TEXTO DOURADO)
+            doc.setFillColor(15, 23, 42); // #0f172a
+            doc.rect(0, 0, 210, 30, 'F'); 
+            
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(204, 164, 59); // #cca43b (Dourado)
+            doc.setFontSize(22);
+            doc.text("LUST STORE", 14, 18);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(255, 255, 255);
+            doc.text("Premium Beauty & Care", 14, 24);
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100); // Cinza para data
+            doc.text(`Relatório gerado em: ${new Date().toLocaleDateString()}`, 14, 38);
+
+            // CONFIGURAÇÃO DA TABELA
+            let head = [], body = [];
+            
+            if (tipo === 'vendas') {
+                doc.setFontSize(16);
+                doc.setTextColor(15, 23, 42);
+                doc.text("Relatório de Vendas", 14, 45);
+                
+                head = [['Data', 'ID', 'Cliente', 'Total', 'Lucro']];
+                body = vendasCache.map(v => [
+                    new Date(v.data_venda).toLocaleDateString(),
+                    v.codigo_pedido,
+                    v.cliente_nome,
+                    `€${v.total_venda.toFixed(2)}`,
+                    `€${v.lucro.toFixed(2)}`
+                ]);
+            } else {
+                doc.setFontSize(16);
+                doc.setTextColor(15, 23, 42);
+                doc.text("Relatório de Inventário", 14, 45);
+                
+                head = [['Produto', 'Estoque', 'Preço Venda', 'Custo', 'Valor Total']];
+                body = produtosCache.map(p => [
+                    p.nome,
+                    p.estoque,
+                    `€${p.preco.toFixed(2)}`,
+                    `€${p.preco_entrada || 0}`,
+                    `€${(p.preco * p.estoque).toFixed(2)}`
+                ]);
+            }
+
+            doc.autoTable({
+                head: head,
+                body: body,
+                startY: 50,
+                theme: 'grid',
+                headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, // Cabeçalho Azul com Texto Dourado
+                styles: { fontSize: 9, cellPadding: 3 },
+                alternateRowStyles: { fillColor: [241, 245, 249] } // Linhas alternadas cinza claro
+            });
+
+            doc.save(`LustStore_${tipo}.pdf`);
         }
-        
-        async function gerarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("Inventário Lust Store", 14, 20); const b = dadosGlobais.map(p=>[p.nome, p.estoque, `€${p.preco.toFixed(2)}`, p.validade ? new Date(p.validade).toLocaleDateString():'N/A']); doc.autoTable({startY:30, head:[['Produto','Estoque','Preço','Validade']], body:b}); doc.save("Inventario.pdf"); }
-        window.onload = carregar;
+
+        // --- FUNÇÕES DE VENDAS ---
+        function renderizarVendas() {
+            const tbody = document.getElementById('lista-vendas');
+            tbody.innerHTML = '';
+            vendasCache.forEach(v => {
+                let itensStr = v.itens.map(i => i.nome).join(', ');
+                if(itensStr.length > 30) itensStr = itensStr.substring(0,30) + '...';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${new Date(v.data_venda).toLocaleDateString()}</td>
+                        <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
+                        <td>${v.cliente_nome}<br><small style="color:#64748b">${v.cliente_email}</small></td>
+                        <td>${itensStr}</td>
+                        <td style="color:var(--gold); font-weight:bold">€${v.total_venda.toFixed(2)}</td>
+                        <td style="color:var(--verde)">€${v.lucro.toFixed(2)}</td>
+                        <td>
+                            <button onclick="reenviarEmail('${v.id}')" class="btn-acao btn-email" title="Reenviar Email">📧</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function reenviarEmail(id) {
+            if(!confirm("Reenviar email de confirmação?")) return;
+            try {
+                await fetch(`${API_URL}/reenviar-email/${id}`, { method: 'POST' });
+                alert("Email reenviado com sucesso!");
+            } catch(e) { alert("Erro ao reenviar."); }
+        }
+
+        // --- FUNÇÕES DE PRODUTO (CRUD) ---
+        function lerImagem(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagemBase64 = e.target.result;
+                    document.getElementById('preview-img').src = imagemBase64;
+                    document.getElementById('preview-img').style.display = 'block';
+                    document.getElementById('aviso-foto').style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function salvarProduto() {
+            const prod = {
+                nome: document.getElementById('nome').value,
+                preco: parseFloat(document.getElementById('preco').value),
+                preco_entrada: parseFloat(document.getElementById('custo').value),
+                estoque: parseInt(document.getElementById('estoque').value),
+                imagem: imagemBase64
+            };
+
+            const id = document.getElementById('edit-id').value;
+            const metodo = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
+
+            await fetch(url, {
+                method: metodo,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(prod)
+            });
+
+            cancelarEdicao(); // Limpa form
+            iniciar(); // Recarrega
+        }
+
+        function editarProduto(id) {
+            const p = produtosCache.find(x => x.id === id);
+            document.getElementById('nome').value = p.nome;
+            document.getElementById('preco').value = p.preco;
+            document.getElementById('custo').value = p.preco_entrada || 0;
+            document.getElementById('estoque').value = p.estoque;
+            document.getElementById('edit-id').value = p.id;
+            
+            imagemBase64 = p.imagem;
+            if(p.imagem) {
+                document.getElementById('preview-img').src = p.imagem;
+                document.getElementById('preview-img').style.display = 'block';
+                document.getElementById('aviso-foto').style.display = 'none';
+            }
+
+            document.getElementById('btn-salvar').innerText = "Atualizar Produto";
+            document.getElementById('btn-salvar').style.background = "#3b82f6"; // Azul para indicar edição
+            document.getElementById('btn-cancelar').style.display = "inline-block";
+            window.scrollTo(0,0);
+        }
+
+        function cancelarEdicao() {
+            document.getElementById('nome').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('custo').value = '';
+            document.getElementById('estoque').value = '';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('preview-img').style.display = 'none';
+            document.getElementById('aviso-foto').style.display = 'block';
+            imagemBase64 = "";
+
+            document.getElementById('btn-salvar').innerText = "Adicionar ao Catálogo";
+            document.getElementById('btn-salvar').style.background = "#cca43b";
+            document.getElementById('btn-cancelar').style.display = "none";
+        }
+
+        async function apagarProduto(id) {
+            if(confirm("Tem a certeza que quer apagar?")) {
+                await fetch(`${API_URL}/produtos/${id}`, { method: 'DELETE' });
+                iniciar();
+            }
+        }
+
+        // --- GRÁFICO ---
+        function renderizarGrafico() {
+            const ctx = document.getElementById('graficoVendas').getContext('2d');
+            
+            // Agrupar vendas por dia (últimos 7 dias)
+            const dias = {};
+            vendasCache.forEach(v => {
+                const data = new Date(v.data_venda).toLocaleDateString();
+                dias[data] = (dias[data] || 0) + v.total_venda;
+            });
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(dias),
+                    datasets: [{
+                        label: 'Vendas (€)',
+                        data: Object.values(dias),
+                        borderColor: '#cca43b',
+                        backgroundColor: 'rgba(204, 164, 59, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: 'white' } } },
+                    scales: {
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function sair() {
+            localStorage.removeItem('token_gerente');
+            window.location.href = 'login-adm.html';
+        }
+
+        iniciar();
     </script>
 </body>
 </html>
-```
