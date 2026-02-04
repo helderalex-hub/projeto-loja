@@ -4,22 +4,23 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// --- CONFIGURAÇÃO DE DESIGN (URL DO LOGO) ---
-// Certifique-se que o ficheiro logo.png está no seu GitHub
+// --- CONFIGURAÇÃO VISUAL ---
+// O link para o seu logo hospedado no GitHub (para aparecer nos emails)
 const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
 
-// --- FUNÇÃO DE EMAIL VIA BREVO API (HTTPS - BLINDADA) ---
+// --- FUNÇÃO DE EMAIL VIA BREVO API (HTTPS - PORTA 443) ---
+// Mantida exatamente igual porque é a que funciona no Render
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
         method: 'POST',
         headers: {
             'accept': 'application/json',
-            'api-key': process.env.BREVO_KEY,
+            'api-key': process.env.BREVO_KEY, 
             'content-type': 'application/json'
         },
         body: JSON.stringify({
-            sender: { name: "Lust Store", email: process.env.EMAIL_USER },
+            sender: { name: "Lust Store", email: process.env.EMAIL_USER }, 
             to: [{ email: para }],
             subject: assunto,
             htmlContent: htmlContent
@@ -50,17 +51,18 @@ function gerarIdLust() {
     return `LS-${codigo}`;
 }
 
-// --- TEMPLATE DE EMAIL DE LUXO ---
+// --- NOVO ORQUESTRADOR DE EMAILS (COM DESIGN DE LUXO) ---
 async function processarEmailsVenda(venda) {
+    // Cria a lista de itens formatada
     const itensLista = venda.itens.map(i => 
         `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">${i.nome} <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`
     ).join('');
     
-    // 1. Email Cliente (Design Premium)
+    // 1. Email Cliente (NOVO DESIGN PRETO/DOURADO)
     const htmlCliente = `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0;">
             <div style="background-color: #0f172a; padding: 40px 20px; text-align: center; border-bottom: 4px solid #cca43b;">
-                <img src="${LOGO_URL}" alt="LUST STORE" style="max-width: 180px; height: auto; display: block; margin: 0 auto;">
+                <img src="${LOGO_URL}" alt="LUST STORE" style="max-width: 150px; height: auto; display: block; margin: 0 auto;">
                 <p style="color: #cca43b; margin-top: 15px; font-size: 12px; letter-spacing: 4px; text-transform: uppercase;">Premium Beauty & Care</p>
             </div>
 
@@ -91,14 +93,15 @@ async function processarEmailsVenda(venda) {
     const htmlAdmin = `
         <h3>💰 NOVA VENDA: #${venda.codigo_pedido}</h3>
         <p><b>Cliente:</b> ${venda.cliente_nome} (${venda.cliente_email})</p>
-        <p><b>Total:</b> €${venda.total_venda.toFixed(2)} | <b>Lucro:</b> €${venda.lucro.toFixed(2)}</p>
+        <p><b>Total:</b> €${venda.total_venda.toFixed(2)}</p>
+        <p><b>Lucro:</b> €${venda.lucro.toFixed(2)}</p>
         <hr>
-        <h4>Itens:</h4>
-        <ul>${venda.itens.map(i => `<li>${i.nome}</li>`).join('')}</ul>
+        <h4>Itens para Embalar:</h4>
+        <ul>${itensLista}</ul>
     `;
 
     await enviarEmailViaBrevo(venda.cliente_email, `💎 Pedido Confirmado: #${venda.codigo_pedido}`, htmlCliente);
-    await enviarEmailViaBrevo(process.env.EMAIL_USER, `💰 Venda: #${venda.codigo_pedido}`, htmlAdmin);
+    await enviarEmailViaBrevo(process.env.EMAIL_USER, `💰 Venda: #${venda.codigo_pedido} (€${venda.total_venda})`, htmlAdmin);
 }
 
 app.use((req, res, next) => {
@@ -109,7 +112,24 @@ app.use((req, res, next) => {
     next();
 });
 
-// WEBHOOK
+// --- ROTA RELATÓRIO DIÁRIO ---
+app.get('/admin/resumo-diario', async (req, res) => {
+    const { key } = req.query;
+    if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
+    
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const { data: vendas } = await supabase.from('vendas').select('*').gte('data_venda', hoje.toISOString());
+    
+    if (!vendas || vendas.length === 0) return res.send("Sem vendas hoje.");
+
+    let tFat = 0; vendas.forEach(v => tFat += parseFloat(v.total_venda));
+    
+    await enviarEmailViaBrevo(process.env.EMAIL_USER, `📊 Fecho Diário: €${tFat.toFixed(2)}`, `<p>Total faturado hoje: <b>€${tFat.toFixed(2)}</b></p>`);
+    res.send("Relatório Enviado via Brevo ✅");
+});
+
+// WEBHOOK STRIPE
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -140,7 +160,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             const novaVenda = { cliente_nome: details.name, cliente_email: session.customer_details.email, cliente_morada: morada, itens: itensVendidos, codigo_pedido: codigoPedido, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos };
             await supabase.from('vendas').insert([novaVenda]);
             
-            // Disparo de Email
+            // Dispara o novo email de luxo
             processarEmailsVenda(novaVenda).catch(console.error);
         }
     }
@@ -150,7 +170,8 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
+app.get('/', (req, res) => res.send("API Lust Store: ONLINE (LUXURY EDITION) 💎"));
+
 app.get('/pedido/:codigo', async (req, res) => {
     const { codigo } = req.params;
     const { data, error } = await supabase.from('vendas').select('cliente_nome, cliente_morada, itens, total_frete, total_venda').eq('codigo_pedido', codigo).single();
@@ -158,7 +179,7 @@ app.get('/pedido/:codigo', async (req, res) => {
     res.json(data);
 });
 
-// ROTA REENVIAR
+// ROTA REENVIAR (Admin)
 app.post('/reenviar-email/:id', async (req, res) => {
     const { data: venda } = await supabase.from('vendas').select('*').eq('id', req.params.id).single();
     if(venda) { 
@@ -167,7 +188,7 @@ app.post('/reenviar-email/:id', async (req, res) => {
     } else { res.status(404).json({ erro: "Venda off" }); }
 });
 
-// Rotas CRUD e Checkout (Mantidas do original)
+// Rotas CRUD
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 app.get('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true }); res.json(data || []); });
 app.post('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').insert([req.body]).select(); res.json(data ? data[0] : null); });
@@ -188,7 +209,7 @@ app.post('/checkout', async (req, res) => {
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 12500 ? 0 : 1250, currency: 'eur' }, display_name: 'Europa: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 5 }, maximum: { unit: 'business_day', value: 10 } } } },
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 2500, currency: 'eur' }, display_name: 'Europa: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 3 } } } }
         ];
-        const session = await stripe.checkout.sessions.create({ payment_method_types: ['card'], shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] }, shipping_options: s_options, line_items: line_items, mode: 'payment', success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html', metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido } });
+        const session = await stripe.checkout.sessions.create({ payment_method_types: ['card'], shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] }, shipping_options: s_options, line_items: line_items, mode: 'payment', success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html`, metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido } });
         res.json({ url: session.url });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
