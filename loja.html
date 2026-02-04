@@ -1,152 +1,231 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Lust Store | Premium Beauty</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lust Store | Luxo & Exclusividade</title>
+    
+    <meta name="description" content="Lust Store - Cosméticos e Calçado de Luxo.">
+    <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
+    <meta property="og:image" content="https://helderalex-hub.github.io/projeto-loja/social-share.jpg">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <style>
-        :root { 
-            --dark: #0f172a; 
-            --gold: #cca43b; 
-            --gold-light: #fcd34d;
-            --card: #161616;
-            --texto: #f5f5f5; 
-            --alerta: #f39c12; 
-            --verde: #22c55e; 
+        :root {
+            --gold: #cca43b;
+            --dark: #0f172a;
+            --text: #334155;
+            --bg-page: #f8fafc;
+            --danger: #ef4444; /* Vermelho para avisos */
         }
-        body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 0; }
-        
-        /* BARRA DE PORTES GRÁTIS */
-        .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; border-bottom: 1px solid #333; letter-spacing: 1px; }
-        .frete-bar span { color: #fff; }
 
-        header { background: rgba(15, 23, 42, 0.95); padding: 25px; text-align: center; border-bottom: 1px solid #334155; position: sticky; top:0; z-index:100; backdrop-filter: blur(10px); }
-        header h1 { margin: 0; color: var(--gold); text-transform: uppercase; letter-spacing: 4px; font-size: 24px; font-weight: 800; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--bg-page); margin: 0; color: var(--text); }
         
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 15px; }
-        
+        /* HEADER */
+        header { background-color: var(--dark); padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .logo-img { height: 60px; display: block; margin: 0 auto 10px; }
+        .slogan { color: #94a3b8; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; }
+
+        /* FILTROS */
+        .filtros { display: flex; justify-content: center; gap: 10px; padding: 20px; flex-wrap: wrap; background: #fff; border-bottom: 1px solid #e2e8f0; }
+        .btn-filtro { padding: 8px 20px; border: 1px solid #e2e8f0; background: white; cursor: pointer; border-radius: 30px; font-size: 13px; text-transform: uppercase; transition: 0.3s; }
+        .btn-filtro:hover, .btn-filtro.ativo { background-color: var(--dark); color: var(--gold); border-color: var(--dark); }
+
         /* GRID */
-        .vitrine { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        @media (max-width: 1024px) { .vitrine { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 768px) { .vitrine { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .vitrine { grid-template-columns: 1fr; } }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
         
-        .produto-card { background: var(--card); border-radius: 4px; overflow: hidden; border: 1px solid #333; transition: 0.3s; display: flex; flex-direction: column; position: relative; }
-        .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        /* PRODUTO CARD */
+        .produto { 
+            background: #fff; border-radius: 12px; overflow: hidden; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
+            transition: transform 0.3s; border: 1px solid transparent;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .produto:hover { transform: translateY(-5px); border-color: var(--gold); }
         
-        .img-container { width: 100%; height: 260px; background: #000; position: relative; }
-        .img-container img { width: 100%; height: 100%; object-fit: contain; padding: 10px; box-sizing: border-box; }
+        .img-container { width: 100%; height: 280px; overflow: hidden; background: #f1f5f9; position: relative; }
+        .produto img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         
-        .overlay-indisponivel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #f39c12; padding: 8px 15px; font-weight: bold; text-transform: uppercase; font-size: 12px; z-index: 5; border: 1px solid #f39c12; display: none; }
-        .indisponivel .overlay-indisponivel { display: block; }
-        .indisponivel { opacity: 0.5; pointer-events: none; }
+        /* ESTADO ESGOTADO (PRETO E BRANCO) */
+        .produto.esgotado { opacity: 0.8; }
+        .produto.esgotado img { filter: grayscale(100%); }
+        .produto.esgotado .img-container::after {
+            content: "ESGOTADO";
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7); color: white; padding: 10px 20px;
+            font-weight: bold; letter-spacing: 2px; border: 1px solid white;
+        }
+
+        .info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .produto h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin: 0 0 5px; color: var(--dark); }
+        .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; }
         
-        .info { padding: 15px; text-align: center; flex: 1; display: flex; flex-direction: column; }
-        .info h3 { margin: 0 0 10px; font-size: 14px; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
-        .preco { font-size: 20px; color: var(--gold); font-weight: bold; margin-bottom: 5px; }
-        .alerta-estoque { color: var(--alerta); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; min-height: 14px; }
+        .preco-box { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .preco { font-size: 18px; font-weight: bold; color: var(--gold); }
         
-        .compra-row { display: flex; gap: 8px; margin-top: auto; }
-        .qtd-seletor { display: flex; align-items: center; background: #222; border-radius: 4px; border: 1px solid #333; }
-        .qtd-btn { background: transparent; color: white; border: none; padding: 5px 10px; cursor: pointer; transition: 0.2s; }
-        .qtd-btn:hover { color: var(--gold); }
-        .btn-comprar { background: var(--gold); color: #000; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
-        .btn-comprar:hover { background: #b89334; }
-        
-        #btn-carrinho { position: fixed; bottom: 20px; right: 20px; background: var(--gold); color: #000; padding: 15px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; z-index:1000; box-shadow: 0 4px 15px rgba(204, 164, 59, 0.4); text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
-        #btn-carrinho:hover { transform: scale(1.05); }
-        .cart-dot { background: black; color: var(--gold); border-radius: 50%; padding: 2px 7px; font-size: 10px; margin-left: 5px; }
+        /* AVISOS DE STOCK */
+        .aviso-stock { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .poucas-unidades { color: var(--danger); animation: pulsar 1.5s infinite; }
+        @keyframes pulsar { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* BOTÕES */
+        .btn-comprar { 
+            background-color: var(--dark); color: white; border: none; padding: 12px; width: 100%; 
+            cursor: pointer; text-transform: uppercase; font-size: 12px; font-weight: bold; 
+            margin-top: 15px; border-radius: 4px; transition: 0.3s; 
+        }
+        .btn-comprar:hover { background-color: var(--gold); color: var(--dark); }
+        .btn-comprar:disabled { background-color: #cbd5e1; cursor: not-allowed; color: #64748b; }
+
+        /* CARRINHO */
+        #carrinho-flutuante { 
+            position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: var(--dark); 
+            padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; 
+            box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); display: none; z-index: 100;
+        }
     </style>
 </head>
 <body>
-    <div class="frete-bar">
-        PORTES GRÁTIS: PT <span>> 60€</span> | ES <span>> 85€</span> | EUROPA <span>> 125€</span>
+
+    <header>
+        <img src="logo.png" alt="LUST STORE" class="logo-img" onerror="this.style.display='none'">
+        <span class="slogan">Premium Beauty & Care</span>
+    </header>
+
+    <div class="filtros">
+        <button class="btn-filtro ativo" onclick="filtrar('todos')">Todos</button>
+        <button class="btn-filtro" onclick="filtrar('Nike')">Nike</button>
+        <button class="btn-filtro" onclick="filtrar('Adidas')">Adidas</button>
+        <button class="btn-filtro" onclick="filtrar('Puma')">Puma</button>
+        <button class="btn-filtro" onclick="filtrar('NB')">New Balance</button>
     </div>
-    <header><h1>💎 Lust Store</h1></header>
-    <div class="container"><div id="vitrine" class="vitrine">A carregar...</div></div>
-    
-    <button id="btn-carrinho" onclick="finalizarCompra()">
-        🛒 Finalizar <span id="cart-count" class="cart-dot">0</span>
-    </button>
-    
+
+    <div class="container">
+        <div id="lista-produtos" class="grid">
+            <p style="text-align:center; width:100%; color:#94a3b8">A carregar coleção...</p>
+        </div>
+    </div>
+
+    <div id="carrinho-flutuante" onclick="checkout()">
+        🛒 Finalizar (<span id="contagem">0</span>)
+    </div>
+
     <script>
-        const API = 'https://projeto-loja-dzqv.onrender.com';
-        let carrinho = [];
+        // --- SEU BACKEND ---
+        const API_URL = "https://lust-store-backend.onrender.com"; 
         
+        let todosProdutos = [];
+        let carrinho = [];
+
         async function carregarProdutos() {
-            const vitrine = document.getElementById('vitrine');
             try {
-                const res = await fetch(`${API}/produtos`);
-                const produtos = await res.json();
-                vitrine.innerHTML = '';
-                const hoje = new Date().setHours(0,0,0,0);
-
-                produtos.forEach(p => {
-                    const stock = parseInt(p.estoque) || 0;
-                    const vencido = p.validade && new Date(p.validade) < hoje;
-                    if (stock <= 0 || vencido) return; // Ocultar sem stock
-
-                    const alertaBaixo = stock < 5 ? `⚠️ Restam apenas ${stock} un!` : '';
-
-                    vitrine.innerHTML += `
-                        <div class="produto-card">
-                            <div class="img-container">
-                                <img src="${p.imagem || ''}" onerror="this.src='https://via.placeholder.com/300?text=LUST+STORE'">
-                            </div>
-                            <div class="info">
-                                <h3>${p.nome}</h3>
-                                <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
-                                <div class="alerta-estoque">${alertaBaixo}</div>
-                                <div class="compra-row">
-                                    <div class="qtd-seletor">
-                                        <button class="qtd-btn" onclick="mudarQtd('${p.id}', -1)">−</button>
-                                        <span id="qtd-${p.id}" style="width:25px">1</span>
-                                        <button class="qtd-btn" onclick="mudarQtd('${p.id}', 1, ${stock})">+</button>
-                                    </div>
-                                    <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">Comprar</button>
-                                </div>
-                            </div>
-                        </div>`;
-                });
-            } catch(e) { vitrine.innerHTML = "Erro ao carregar."; }
-        }
-
-        function mudarQtd(id, d, m) { 
-            let el = document.getElementById(`qtd-${id}`);
-            let n = parseInt(el.innerText) + d; 
-            if (n >= 1 && (m === undefined || n <= m)) el.innerText = n; 
-        }
-
-        function addCarrinho(id, nome, preco) { 
-            const q = parseInt(document.getElementById(`qtd-${id}`).innerText); 
-            for(let i=0; i<q; i++) carrinho.push({id, nome, preco}); 
-            document.getElementById('cart-count').innerText = carrinho.length; 
-            const btn = event.target; 
-            btn.innerText = "ADICIONADO!"; 
-            setTimeout(() => { btn.innerText = "COMPRAR"; document.getElementById(`qtd-${id}`).innerText = 1; }, 800); 
-        }
-
-        async function finalizarCompra() { 
-            if (!carrinho.length) return alert("Carrinho vazio!"); 
-            const btn = document.getElementById('btn-carrinho'); 
-            btn.disabled = true;
-            btn.innerText = "A PROCESSAR...";
-            try {
-                const res = await fetch(`${API}/checkout`, { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify(carrinho) 
-                }); 
-                const d = await res.json(); 
-                if(d.url) window.location.href = d.url; 
-            } catch(e) { 
-                alert("Erro ao conectar."); 
-                btn.disabled = false;
-                btn.innerText = "🛒 FINALIZAR";
+                const res = await fetch(`${API_URL}/produtos`);
+                todosProdutos = await res.json();
+                renderizarProdutos(todosProdutos);
+            } catch (e) {
+                document.getElementById('lista-produtos').innerHTML = '<p style="text-align:center">Erro de conexão.</p>';
             }
         }
-        
-        window.onload = carregarProdutos;
+
+        function renderizarProdutos(lista) {
+            const div = document.getElementById('lista-produtos');
+            div.innerHTML = '';
+
+            if (lista.length === 0) {
+                div.innerHTML = '<p style="text-align:center; width:100%">Nenhum item encontrado.</p>';
+                return;
+            }
+
+            lista.forEach(p => {
+                // LÓGICA DE STOCK INTELIGENTE
+                const semStock = p.estoque <= 0;
+                const poucoStock = p.estoque > 0 && p.estoque < 4; // Menos de 4 unidades avisa
+                
+                // Classes CSS dinâmicas
+                const classeCard = semStock ? 'produto esgotado' : 'produto';
+                const textoBotao = semStock ? 'Indisponível' : 'Adicionar ao Carrinho';
+                const estadoBotao = semStock ? 'disabled' : '';
+                
+                // Mensagem de Aviso
+                let htmlAviso = '';
+                if (semStock) htmlAviso = '<span class="aviso-stock" style="color:#64748b">Esgotado</span>';
+                else if (poucoStock) htmlAviso = '<span class="aviso-stock poucas-unidades">⚡ Últimas Unidades!</span>';
+                else htmlAviso = `<span class="aviso-stock" style="color:#10b981">Disponível (${p.estoque})</span>`;
+
+                // Detectar Marca
+                let marca = "Exclusive";
+                if(p.nome.toLowerCase().includes('nike')) marca = "Nike";
+                if(p.nome.toLowerCase().includes('adidas')) marca = "Adidas";
+
+                div.innerHTML += `
+                    <div class="${classeCard}">
+                        <div class="img-container">
+                            <img src="${p.imagem}" alt="${p.nome}" onerror="this.src='https://placehold.co/300x300?text=Lust'">
+                        </div>
+                        <div class="info">
+                            <div>
+                                <span class="marca">${marca}</span>
+                                <h3>${p.nome}</h3>
+                                ${htmlAviso}
+                            </div>
+                            <div>
+                                <div class="preco-box">
+                                    <span class="preco">€${p.preco.toFixed(2)}</span>
+                                </div>
+                                <button class="btn-comprar" ${estadoBotao} onclick="adicionar(${p.id}, '${p.nome}', ${p.preco})">
+                                    ${textoBotao}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filtrar(categoria) {
+            document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('ativo'));
+            event.target.classList.add('ativo');
+            if (categoria === 'todos') renderizarProdutos(todosProdutos);
+            else renderizarProdutos(todosProdutos.filter(p => p.nome.toLowerCase().includes(categoria.toLowerCase())));
+        }
+
+        function adicionar(id, nome, preco) {
+            carrinho.push({ id, nome, preco });
+            atualizarCarrinho();
+            const btn = event.target;
+            const original = btn.innerText;
+            btn.innerText = "Adicionado ✔";
+            btn.style.background = "#cca43b";
+            setTimeout(() => { btn.innerText = original; btn.style.background = ""; }, 1000);
+        }
+
+        function atualizarCarrinho() {
+            const qtd = carrinho.length;
+            document.getElementById('contagem').innerText = qtd;
+            document.getElementById('carrinho-flutuante').style.display = qtd > 0 ? 'block' : 'none';
+        }
+
+        async function checkout() {
+            if (carrinho.length === 0) return;
+            const btn = document.getElementById('carrinho-flutuante');
+            btn.innerHTML = "A processar...";
+            try {
+                const res = await fetch(`${API_URL}/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(carrinho)
+                });
+                const data = await res.json();
+                if (data.url) window.location.href = data.url;
+            } catch (error) {
+                alert("Erro ao conectar.");
+                btn.innerHTML = "Tentar Novamente";
+            }
+        }
+
+        carregarProdutos();
     </script>
 </body>
 </html>
