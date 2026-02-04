@@ -72,7 +72,6 @@
                         
                         document.getElementById('id-pedido').innerText = `#${codigo}`;
                         
-                        // Lógica visual do prazo
                         const dias = data.total_frete > 7 ? "1 a 2 dias úteis" : "2 a 5 dias úteis";
                         document.getElementById('prazo-texto').innerText = `${dias} após envio.`;
 
@@ -81,7 +80,9 @@
                         
                         const divItens = document.getElementById('lista-itens');
                         data.itens.forEach(i => {
-                            divItens.innerHTML += `<div class="linha"><span>${i.nome}</span><span>€${i.preco.toFixed(2)}</span></div>`;
+                            const marcaInfo = i.marca ? ` <span style='color:#64748b; font-size:11px;'>${i.marca}</span>` : '';
+                            const skuInfo = i.sku ? ` <small style='color:#94a3b8'>(${i.sku})</small>` : '';
+                            divItens.innerHTML += `<div class="linha"><span>${i.nome}${marcaInfo}${skuInfo}</span><span>€${i.preco.toFixed(2)}</span></div>`;
                         });
                     }
                 })
@@ -102,7 +103,10 @@
             doc.text(`Cliente: ${dadosVenda.cliente_nome}`, 14, 62);
             doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 69);
             
-            const body = dadosVenda.itens.map(i => [i.nome, `€${i.preco.toFixed(2)}`]);
+            const body = dadosVenda.itens.map(i => [
+                i.nome + (i.marca ? ` - ${i.marca}` : '') + (i.sku ? ` (${i.sku})` : ''), 
+                `€${i.preco.toFixed(2)}`
+            ]);
             body.push(['Envio', `€${dadosVenda.total_frete.toFixed(2)}`]);
             body.push([{content: 'TOTAL', styles: {fontStyle: 'bold', textColor: [204, 164, 59]}}, `€${dadosVenda.total_venda.toFixed(2)}`]);
 
