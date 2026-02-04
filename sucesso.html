@@ -74,13 +74,12 @@
                         document.getElementById('valor-total').innerText = `€${parseFloat(data.total_venda).toFixed(2)}`;
                         const divItens = document.getElementById('lista-itens');
                         data.itens.forEach(i => {
-                            const marca = i.marca ? i.marca : 'Lust';
-                            const sku = i.sku ? ` | REF: ${i.sku}` : '';
+                            // MOSTRA [COD] NOME
                             divItens.innerHTML += `
                                 <div class="linha">
                                     <div class="item-info">
-                                        <strong>${i.nome}</strong>
-                                        <span class="item-meta">${marca}${sku}</span>
+                                        <strong>[${i.sku || '?'}] ${i.nome}</strong>
+                                        <span class="item-meta">${i.marca || 'Lust'}</span>
                                     </div>
                                     <span style="font-weight:600">€${parseFloat(i.preco).toFixed(2)}</span>
                                 </div>`;
@@ -98,7 +97,9 @@
             doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.text("Recibo Oficial de Compra", 14, 28);
             doc.setTextColor(0, 0, 0); doc.setFontSize(11);
             doc.text(`Pedido: #${codigo}`, 14, 55); doc.text(`Cliente: ${dadosVenda.cliente_nome}`, 14, 62); doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 69);
-            const body = dadosVenda.itens.map(i => [`${i.nome}\n${i.marca || ''} ${i.sku ? '(REF: '+i.sku+')' : ''}`, `€${parseFloat(i.preco).toFixed(2)}`]);
+            
+            // PDF COM CODIGO ANTES DO NOME
+            const body = dadosVenda.itens.map(i => [`[${i.sku || '?'}] ${i.nome}`, `€${parseFloat(i.preco).toFixed(2)}`]);
             body.push(['Envio', `€${parseFloat(dadosVenda.total_frete).toFixed(2)}`]);
             body.push([{content: 'TOTAL', styles: {fontStyle: 'bold', textColor: [204, 164, 59]}}, `€${parseFloat(dadosVenda.total_venda).toFixed(2)}`]);
             doc.autoTable({ startY: 80, head: [['Descrição', 'Valor']], body: body, headStyles: { fillColor: [15, 23, 42] }, theme: 'grid', styles: { cellPadding: 4 } });
