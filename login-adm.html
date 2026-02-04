@@ -2,141 +2,49 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Acesso Restrito | Beleza & Cia</title>
+    <title>Acesso Admin | Lust Store</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-        }
-        .login-box {
-            background: #1e293b;
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid #334155;
-            text-align: center;
-            width: 100%;
-            max-width: 350px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        h2 { color: #d63384; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; font-size: 20px; }
-        p.subtitulo { color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-            text-align: center;
-            font-size: 16px;
-        }
-        input:focus { border-color: #d63384; outline: none; }
-        
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #d63384;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 14px;
-        }
-        button:hover { filter: brightness(1.1); }
-        button:disabled { opacity: 0.7; cursor: wait; background: #64748b; }
-        
-        .erro { color: #ef4444; font-size: 13px; margin-top: 15px; display: none; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+        .login-box { background: #1e293b; padding: 40px; border-radius: 8px; border: 1px solid #334155; text-align: center; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-top: 4px solid #cca43b; }
+        .logo { height: 50px; margin-bottom: 10px; }
+        h2 { color: #cca43b; margin: 0; text-transform: uppercase; letter-spacing: 1px; font-size: 18px; }
+        p { color: #94a3b8; font-size: 12px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box; text-align: center; }
+        button { width: 100%; padding: 12px; background: #cca43b; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; color: #0f172a; }
+        button:hover { background: #eab308; }
     </style>
 </head>
 <body>
-
     <div class="login-box">
-        <h2>🔒 Área Gerente</h2>
-        <p class="subtitulo">Acesso restrito à administração</p>
-        
+        <img src="logo.png" alt="Lust" class="logo" onerror="this.style.display='none'">
+        <h2>Lust Store</h2>
+        <p>Acesso Restrito</p>
         <input type="password" id="senha" placeholder="Senha de Acesso">
-        
-        <button id="btnEntrar" onclick="entrar()">ENTRAR NO PAINEL</button>
-        
-        <p id="msg-erro" class="erro">Senha incorreta!</p>
+        <button onclick="entrar()" id="btn-entrar">ENTRAR</button>
+        <p id="msg" style="color:#ef4444; display:none; margin-top:15px; font-size:11px;">Senha Incorreta</p>
     </div>
 
     <script>
+        // URL CORRETA
         const API_URL = 'https://projeto-loja-dzqv.onrender.com/login-admin';
 
         async function entrar() {
-            const campoSenha = document.getElementById('senha');
-            const msg = document.getElementById('msg-erro');
-            const btn = document.getElementById('btnEntrar');
+            const senha = document.getElementById('senha').value;
+            const btn = document.getElementById('btn-entrar');
+            const msg = document.getElementById('msg');
 
-            if (!campoSenha || !campoSenha.value) return;
-
-            // Feedback visual
-            btn.innerText = "A VERIFICAR...";
-            btn.disabled = true;
-            msg.style.display = 'none';
+            btn.disabled = true; btn.innerText = "..."; msg.style.display = 'none';
 
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ senha: campoSenha.value })
-                });
-
-                // Diagnóstico de erro comum (Servidor desatualizado)
-                if (res.status === 404) {
-                    alert("Atenção: O servidor ainda não atualizou.\nVá ao Render e faça 'Manual Deploy' para ativar o login.");
-                    btn.innerText = "ENTRAR NO PAINEL";
-                    btn.disabled = false;
-                    return;
-                }
-
+                const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ senha }) });
                 const data = await res.json();
-
-                if (data.sucesso) {
-                    // SUCESSO: Guarda token e entra
-                    localStorage.setItem('token_gerente', data.token);
-                    window.location.href = 'adm.html';
-                } else {
-                    // ERRO: Senha errada
-                    msg.innerText = "Senha incorreta!";
-                    msg.style.display = 'block';
-                    btn.innerText = "ENTRAR NO PAINEL";
-                    btn.disabled = false;
-                    campoSenha.value = '';
-                    campoSenha.focus();
-                }
-            } catch (error) {
-                console.error(error);
-                msg.innerText = "Erro de conexão. Verifique o Render.";
-                msg.style.display = 'block';
-                btn.innerText = "ENTRAR NO PAINEL";
-                btn.disabled = false;
+                if (data.sucesso) { localStorage.setItem('token_gerente', data.token); window.location.href = 'adm.html'; } 
+                else { throw new Error(); }
+            } catch (e) {
+                msg.style.display = 'block'; btn.disabled = false; btn.innerText = "ENTRAR";
             }
         }
-
-        // Garante que o script só roda depois da página existir (Corrige o erro null)
-        window.onload = function() {
-            const campoSenha = document.getElementById('senha');
-            if (campoSenha) {
-                campoSenha.focus();
-                campoSenha.addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') entrar();
-                });
-            }
-        };
     </script>
 </body>
 </html>
