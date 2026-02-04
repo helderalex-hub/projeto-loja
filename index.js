@@ -168,6 +168,5 @@ app.post('/checkout', async (req, res) => {
         res.json({ url: session.url });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
-
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Porta ${PORT}`));
