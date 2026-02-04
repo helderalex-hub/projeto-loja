@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Admin | Lust Store</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,450 +14,203 @@
 
     <style>
         :root { 
-            --dark: #0f172a; 
-            --card: #1e293b; 
-            --gold: #cca43b; 
-            --gold-hover: #eab308;
-            --texto: #f8fafc; 
-            --borda: #334155; 
-            --verde: #10b981; 
-            --erro: #ef4444; 
+            --dark: #0f172a; --card: #1e293b; 
+            --gold: #cca43b; --texto: #f8fafc; --borda: #334155; 
+            --verde: #10b981; --erro: #ef4444; 
         }
-        
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); padding: 20px; margin: 0; }
         .container { max-width: 1200px; margin: 0 auto; padding-bottom: 80px; }
         
-        /* HEADER DE LUXO */
-        .header-top { 
-            text-align: center; margin-bottom: 30px; position: relative; 
-            border-bottom: 1px solid var(--borda); padding-bottom: 20px;
-        }
-        .logo-adm { height: 50px; display: block; margin: 0 auto 5px; }
-        h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold); letter-spacing: 1px; }
-        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #94a3b8; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
-        .btn-sair:hover { border-color: var(--erro); color: var(--erro); }
+        /* HEADER */
+        .header-top { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--borda); padding-bottom: 20px; position: relative; }
+        .logo-adm { height: 60px; display: block; margin: 0 auto 10px; }
+        h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: white; letter-spacing: 1px; font-weight: 400; text-transform: uppercase; }
+        h1 span { color: var(--gold); }
+        .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #94a3b8; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
 
-        /* DASHBOARD CARDS */
+        /* CARDS */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .card-dash { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); text-align: center; border-bottom: 3px solid var(--gold); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; }
+        .card-dash { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); text-align: center; border-bottom: 3px solid var(--gold); }
+        .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; }
         .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: bold; color: white; font-family: 'Playfair Display', serif; }
 
-        /* BOTÕES DE AÇÃO */
-        .area-relatorios { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .label-acao { width:100%; color:var(--gold); font-weight:bold; font-size:12px; margin-bottom:10px; text-transform:uppercase; letter-spacing: 1px; }
-        
-        .btn-pdf { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; transition: 0.3s; letter-spacing: 0.5px; }
+        /* BOTÕES & FORMS */
+        .btn-pdf { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-right: 10px; }
         .btn-pdf:hover { background: var(--gold); color: var(--dark); }
-        .btn-destaque { background: var(--gold); color: var(--dark); }
 
-        /* FORMULÁRIO PRODUTO */
-        .card-cadastro { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--borda); margin-bottom: 30px; display: flex; gap: 25px; flex-wrap: wrap; }
-        .area-foto { width: 150px; height: 150px; background: #0f172a; border: 2px dashed var(--borda); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; transition: 0.3s; }
-        .area-foto:hover { border-color: var(--gold); }
+        .card-cadastro { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--borda); margin: 30px 0; display: flex; gap: 25px; }
+        .area-foto { width: 120px; height: 120px; background: #0f172a; border: 2px dashed var(--borda); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .area-foto img { width: 100%; height: 100%; object-fit: contain; }
-        .txt-foto { font-size: 10px; color: #64748b; text-align: center; }
-
-        .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 280px; }
-        .grid-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        label { font-size: 10px; color: var(--gold); font-weight: bold; display: block; margin-bottom: 5px; text-transform: uppercase; }
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
-        input:focus { border-color: var(--gold); outline: none; }
         
-        .btn-salvar { background: var(--gold); color: var(--dark); border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: auto; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
-        .btn-salvar:hover { background: var(--gold-hover); }
+        .campos-texto { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; }
+        .btn-salvar { background: var(--gold); color: var(--dark); border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
 
-        /* TABELA VENDAS */
-        .tabela-container { overflow-x: auto; background: var(--card); border-radius: 8px; border: 1px solid var(--borda); padding: 10px; margin-bottom: 40px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 15px; font-size: 11px; color: #94a3b8; text-transform: uppercase; border-bottom: 1px solid var(--borda); letter-spacing: 1px; }
-        td { padding: 15px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e2e8f0; vertical-align: middle; }
-        tr:hover { background: rgba(255,255,255,0.02); }
-
-        .btn-acao { border: none; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; margin-right: 5px; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-acao:hover { transform: scale(1.1); }
-        .btn-recibo { background: #3b82f6; color: white; }
-        .btn-etiqueta { background: var(--gold); color: var(--dark); }
-        .btn-email { background: var(--verde); color: white; }
-
-        /* LISTA INVENTÁRIO (VISUAL LOJA) */
-        .produto-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--borda); transition: 0.2s; }
-        .produto-item:hover { border-color: var(--gold); }
-        .img-lista { width: 60px; height: 60px; border-radius: 4px; object-fit: contain; background: #fff; }
-        .info-prod { flex: 1; }
-        .info-prod b { color: white; font-size: 14px; }
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; text-transform: uppercase; margin-left: 5px; }
-        .badge-ok { background: rgba(16, 185, 129, 0.2); color: var(--verde); }
-        .badge-warn { background: rgba(239, 68, 68, 0.2); color: var(--erro); animation: pulsar 2s infinite; }
-        @keyframes pulsar { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        .area-grafico { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); height: 350px; margin-top: 40px; }
+        /* LISTAS */
+        .produto-item { background: var(--card); padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--borda); }
+        .img-lista { width: 40px; height: 40px; object-fit: contain; background: white; border-radius: 4px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; padding: 10px; font-size: 11px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; }
+        td { padding: 10px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
     <div class="container">
         
         <div class="header-top">
-            <img src="logo.png" alt="LUST" class="logo-adm" onerror="this.style.display='none'">
-            <h1>ADMINISTRAÇÃO</h1>
+            <img src="logo.png" alt="Logo" class="logo-adm" onerror="this.style.display='none'">
+            <h1>Lust Store - <span>Painel Administrativo</span></h1>
             <button class="btn-sair" onclick="sair()">Sair 🔒</button>
         </div>
         
         <div class="dashboard">
             <div class="card-dash"><h3>Valor em Estoque</h3><p id="dash-venda">...</p></div>
-            <div class="card-dash"><h3>Custo Total</h3><p id="dash-custo">...</p></div>
-            <div class="card-dash"><h3>Lucro Projetado</h3><p id="dash-lucro-est">...</p></div>
-            <div class="card-dash"><h3>Faturação (Total)</h3><p id="dash-total-vendas">...</p></div>
+            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro-est">...</p></div>
+            <div class="card-dash"><h3>Total Vendas</h3><p id="dash-total-vendas">...</p></div>
         </div>
 
-        <div class="area-relatorios">
-            <div class="label-acao">Exportar Relatórios Oficiais</div>
-            <button onclick="baixarPDF('vendas')" class="btn-pdf btn-destaque">📄 Vendas (PDF)</button>
-            <button onclick="baixarPDF('inventario')" class="btn-pdf">📦 Inventário (PDF)</button>
+        <div>
+            <button onclick="baixarPDF('vendas')" class="btn-pdf">📄 Relatório Vendas</button>
+            <button onclick="baixarPDF('inventario')" class="btn-pdf">📦 Relatório Inventário</button>
         </div>
 
         <div class="card-cadastro">
             <div class="area-foto" onclick="document.getElementById('img-input').click()">
                 <img id="preview-img" style="display:none">
-                <span id="aviso-foto" class="txt-foto">+ FOTO DO<br>PRODUTO</span>
+                <span id="aviso-foto" style="font-size:10px; color:#64748b; text-align:center">+ FOTO</span>
                 <input type="file" id="img-input" accept="image/*" hidden onchange="lerImagem(this)">
             </div>
-            
             <div class="campos-texto">
-                <div class="grid-duplo">
-                    <div><label>Nome do Produto</label><input type="text" id="nome"></div>
-                    <div><label>Preço (€)</label><input type="number" id="preco" step="0.01"></div>
-                </div>
-                <div class="grid-duplo">
-                    <div><label>Custo (€)</label><input type="number" id="custo" step="0.01"></div>
-                    <div><label>Estoque (Qtd)</label><input type="number" id="estoque"></div>
+                <input type="text" id="nome" placeholder="Nome do Produto">
+                <div style="display:flex; gap:10px">
+                    <input type="number" id="preco" placeholder="Preço Venda (€)">
+                    <input type="number" id="custo" placeholder="Custo (€)">
+                    <input type="number" id="estoque" placeholder="Qtd Estoque">
                 </div>
                 <input type="hidden" id="edit-id">
-                <button onclick="salvarProduto()" class="btn-salvar" id="btn-salvar">Adicionar ao Catálogo</button>
-                <button onclick="cancelarEdicao()" id="btn-cancelar" style="display:none; background:#334155; border:none; color:white; padding:10px; border-radius:4px; cursor:pointer;">Cancelar Edição</button>
+                <button onclick="salvarProduto()" class="btn-salvar" id="btn-salvar">Salvar Produto</button>
             </div>
         </div>
 
-        <h3 style="color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-size:14px; margin-bottom:10px;">Últimas Vendas</h3>
-        <div class="tabela-container">
+        <h3 style="color:var(--gold); text-transform:uppercase; font-size:12px; margin-top:40px">Inventário</h3>
+        <div id="lista-inventario"></div>
+
+        <h3 style="color:var(--gold); text-transform:uppercase; font-size:12px; margin-top:40px">Últimas Vendas</h3>
+        <div style="overflow-x:auto">
             <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>ID Pedido</th>
-                        <th>Cliente</th>
-                        <th>Itens</th>
-                        <th>Total</th>
-                        <th>Lucro</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Data</th><th>ID</th><th>Cliente</th><th>Total</th><th>Ação</th></tr></thead>
                 <tbody id="lista-vendas"></tbody>
             </table>
         </div>
-
-        <h3 style="color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-size:14px; margin-bottom:10px; margin-top:40px;">Gestão de Inventário</h3>
-        <div id="lista-inventario"></div>
-
-        <div class="area-grafico">
-            <canvas id="graficoVendas"></canvas>
-        </div>
-
     </div>
 
     <script>
-        // --- COLOQUE O SEU URL DO RENDER AQUI ---
-        const API_URL = "https://lust-store-backend.onrender.com";
-        
-        let produtosCache = [];
-        let vendasCache = [];
-        let imagemBase64 = "";
+        const API_URL = "https://projeto-loja-dzqv.onrender.com";
+        let produtosCache = [], vendasCache = [], imagemBase64 = "";
 
         async function iniciar() {
-            await carregarDados();
-            renderizarGrafico();
-        }
-
-        async function carregarDados() {
             try {
-                const [resProd, resVend] = await Promise.all([
-                    fetch(`${API_URL}/produtos`),
-                    fetch(`${API_URL}/vendas`)
-                ]);
-                produtosCache = await resProd.json();
-                vendasCache = await resVend.json();
-                
-                atualizarDashboard();
-                renderizarInventario();
-                renderizarVendas();
-            } catch (error) {
-                console.error("Erro ao carregar:", error);
-                alert("Erro ao conectar ao servidor.");
-            }
+                const [resP, resV] = await Promise.all([fetch(`${API_URL}/produtos`), fetch(`${API_URL}/vendas`)]);
+                produtosCache = await resP.json(); vendasCache = await resV.json();
+                atualizarDash(); renderizarInv(); renderizarVendas();
+            } catch (e) { console.error(e); }
         }
 
-        // --- DASHBOARD & INVENTÁRIO ---
-        function atualizarDashboard() {
-            let valorVenda = 0, custoTotal = 0, lucroEst = 0;
-            produtosCache.forEach(p => {
-                valorVenda += (p.preco * p.estoque);
-                custoTotal += ((p.preco_entrada || 0) * p.estoque);
-            });
-            lucroEst = valorVenda - custoTotal;
-
-            let totalFaturado = 0;
-            vendasCache.forEach(v => totalFaturado += v.total_venda);
-
-            document.getElementById('dash-venda').innerText = `€${valorVenda.toFixed(2)}`;
-            document.getElementById('dash-custo').innerText = `€${custoTotal.toFixed(2)}`;
-            document.getElementById('dash-lucro-est').innerText = `€${lucroEst.toFixed(2)}`;
-            document.getElementById('dash-total-vendas').innerText = `€${totalFaturado.toFixed(2)}`;
+        function atualizarDash() {
+            let valVenda = 0, custo = 0, fatura = 0;
+            produtosCache.forEach(p => { valVenda += p.preco * p.estoque; custo += (p.preco_entrada||0) * p.estoque; });
+            vendasCache.forEach(v => fatura += v.total_venda);
+            document.getElementById('dash-venda').innerText = `€${valVenda.toFixed(2)}`;
+            document.getElementById('dash-lucro-est').innerText = `€${(valVenda - custo).toFixed(2)}`;
+            document.getElementById('dash-total-vendas').innerText = `€${fatura.toFixed(2)}`;
         }
 
-        function renderizarInventario() {
-            const div = document.getElementById('lista-inventario');
-            div.innerHTML = '';
-            
+        function renderizarInv() {
+            const div = document.getElementById('lista-inventario'); div.innerHTML = '';
             produtosCache.forEach(p => {
-                let statusBadge = `<span class="badge badge-ok">Em Stock: ${p.estoque}</span>`;
-                if(p.estoque <= 0) statusBadge = `<span class="badge badge-warn">ESGOTADO</span>`;
-                else if(p.estoque < 4) statusBadge = `<span class="badge badge-warn">BAIXO: ${p.estoque}</span>`;
-
+                let badge = p.estoque <= 0 ? '<span style="color:#ef4444; font-weight:bold">ESGOTADO</span>' : `Qtd: ${p.estoque}`;
                 div.innerHTML += `
                     <div class="produto-item">
-                        <img src="${p.imagem}" class="img-lista" onerror="this.src='https://placehold.co/60x60?text=Lust'">
-                        <div class="info-prod">
-                            <b>${p.nome}</b> ${statusBadge}<br>
-                            <span style="font-size:11px; color:#94a3b8">Preço: €${p.preco} | Custo: €${p.preco_entrada || 0}</span>
-                        </div>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="editarProduto(${p.id})" style="background:#3b82f6; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;">✎</button>
-                            <button onclick="apagarProduto(${p.id})" style="background:#ef4444; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;">✕</button>
-                        </div>
-                    </div>
-                `;
+                        <img src="${p.imagem}" class="img-lista" onerror="this.src='https://placehold.co/50?text=Ls'">
+                        <div style="flex:1"><b>${p.nome}</b> <small style="color:#94a3b8">| €${p.preco}</small></div>
+                        <div style="font-size:12px">${badge}</div>
+                        <button onclick="editar(${p.id})" style="background:#3b82f6; border:none; color:white; padding:5px 8px; border-radius:4px; cursor:pointer">✎</button>
+                        <button onclick="apagar(${p.id})" style="background:#ef4444; border:none; color:white; padding:5px 8px; border-radius:4px; cursor:pointer">✕</button>
+                    </div>`;
             });
         }
 
-        // --- PDF DE LUXO (Com a Marca) ---
-        function baixarPDF(tipo) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // CABEÇALHO DA MARCA (FUNDO AZUL + TEXTO DOURADO)
-            doc.setFillColor(15, 23, 42); // #0f172a
-            doc.rect(0, 0, 210, 30, 'F'); 
-            
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(204, 164, 59); // #cca43b (Dourado)
-            doc.setFontSize(22);
-            doc.text("LUST STORE", 14, 18);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(255, 255, 255);
-            doc.text("Premium Beauty & Care", 14, 24);
-
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100); // Cinza para data
-            doc.text(`Relatório gerado em: ${new Date().toLocaleDateString()}`, 14, 38);
-
-            // CONFIGURAÇÃO DA TABELA
-            let head = [], body = [];
-            
-            if (tipo === 'vendas') {
-                doc.setFontSize(16);
-                doc.setTextColor(15, 23, 42);
-                doc.text("Relatório de Vendas", 14, 45);
-                
-                head = [['Data', 'ID', 'Cliente', 'Total', 'Lucro']];
-                body = vendasCache.map(v => [
-                    new Date(v.data_venda).toLocaleDateString(),
-                    v.codigo_pedido,
-                    v.cliente_nome,
-                    `€${v.total_venda.toFixed(2)}`,
-                    `€${v.lucro.toFixed(2)}`
-                ]);
-            } else {
-                doc.setFontSize(16);
-                doc.setTextColor(15, 23, 42);
-                doc.text("Relatório de Inventário", 14, 45);
-                
-                head = [['Produto', 'Estoque', 'Preço Venda', 'Custo', 'Valor Total']];
-                body = produtosCache.map(p => [
-                    p.nome,
-                    p.estoque,
-                    `€${p.preco.toFixed(2)}`,
-                    `€${p.preco_entrada || 0}`,
-                    `€${(p.preco * p.estoque).toFixed(2)}`
-                ]);
-            }
-
-            doc.autoTable({
-                head: head,
-                body: body,
-                startY: 50,
-                theme: 'grid',
-                headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, // Cabeçalho Azul com Texto Dourado
-                styles: { fontSize: 9, cellPadding: 3 },
-                alternateRowStyles: { fillColor: [241, 245, 249] } // Linhas alternadas cinza claro
-            });
-
-            doc.save(`LustStore_${tipo}.pdf`);
-        }
-
-        // --- FUNÇÕES DE VENDAS ---
         function renderizarVendas() {
-            const tbody = document.getElementById('lista-vendas');
-            tbody.innerHTML = '';
+            const tb = document.getElementById('lista-vendas'); tb.innerHTML = '';
             vendasCache.forEach(v => {
-                let itensStr = v.itens.map(i => i.nome).join(', ');
-                if(itensStr.length > 30) itensStr = itensStr.substring(0,30) + '...';
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${new Date(v.data_venda).toLocaleDateString()}</td>
-                        <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
-                        <td>${v.cliente_nome}<br><small style="color:#64748b">${v.cliente_email}</small></td>
-                        <td>${itensStr}</td>
-                        <td style="color:var(--gold); font-weight:bold">€${v.total_venda.toFixed(2)}</td>
-                        <td style="color:var(--verde)">€${v.lucro.toFixed(2)}</td>
-                        <td>
-                            <button onclick="reenviarEmail('${v.id}')" class="btn-acao btn-email" title="Reenviar Email">📧</button>
-                        </td>
-                    </tr>
-                `;
+                tb.innerHTML += `<tr>
+                    <td>${new Date(v.data_venda).toLocaleDateString()}</td>
+                    <td style="color:#cca43b">#${v.codigo_pedido}</td>
+                    <td>${v.cliente_nome}</td>
+                    <td>€${v.total_venda.toFixed(2)}</td>
+                    <td><button onclick="reenviar('${v.id}')" style="background:#10b981; border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer">📧</button></td>
+                </tr>`;
             });
         }
 
-        async function reenviarEmail(id) {
-            if(!confirm("Reenviar email de confirmação?")) return;
-            try {
-                await fetch(`${API_URL}/reenviar-email/${id}`, { method: 'POST' });
-                alert("Email reenviado com sucesso!");
-            } catch(e) { alert("Erro ao reenviar."); }
+        async function reenviar(id) {
+            if(confirm("Reenviar email?")) { await fetch(`${API_URL}/reenviar-email/${id}`, {method:'POST'}); alert("Enviado!"); }
         }
 
-        // --- FUNÇÕES DE PRODUTO (CRUD) ---
         function lerImagem(input) {
             if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagemBase64 = e.target.result;
-                    document.getElementById('preview-img').src = imagemBase64;
-                    document.getElementById('preview-img').style.display = 'block';
-                    document.getElementById('aviso-foto').style.display = 'none';
-                };
-                reader.readAsDataURL(input.files[0]);
+                const r = new FileReader();
+                r.onload = function(e) { imagemBase64 = e.target.result; document.getElementById('preview-img').src = imagemBase64; document.getElementById('preview-img').style.display = 'block'; }
+                r.readAsDataURL(input.files[0]);
             }
         }
 
         async function salvarProduto() {
-            const prod = {
+            const p = {
                 nome: document.getElementById('nome').value,
                 preco: parseFloat(document.getElementById('preco').value),
                 preco_entrada: parseFloat(document.getElementById('custo').value),
                 estoque: parseInt(document.getElementById('estoque').value),
                 imagem: imagemBase64
             };
-
             const id = document.getElementById('edit-id').value;
-            const metodo = id ? 'PUT' : 'POST';
             const url = id ? `${API_URL}/produtos/${id}` : `${API_URL}/produtos`;
-
-            await fetch(url, {
-                method: metodo,
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(prod)
-            });
-
-            cancelarEdicao(); // Limpa form
-            iniciar(); // Recarrega
+            await fetch(url, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p) });
+            location.reload();
         }
 
-        function editarProduto(id) {
+        function editar(id) {
             const p = produtosCache.find(x => x.id === id);
-            document.getElementById('nome').value = p.nome;
-            document.getElementById('preco').value = p.preco;
-            document.getElementById('custo').value = p.preco_entrada || 0;
-            document.getElementById('estoque').value = p.estoque;
-            document.getElementById('edit-id').value = p.id;
+            document.getElementById('nome').value = p.nome; document.getElementById('preco').value = p.preco;
+            document.getElementById('custo').value = p.preco_entrada; document.getElementById('estoque').value = p.estoque;
+            document.getElementById('edit-id').value = p.id; imagemBase64 = p.imagem;
+            if(p.imagem) { document.getElementById('preview-img').src = p.imagem; document.getElementById('preview-img').style.display='block'; }
+            document.getElementById('btn-salvar').innerText = "Atualizar"; window.scrollTo(0,0);
+        }
+
+        async function apagar(id) { if(confirm("Apagar?")) { await fetch(`${API_URL}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
+
+        function baixarPDF(tipo) {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(204, 164, 59); doc.setFontSize(20); doc.text("LUST STORE", 14, 18);
             
-            imagemBase64 = p.imagem;
-            if(p.imagem) {
-                document.getElementById('preview-img').src = p.imagem;
-                document.getElementById('preview-img').style.display = 'block';
-                document.getElementById('aviso-foto').style.display = 'none';
+            let head, body;
+            if(tipo==='vendas') {
+                doc.text("Relatório Vendas", 14, 40);
+                head = [['Data', 'Cliente', 'Total']];
+                body = vendasCache.map(v => [new Date(v.data_venda).toLocaleDateString(), v.cliente_nome, `€${v.total_venda.toFixed(2)}`]);
+            } else {
+                doc.text("Relatório Estoque", 14, 40);
+                head = [['Produto', 'Qtd', 'Valor Venda']];
+                body = produtosCache.map(p => [p.nome, p.estoque, `€${p.preco.toFixed(2)}`]);
             }
-
-            document.getElementById('btn-salvar').innerText = "Atualizar Produto";
-            document.getElementById('btn-salvar').style.background = "#3b82f6"; // Azul para indicar edição
-            document.getElementById('btn-cancelar').style.display = "inline-block";
-            window.scrollTo(0,0);
+            doc.autoTable({ head: head, body: body, startY: 45, headStyles: { fillColor: [15, 23, 42] } });
+            doc.save(`LustStore_${tipo}.pdf`);
         }
 
-        function cancelarEdicao() {
-            document.getElementById('nome').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('custo').value = '';
-            document.getElementById('estoque').value = '';
-            document.getElementById('edit-id').value = '';
-            document.getElementById('preview-img').style.display = 'none';
-            document.getElementById('aviso-foto').style.display = 'block';
-            imagemBase64 = "";
-
-            document.getElementById('btn-salvar').innerText = "Adicionar ao Catálogo";
-            document.getElementById('btn-salvar').style.background = "#cca43b";
-            document.getElementById('btn-cancelar').style.display = "none";
-        }
-
-        async function apagarProduto(id) {
-            if(confirm("Tem a certeza que quer apagar?")) {
-                await fetch(`${API_URL}/produtos/${id}`, { method: 'DELETE' });
-                iniciar();
-            }
-        }
-
-        // --- GRÁFICO ---
-        function renderizarGrafico() {
-            const ctx = document.getElementById('graficoVendas').getContext('2d');
-            
-            // Agrupar vendas por dia (últimos 7 dias)
-            const dias = {};
-            vendasCache.forEach(v => {
-                const data = new Date(v.data_venda).toLocaleDateString();
-                dias[data] = (dias[data] || 0) + v.total_venda;
-            });
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(dias),
-                    datasets: [{
-                        label: 'Vendas (€)',
-                        data: Object.values(dias),
-                        borderColor: '#cca43b',
-                        backgroundColor: 'rgba(204, 164, 59, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: 'white' } } },
-                    scales: {
-                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        function sair() {
-            localStorage.removeItem('token_gerente');
-            window.location.href = 'login-adm.html';
-        }
-
+        function sair() { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; }
         iniciar();
     </script>
 </body>
