@@ -21,11 +21,10 @@
         :root { 
             --dark: #0f172a; --card: #1e293b; --gold: #cca43b; --texto: #f8fafc; --borda: #334155; 
             --verde: #10b981; --erro: #ef4444; --alerta: #f59e0b;
-            --campo-edit: #e2e8f0; 
-            --texto-input: #0f172a;
+            --campo-edit: #e2e8f0; --texto-input: #0f172a;
         }
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
-        .container { max-width: 1300px; margin: 0 auto; padding-bottom: 60px; }
+        .container { max-width: 1400px; margin: 0 auto; padding-bottom: 60px; }
         
         .header-top { text-align: center; margin-bottom: 25px; position: relative; }
         .logo-adm { height: 55px; margin-bottom: 10px; }
@@ -45,38 +44,33 @@
         .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: 700; color: white; }
 
         .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1100px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1200px; }
         th { text-align: left; padding: 15px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; font-size: 10px; }
         td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
 
-        /* ÁREA DE FILTROS */
         .filtro-row th { padding: 5px 12px 15px 12px; border-bottom: 2px solid var(--borda); background: #162032; }
         .filtro-wrapper { display: flex; gap: 5px; }
         .sel-op { width: 40px; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; font-size: 11px; text-align: center; cursor: pointer; }
         .inp-filtro { width: 100%; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; padding: 6px; font-size: 11px; }
         
-        /* INPUTS DA TABELA */
         .input-live { 
-            background-color: var(--campo-edit) !important; 
-            border: 1px solid #94a3b8 !important; 
-            padding: 8px !important; 
-            color: var(--texto-input) !important; 
-            width: 100%; font-size: 13px !important; font-weight: bold !important;
-            border-radius: 4px; text-align: center; appearance: none; -moz-appearance: textfield;
+            background-color: var(--campo-edit) !important; border: 2px solid transparent !important; 
+            padding: 8px !important; color: var(--texto-input) !important; width: 100%; 
+            font-size: 13px !important; font-weight: bold !important; border-radius: 4px; 
+            text-align: center; appearance: none; -moz-appearance: textfield; transition: 0.3s;
         }
         .input-live:focus { border-color: var(--gold) !important; outline: none; background: #fff !important; }
         .input-live::-webkit-outer-spin-button, .input-live::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0); cursor: pointer; }
 
+        /* ESTADOS DE VALIDADE (BORDAS COLORIDAS) */
+        .val-ok { border-color: #cbd5e1 !important; }
+        .val-warn { border-color: var(--alerta) !important; background-color: #fffbeb !important; }
+        .val-crit { border-color: var(--erro) !important; background-color: #fef2f2 !important; color: var(--erro) !important; }
+
         .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); }
-        
-        /* BADGE DE VALIDADE (ALINHADO ABAIXO) */
-        .badge-aviso { 
-            font-size: 9px; font-weight: bold; padding: 2px 6px; 
-            border-radius: 3px; display: inline-block; margin-top: 4px; text-align: center; width: 100%; box-sizing: border-box;
-        }
-        .bg-critico { background: var(--erro); color: white; }
-        .bg-atencao { background: var(--alerta); color: #000; }
+        .taxonomia { font-size: 9px; text-transform: uppercase; color: #94a3b8; margin-top: 4px; display: block; }
+        .sku-tag { font-family: monospace; color: var(--gold); font-size: 10px; background: rgba(204, 164, 59, 0.1); padding: 2px 4px; border-radius: 3px; }
 
         .btn-novo-prod { background: var(--gold); color: #0f172a; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-acao { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-right: 8px; }
@@ -93,7 +87,8 @@
         .area-upload img { width: 100%; height: 100%; object-fit: contain; background: white; }
         .campos-grid { flex: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .full { grid-column: span 2; }
-        .campos-grid input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 6px; box-sizing: border-box; }
+        .campos-grid input, .campos-grid select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 6px; box-sizing: border-box; }
+        .campos-grid label { font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; display: block; font-weight: bold; }
         .btn-salvar { background: var(--gold); color: #0f172a; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 10px; grid-column: span 2; }
 
         .grafico-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); height: 320px; margin-top: 20px; }
@@ -149,35 +144,20 @@
             <table>
                 <thead>
                     <tr>
-                        <th width="80">Foto</th>
-                        <th>Produto</th>
-                        <th width="140">Custo (€)</th>
-                        <th width="140">Venda (€)</th>
-                        <th width="110">Estoque</th>
-                        <th width="170">Validade</th>
+                        <th width="70">Foto</th>
+                        <th>Produto / Taxonomia</th>
+                        <th width="120">Custo (€)</th>
+                        <th width="120">Venda (€)</th>
+                        <th width="100">Estoque</th>
+                        <th width="150">Validade</th>
                         <th width="50"></th>
                     </tr>
                     <tr class="filtro-row">
                         <th></th>
                         <th><input onkeyup="filtrarInv()" id="f-prod" class="inp-filtro" placeholder="Buscar..."></th>
-                        <th>
-                            <div class="filtro-wrapper">
-                                <select id="op-custo" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select>
-                                <input onkeyup="filtrarInv()" id="f-custo" class="inp-filtro" type="number" placeholder="Valor">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filtro-wrapper">
-                                <select id="op-venda" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select>
-                                <input onkeyup="filtrarInv()" id="f-venda" class="inp-filtro" type="number" placeholder="Valor">
-                            </div>
-                        </th>
-                        <th>
-                            <div class="filtro-wrapper">
-                                <select id="op-estoque" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select>
-                                <input onkeyup="filtrarInv()" id="f-estoque" class="inp-filtro" type="number" placeholder="Qtd">
-                            </div>
-                        </th>
+                        <th><div class="filtro-wrapper"><select id="op-custo" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-custo" class="inp-filtro" type="number" placeholder="Valor"></div></th>
+                        <th><div class="filtro-wrapper"><select id="op-venda" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-venda" class="inp-filtro" type="number" placeholder="Valor"></div></th>
+                        <th><div class="filtro-wrapper"><select id="op-estoque" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-estoque" class="inp-filtro" type="number" placeholder="Qtd"></div></th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -198,12 +178,24 @@
                 <input type="file" id="file-input" hidden onchange="processarFoto(this)">
             </div>
             <div class="campos-grid">
-                <div class="full"><label>Nome</label><input type="text" id="p-nome"></div>
-                <input type="number" id="p-custo" placeholder="Custo €" step="0.01">
-                <input type="number" id="p-venda" placeholder="Venda €" step="0.01">
-                <input type="number" id="p-stock" placeholder="Estoque">
-                <input type="date" id="p-validade">
-                <button class="btn-salvar" onclick="salvarProduto()">Salvar</button>
+                <div class="full"><label>Nome do Produto</label><input type="text" id="p-nome"></div>
+                <div><label>Marca</label><input type="text" id="p-marca" placeholder="Ex: Nike" oninput="gerarSKU()"></div>
+                <div>
+                    <label>Categoria</label>
+                    <select id="p-categoria" onchange="gerarSKU()">
+                        <option value="">Selecione...</option>
+                        <option value="Calcado">Calçado</option>
+                        <option value="Roupa">Roupa</option>
+                        <option value="Acessorio">Acessório</option>
+                        <option value="Cosmetica">Cosmética</option>
+                    </select>
+                </div>
+                <div class="full"><label>SKU (Automático)</label><input type="text" id="p-sku" readonly style="background:#1e293b; color:#94a3b8; font-family:monospace; border:1px dashed #334155;"></div>
+                <div><label>Custo (€)</label><input type="number" id="p-custo" step="0.01"></div>
+                <div><label>Venda (€)</label><input type="number" id="p-venda" step="0.01"></div>
+                <div><label>Estoque</label><input type="number" id="p-stock"></div>
+                <div><label>Validade</label><input type="date" id="p-validade"></div>
+                <button class="btn-salvar" onclick="salvarProduto()">Salvar Produto</button>
             </div>
         </div>
     </div>
@@ -251,9 +243,16 @@
         event.currentTarget.classList.add('active');
     }
 
-    // MODAL
     function abrirModalProd() { document.getElementById('modal-produto').style.display='flex'; }
-    function fecharModalProd() { document.getElementById('modal-produto').style.display='none'; document.getElementById('p-nome').value=''; document.getElementById('p-custo').value=''; document.getElementById('p-venda').value=''; document.getElementById('p-stock').value=''; document.getElementById('p-validade').value=''; fotoBase64=''; document.getElementById('preview-img').style.display='none'; document.getElementById('label-upload').style.display='block'; }
+    function fecharModalProd() { document.getElementById('modal-produto').style.display='none'; limparForm(); }
+    function limparForm() { document.getElementById('p-nome').value=''; document.getElementById('p-marca').value=''; document.getElementById('p-categoria').value=''; document.getElementById('p-sku').value=''; document.getElementById('p-custo').value=''; document.getElementById('p-venda').value=''; document.getElementById('p-stock').value=''; document.getElementById('p-validade').value=''; fotoBase64=''; document.getElementById('preview-img').style.display='none'; document.getElementById('label-upload').style.display='block'; }
+
+    function gerarSKU() {
+        const marca = document.getElementById('p-marca').value.substring(0,3).toUpperCase() || 'XXX';
+        const cat = document.getElementById('p-categoria').value.substring(0,3).toUpperCase() || 'CAT';
+        const rnd = Math.floor(Math.random() * 9000 + 1000);
+        document.getElementById('p-sku').value = `${marca}-${cat}-${rnd}`;
+    }
 
     const fmt = (v) => parseFloat(v || 0).toFixed(2);
     const fmtEur = (v) => `€${fmt(v)}`;
@@ -264,32 +263,16 @@
         document.getElementById('dash-custo').innerText=fmtEur(cE); document.getElementById('dash-valor').innerText=fmtEur(vE); document.getElementById('dash-lucro-est').innerText=fmtEur(vE-cE); document.getElementById('dash-vendas-mes').innerText=fmtEur(vMes); document.getElementById('dash-lucro-mes').innerText=fmtEur(lMes);
     }
 
-    // --- FILTRAGEM ---
-    function checkNum(val, filter, op) {
-        if(!filter) return true;
-        const numFilter = parseFloat(filter);
-        if(op === '>') return val > numFilter;
-        if(op === '<') return val < numFilter;
-        return val == numFilter; // Igual
-    }
+    function checkNum(val, filter, op) { if(!filter) return true; const n = parseFloat(filter); if(op === '>') return val > n; if(op === '<') return val < n; return val == n; }
 
     function filtrarInv() {
         const fProd = document.getElementById('f-prod').value.toLowerCase();
-        
-        const fCusto = document.getElementById('f-custo').value;
-        const opCusto = document.getElementById('op-custo').value;
-        
-        const fVenda = document.getElementById('f-venda').value;
-        const opVenda = document.getElementById('op-venda').value;
-        
-        const fEstoque = document.getElementById('f-estoque').value;
-        const opEstoque = document.getElementById('op-estoque').value;
+        const fCusto = document.getElementById('f-custo').value; const opCusto = document.getElementById('op-custo').value;
+        const fVenda = document.getElementById('f-venda').value; const opVenda = document.getElementById('op-venda').value;
+        const fEstoque = document.getElementById('f-estoque').value; const opEstoque = document.getElementById('op-estoque').value;
 
         const listaFiltrada = produtos.filter(p => {
-            return (p.nome.toLowerCase().includes(fProd)) &&
-                   checkNum(parseFloat(p.preco_entrada||0), fCusto, opCusto) &&
-                   checkNum(parseFloat(p.preco||0), fVenda, opVenda) &&
-                   checkNum(p.estoque, fEstoque, opEstoque);
+            return (p.nome.toLowerCase().includes(fProd)) && checkNum(parseFloat(p.preco_entrada||0), fCusto, opCusto) && checkNum(parseFloat(p.preco||0), fVenda, opVenda) && checkNum(p.estoque, fEstoque, opEstoque);
         });
         renderizarInventario(listaFiltrada);
     }
@@ -299,28 +282,26 @@
         const hoje = new Date();
 
         lista.forEach(p => {
-            let validadeAviso = "";
+            let valClass = 'val-ok'; let titleVal = 'Validade OK';
             if (p.validade) {
                 const dataVal = new Date(p.validade);
-                const diffTime = dataVal - hoje;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays < 0) validadeAviso = `<span class="badge-aviso bg-critico">VENCIDO</span>`;
-                else if (diffDays <= 180) validadeAviso = `<span class="badge-aviso bg-atencao">VENCE EM BREVE</span>`;
+                const diffDays = Math.ceil((dataVal - hoje) / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) { valClass = 'val-crit'; titleVal = 'VENCIDO'; }
+                else if (diffDays <= 180) { valClass = 'val-warn'; titleVal = 'Vence em < 6 meses'; }
             }
 
             tbody.innerHTML += `
                 <tr>
                     <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
-                    <td><input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"></td>
+                    <td>
+                        <input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)">
+                        <span class="taxonomia">${p.marca || ''} • ${p.categoria || ''}</span>
+                        <span class="sku-tag">${p.sku || '-'}</span>
+                    </td>
                     <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
                     <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
                     <td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td>
-                    <td>
-                        <div style="display:flex; flex-direction:column; gap:2px;">
-                            <input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)">
-                            ${validadeAviso}
-                        </div>
-                    </td>
+                    <td><input type="date" class="input-live ${valClass}" title="${titleVal}" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)"></td>
                     <td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td>
                 </tr>`;
         });
@@ -329,8 +310,7 @@
     async function updateItem(id, campo, valor) {
         const p = produtos.find(x => x.id === id); p[campo] = valor;
         await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
-        atualizarDash();
-        if(campo === 'validade') renderizarInventario(); // Recalcula aviso
+        atualizarDash(); if(campo === 'validade') renderizarInventario(); 
     }
 
     function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
@@ -338,7 +318,17 @@
     function processarFoto(input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
 
     async function salvarProduto() {
-        const p = { nome: document.getElementById('p-nome').value, validade: document.getElementById('p-validade').value, preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, preco: parseFloat(document.getElementById('p-venda').value)||0, estoque: parseInt(document.getElementById('p-stock').value)||0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' };
+        const p = { 
+            nome: document.getElementById('p-nome').value, 
+            marca: document.getElementById('p-marca').value,
+            categoria: document.getElementById('p-categoria').value,
+            sku: document.getElementById('p-sku').value,
+            validade: document.getElementById('p-validade').value, 
+            preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, 
+            preco: parseFloat(document.getElementById('p-venda').value)||0, 
+            estoque: parseInt(document.getElementById('p-stock').value)||0, 
+            imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' 
+        };
         await fetch(`${API}/produtos`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) });
         fecharModalProd(); iniciar();
     }
@@ -377,8 +367,8 @@
 
     function gerarEtiqueta(cod) { const v=vendas.find(x=>x.codigo_pedido===cod); criarPDFEtiqueta([v]); }
     function gerarEtiquetasDia() { const h=new Date().toLocaleDateString(); const l=vendas.filter(v=>new Date(v.data_venda).toLocaleDateString()===h); if(!l.length)return alert("Vazio."); criarPDFEtiqueta(l); }
-    function criarPDFEtiqueta(l) { const {jsPDF}=window.jspdf; const doc=new jsPDF({format:[100,150],unit:'mm'}); l.forEach((v,i)=>{ if(i>0)doc.addPage(); doc.setFontSize(8); doc.text("LUST STORE",5,10); doc.line(2,30,98,30); doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40); doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome,5,48); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada,90),5,56); doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; v.itens.forEach(x=>{ doc.text(`[ ] ${x.nome}`,5,y); y+=8; }); }); doc.save('Etiquetas.pdf'); }
-    function gerarPDFPedido(cod) { const v=vendas.find(x=>x.codigo_pedido===cod); const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFillColor(15,23,42); doc.rect(0,0,210,35,'F'); doc.setTextColor(204,164,59); doc.text("LUST STORE",14,18); doc.setTextColor(255); doc.text(`RECIBO: #${cod}`,14,26); const b=v.itens.map(i=>[i.nome,fmtEur(i.preco)]); b.push(['Frete',fmtEur(v.total_frete)],['TOTAL',fmtEur(v.total_venda)]); doc.autoTable({startY:45,head:[['Item','Valor']],body:b,headStyles:{fillColor:[15,23,42]}}); doc.save(`Recibo_${cod}.pdf`); }
+    function criarPDFEtiqueta(l) { const {jsPDF}=window.jspdf; const doc=new jsPDF({format:[100,150],unit:'mm'}); l.forEach((v,i)=>{ if(i>0)doc.addPage(); doc.setFontSize(8); doc.text("LUST STORE",5,10); doc.line(2,30,98,30); doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40); doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome,5,48); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada,90),5,56); doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; v.itens.forEach(x=>{ doc.text(`[ ] ${x.nome} (SKU: ${x.sku||'-'})`,5,y); y+=8; }); }); doc.save('Etiquetas.pdf'); }
+    function gerarPDFPedido(cod) { const v=vendas.find(x=>x.codigo_pedido===cod); const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFillColor(15,23,42); doc.rect(0,0,210,35,'F'); doc.setTextColor(204,164,59); doc.text("LUST STORE",14,18); doc.setTextColor(255); doc.text(`RECIBO: #${cod}`,14,26); const b=v.itens.map(i=>[i.nome + (i.sku ? ` (${i.sku})`:''), fmtEur(i.preco)]); b.push(['Frete',fmtEur(v.total_frete)],['TOTAL',fmtEur(v.total_venda)]); doc.autoTable({startY:45,head:[['Item','Valor']],body:b,headStyles:{fillColor:[15,23,42]}}); doc.save(`Recibo_${cod}.pdf`); }
 
     async function reenviar(id) { if(confirm("Reenviar?")) await fetch(`${API}/reenviar-email/${id}`, {method:'POST'}); }
     async function apagarProduto(id) { if(confirm("Apagar?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
