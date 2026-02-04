@@ -2,378 +2,241 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Lust Store | Painel Administrativo</title>
+    <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     
-    <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
         :root { 
-            --dark: #0f172a; --card: #1e293b; --gold: #cca43b; --texto: #f8fafc; --borda: #334155; 
-            --verde: #10b981; --erro: #ef4444; --alerta: #f59e0b; --campo-edit: #ffffff;
+            --dark: #0f172a; 
+            --gold: #cca43b; 
+            --gold-light: #fcd34d;
+            --texto: #334155; 
+            --bg-page: #f8fafc;
         }
-        body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
-        .container { max-width: 1250px; margin: 0 auto; padding-bottom: 60px; }
         
-        .header-top { text-align: center; margin-bottom: 25px; }
-        .logo-adm { height: 55px; margin-bottom: 10px; }
-        h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: white; text-transform: uppercase; font-weight: 400; }
-        h1 span { color: var(--gold); }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; }
         
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--borda); }
-        .tab-btn { background: none; border: none; color: #94a3b8; padding: 15px 35px; cursor: pointer; text-transform: uppercase; font-size: 13px; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
-        .tab-btn.active { color: var(--gold); border-bottom: 4px solid var(--gold); }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s; }
-
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; border-bottom: 4px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-        .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: 700; color: white; }
-
-        .btn-acao { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-right: 8px; margin-bottom: 8px; transition: 0.2s; }
-        .btn-acao:hover { background: var(--gold); color: var(--dark); }
-        .btn-verde { background: var(--verde) !important; color: white !important; }
-
-        .card-form { 
-            background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); 
-            margin-bottom: 30px; display: flex; gap: 25px; align-items: flex-start;
+        /* BARRA DE PORTES */
+        .frete-bar { 
+            background: #000; color: var(--gold-light); 
+            font-size: 11px; text-align: center; padding: 8px; 
+            font-weight: bold; letter-spacing: 1px; 
         }
-        .area-upload { 
-            flex: 0 0 160px; height: 160px; border: 2px dashed var(--gold); 
-            border-radius: 8px; cursor: pointer; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; overflow: hidden; background: rgba(0,0,0,0.2);
+        
+        /* HEADER */
+        header { 
+            background: var(--dark); padding: 25px; text-align: center; 
+            border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
         }
-        .area-upload img { width: 100%; height: 100%; object-fit: contain; background: white; }
-        .area-upload span { font-size: 10px; color: var(--gold); font-weight: bold; }
-
-        .campos-container { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .full-width { grid-column: span 3; }
-        label { display: block; font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
-        
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 6px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
-        
-        /* REMOÇÃO DE SETAS EM TODOS OS NAVEGADORES */
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-
-        .btn-salvar { background: var(--gold); color: #0f172a; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; grid-column: span 3; font-size: 13px; margin-top: 5px; }
-
-        .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
-        th { text-align: left; padding: 15px; color: var(--gold); border-bottom: 2px solid var(--borda); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
-        td { padding: 10px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
-        
-        .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); transition: 0.2s; }
-        .img-table:hover { border-color: var(--gold); transform: scale(1.1); }
-
-        .input-live { 
-            background: var(--campo-edit) !important; 
-            border: 2px solid #cbd5e1 !important; 
-            padding: 8px !important; 
-            color: #000 !important; 
-            width: 100%; 
-            font-size: 13px !important; 
-            font-weight: bold !important;
-            border-radius: 4px; 
-            text-align: center;
+        .header-content { display: flex; flex-direction: column; align-items: center; }
+        .logo-img { height: 50px; margin-bottom: 10px; display: block; }
+        header h1 { 
+            margin: 0; font-family: 'Playfair Display', serif; color: white; 
+            font-size: 22px; letter-spacing: 1px; text-transform: uppercase; font-weight: 400; 
         }
-        .input-live:focus { border-color: var(--gold) !important; outline: none; box-shadow: 0 0 8px rgba(204,164,59,0.4); }
+        header h1 span { color: var(--gold); }
 
-        .grafico-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); height: 320px; margin-bottom: 30px; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
+        
+        /* CARTÃO DE PRODUTO */
+        .produto-card { 
+            background: white; border-radius: 8px; overflow: hidden; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; 
+            display: flex; flex-direction: column; border: 1px solid transparent;
+            position: relative;
+        }
+        .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        
+        /* ÁREA DA IMAGEM (ESTILO FARFETCH/NIKE) */
+        .img-container { 
+            width: 100%; height: 280px; 
+            background: #f1f5f9; /* Fundo cinza suave */
+            position: relative; overflow: hidden; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .img-container img { 
+            width: 90%; height: 90%; /* Margem de respiro */
+            object-fit: contain; /* NUNCA CORTA A IMAGEM */
+            transition: transform 0.5s ease; 
+            mix-blend-mode: multiply; /* Fusão suave com o fundo */
+        }
+        .produto-card:hover img { transform: scale(1.08); } /* Zoom suave */
+        
+        /* ESTADO ESGOTADO */
+        .produto-card.esgotado { opacity: 0.6; pointer-events: none; }
+        .produto-card.esgotado img { filter: grayscale(100%); }
+        .overlay-esgotado {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 8px 15px;
+            font-weight: bold; font-size: 12px; border: 1px solid white; display: none;
+        }
+        .produto-card.esgotado .overlay-esgotado { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
+        .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; }
+        .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
+        .alerta-estoque { color: #ef4444; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
+        
+        /* BOTÕES DE COMPRA */
+        .compra-row { display: flex; gap: 10px; margin-top: auto; }
+        .qtd-seletor { display: flex; align-items: center; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
+        .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; height: 100%; }
+        .qtd-btn:hover { color: var(--gold); background: var(--dark); }
+        
+        .btn-comprar { 
+            background: var(--dark); color: white; border: none; padding: 12px; 
+            border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; 
+            text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; 
+        }
+        .btn-comprar:hover { background: var(--gold); color: var(--dark); }
+        .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+        
+        /* CARRINHO FLUTUANTE */
+        #btn-carrinho { 
+            position: fixed; bottom: 30px; right: 30px; 
+            background: var(--gold); color: var(--dark); padding: 15px 30px; 
+            border-radius: 50px; font-weight: bold; cursor: pointer; border: none; 
+            z-index:1000; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); 
+            text-transform: uppercase; letter-spacing: 1px; display: none; 
+        }
+        .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div class="header-top">
-        <img src="logo.png" class="logo-adm" onerror="this.style.display='none'">
-        <h1>Lust Store - <span>Painel Administrativo</span></h1>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="openTab('financeiro')">📈 Financeiro</button>
-        <button class="tab-btn" onclick="openTab('inventario')">📦 Inventário</button>
-    </div>
-
-    <div id="financeiro" class="tab-content active">
-        <div class="dashboard">
-            <div class="card-dash"><h3>Custo Estoque</h3><p id="dash-custo">€0.00</p></div>
-            <div class="card-dash"><h3>Valor Venda</h3><p id="dash-valor">€0.00</p></div>
-            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro-est">€0.00</p></div>
-            <div class="card-dash"><h3>Vendas do Mês</h3><p id="dash-vendas-mes" style="color:var(--gold)">€0.00</p></div>
-            <div class="card-dash"><h3>Lucro do Mês</h3><p id="dash-lucro-mes" style="color:var(--verde)">€0.00</p></div>
+    
+    <div class="frete-bar">PORTES GRÁTIS: PT > 60€ | ES > 85€ | EUROPA > 125€</div>
+    
+    <header>
+        <div class="header-content">
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <h1>Lust Store - <span>Vitrine</span></h1>
         </div>
+    </header>
 
-        <div style="margin-bottom: 20px;">
-            <button onclick="gerarRelatorioFinanceiro('semanal')" class="btn-acao">📅 Relatório Semanal</button>
-            <button onclick="gerarRelatorioFinanceiro('mensal')" class="btn-acao">📅 Relatório Mensal</button>
-            <button onclick="gerarEtiquetasDia()" class="btn-acao btn-verde">📦 Gerar Etiquetas de Hoje</button>
-        </div>
-
-        <div class="grafico-box">
-            <canvas id="graficoVendas"></canvas>
-        </div>
-
-        <div class="tabela-container">
-            <table>
-                <thead>
-                    <tr><th>Data</th><th>Pedido</th><th>Cliente</th><th>Total Pago</th><th>Ações</th></tr>
-                </thead>
-                <tbody id="lista-vendas"></tbody>
-            </table>
+    <div class="container">
+        <div id="vitrine" class="vitrine">
+            <div class="loading">A CARREGAR COLEÇÃO EXCLUSIVA...</div>
         </div>
     </div>
+    
+    <button id="btn-carrinho" onclick="finalizarCompra()">
+        🛒 Finalizar <span id="cart-count">0</span>
+    </button>
+    
+    <script>
+        const API = 'https://projeto-loja-dzqv.onrender.com';
+        let todosProdutos = [];
+        let carrinho = [];
+        
+        async function carregarProdutos() {
+            try {
+                const res = await fetch(`${API}/produtos`);
+                todosProdutos = await res.json();
+                renderizarProdutos(todosProdutos);
+            } catch(e) { 
+                document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; 
+            }
+        }
 
-    <div id="inventario" class="tab-content">
-        <div class="card-form">
-            <div class="area-upload" onclick="document.getElementById('file-input').click()">
-                <img id="preview-img" style="display:none">
-                <span id="label-upload">📸 FOTO</span>
-                <input type="file" id="file-input" hidden onchange="processarFoto(this)">
-            </div>
+        function renderizarProdutos(lista) {
+            const vitrine = document.getElementById('vitrine');
+            vitrine.innerHTML = '';
             
-            <div class="campos-container">
-                <div class="full-width"><label>Nome do Produto</label><input type="text" id="p-nome" placeholder="Ex: Nike Air Max"></div>
-                <div><label>Custo Unitário (€)</label><input type="number" id="p-custo" step="0.01"></div>
-                <div><label>Venda Unitária (€)</label><input type="number" id="p-venda" step="0.01"></div>
-                <div><label>Stock Inicial</label><input type="number" id="p-stock"></div>
-                <div class="full-width"><label>Validade (dd mm yyyy)</label><input type="text" id="p-validade" placeholder="01 12 2026"></div>
-                <button class="btn-salvar" onclick="salvarProduto()">+ Adicionar ao Catálogo Lust</button>
-            </div>
-        </div>
-
-        <div class="tabela-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th width="80">Foto</th>
-                        <th>Produto</th>
-                        <th width="130">Custo (€)</th>
-                        <th width="130">Venda (€)</th>
-                        <th width="100">Stock</th>
-                        <th width="170">Validade (DD MM YYYY)</th>
-                        <th width="50"></th>
-                    </tr>
-                </thead>
-                <tbody id="lista-inventario-tabela"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<input type="file" id="table-file-input" hidden onchange="processarFotoTabela(this)">
-
-<script>
-    const API = "https://projeto-loja-dzqv.onrender.com";
-    let produtos = [], vendas = [], fotoBase64 = "", itemEditTabela = null;
-
-    async function iniciar() {
-        const [resP, resV] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`)]);
-        produtos = await resP.json(); vendas = await resV.json();
-        atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico();
-    }
-
-    function openTab(id) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        event.currentTarget.classList.add('active');
-    }
-
-    const fmt = (v) => parseFloat(v || 0).toFixed(2);
-    const fmtEur = (v) => `€${fmt(v)}`;
-
-    function atualizarDash() {
-        let custoE = 0, valorE = 0;
-        produtos.forEach(p => { custoE += (parseFloat(p.preco_entrada) || 0) * p.estoque; valorE += p.preco * p.estoque; });
-        const hoje = new Date();
-        let vMes = 0, lMes = 0;
-        vendas.forEach(v => {
-            const dv = new Date(v.data_venda);
-            if(dv.getMonth() === hoje.getMonth() && dv.getFullYear() === hoje.getFullYear()) { vMes += v.total_venda; lMes += v.lucro; }
-        });
-        document.getElementById('dash-custo').innerText = fmtEur(custoE);
-        document.getElementById('dash-valor').innerText = fmtEur(valorE);
-        document.getElementById('dash-lucro-est').innerText = fmtEur(valorE - custoE);
-        document.getElementById('dash-vendas-mes').innerText = fmtEur(vMes);
-        document.getElementById('dash-lucro-mes').innerText = fmtEur(lMes);
-    }
-
-    function renderizarInventario() {
-        const tbody = document.getElementById('lista-inventario-tabela');
-        tbody.innerHTML = '';
-        produtos.forEach(p => {
-            // FORMATAR DATA PARA DD MM YYYY
-            let dataFormatada = p.validade || "";
-            if (dataFormatada.includes("-")) {
-                const parts = dataFormatada.split("-");
-                dataFormatada = `${parts[2]} ${parts[1]} ${parts[0]}`;
+            if (lista.length === 0) { 
+                vitrine.innerHTML = "<p style='text-align:center; width:100%'>Sem produtos disponíveis.</p>"; 
+                return; 
             }
 
-            tbody.innerHTML += `
-                <tr>
-                    <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
-                    <td><input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"></td>
-                    <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
-                    <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
-                    <td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td>
-                    <td><input type="text" class="input-live" value="${dataFormatada}" onchange="updateItemData(${p.id}, this.value)"></td>
-                    <td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td>
-                </tr>`;
-        });
-    }
+            lista.forEach(p => {
+                const stock = parseInt(p.estoque) || 0;
+                const esgotado = stock <= 0;
+                
+                // Lógica simples de marca (opcional)
+                let marca = "Exclusive";
+                if(p.nome.toLowerCase().includes('nike')) marca = "Nike";
+                else if(p.nome.toLowerCase().includes('adidas')) marca = "Adidas";
 
-    async function updateItem(id, campo, valor) {
-        const p = produtos.find(x => x.id === id);
-        p[campo] = valor;
-        await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
-        atualizarDash();
-    }
-
-    // FUNÇÃO PARA TRATAR DATA DD MM YYYY E SALVAR COMO YYYY-MM-DD
-    async function updateItemData(id, valorTexto) {
-        const parts = valorTexto.trim().split(" ");
-        if (parts.length === 3) {
-            const dataISO = `${parts[2]}-${parts[1]}-${parts[0]}`;
-            await updateItem(id, 'validade', dataISO);
-        } else {
-            alert("Formato de data inválido! Use: DD MM YYYY (Ex: 01 12 2026)");
+                let alertaHTML = esgotado ? '<span style="color:#94a3b8">Indisponível</span>' : (stock < 5 ? `⚠️ Restam apenas ${stock} un!` : '');
+                
+                vitrine.innerHTML += `
+                    <div class="produto-card ${esgotado ? 'esgotado' : ''}">
+                        <div class="img-container">
+                            <img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'">
+                            <div class="overlay-esgotado">ESGOTADO</div>
+                        </div>
+                        <div class="info">
+                            <span class="marca">${marca}</span>
+                            <h3>${p.nome}</h3>
+                            <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
+                            <div class="alerta-estoque">${alertaHTML}</div>
+                            <div class="compra-row">
+                                <div class="qtd-seletor">
+                                    <button class="qtd-btn" onclick="mudarQtd('${p.id}', -1)">−</button>
+                                    <span id="qtd-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span>
+                                    <button class="qtd-btn" onclick="mudarQtd('${p.id}', 1, ${stock})">+</button>
+                                </div>
+                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">${esgotado ? 'Esgotado' : 'Comprar'}</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
         }
-    }
 
-    function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
-    function processarFotoTabela(input) {
-        if(input.files && input.files[0]) {
-            const r = new FileReader();
-            r.onload = async (e) => {
-                const p = produtos.find(x => x.id === itemEditTabela);
-                p.imagem = e.target.result;
-                await fetch(`${API}/produtos/${itemEditTabela}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
-                renderizarInventario();
-            };
-            r.readAsDataURL(input.files[0]);
+        function mudarQtd(id, delta, max) { 
+            let el = document.getElementById(`qtd-${id}`);
+            let novo = parseInt(el.innerText) + delta; 
+            if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; 
         }
-    }
 
-    function processarFoto(input) {
-        if(input.files && input.files[0]) {
-            const r = new FileReader();
-            r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; };
-            r.readAsDataURL(input.files[0]);
+        function addCarrinho(id, nome, preco) { 
+            const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText); 
+            for(let i=0; i<qtd; i++) carrinho.push({id, nome, preco}); 
+            
+            document.getElementById('cart-count').innerText = carrinho.length;
+            document.getElementById('btn-carrinho').style.display = 'block';
+
+            const btn = event.target; 
+            const textoOriginal = btn.innerText;
+            btn.innerText = "Adicionado!"; 
+            btn.style.background = "#cca43b"; btn.style.color = "#000";
+            
+            setTimeout(() => { 
+                btn.innerText = textoOriginal; 
+                btn.style.background = ""; 
+                btn.style.color = ""; 
+                document.getElementById(`qtd-${id}`).innerText = 1; 
+            }, 1000); 
         }
-    }
 
-    async function salvarProduto() {
-        let validadeInput = document.getElementById('p-validade').value;
-        if (validadeInput.includes(" ")) {
-            const pts = validadeInput.split(" ");
-            validadeInput = `${pts[2]}-${pts[1]}-${pts[0]}`;
+        async function finalizarCompra() { 
+            if (!carrinho.length) return alert("Carrinho vazio!"); 
+            const btn = document.getElementById('btn-carrinho'); 
+            const txtOriginal = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = "A PROCESSAR...";
+            
+            try {
+                const res = await fetch(`${API}/checkout`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify(carrinho) 
+                }); 
+                const d = await res.json(); 
+                if(d.url) window.location.href = d.url; 
+                else throw new Error("Erro ao gerar pagamento");
+            } catch(e) { 
+                alert("Erro ao conectar ao checkout."); 
+                btn.disabled = false; 
+                btn.innerHTML = txtOriginal; 
+            }
         }
-        const p = { nome: document.getElementById('p-nome').value, validade: validadeInput, preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, preco: parseFloat(document.getElementById('p-venda').value)||0, estoque: parseInt(document.getElementById('p-stock').value)||0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' };
-        await fetch(`${API}/produtos`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) });
-        location.reload();
-    }
-
-    function renderizarVendas() {
-        const tb = document.getElementById('lista-vendas'); tb.innerHTML = '';
-        vendas.forEach(v => {
-            tb.innerHTML += `<tr>
-                <td>${new Date(v.data_venda).toLocaleDateString()}</td>
-                <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
-                <td>${v.cliente_nome}</td>
-                <td>${fmtEur(v.total_venda)}</td>
-                <td>
-                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta + Packing">📦</button>
-                    <button onclick="gerarPDFPedido('${v.codigo_pedido}')" class="btn-acao" title="Recibo">📄</button>
-                    <button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Email">📧</button>
-                </td>
-            </tr>`;
-        });
-    }
-
-    async function reenviar(id) { if(confirm("Reenviar email?")) await fetch(`${API}/reenviar-email/${id}`, {method:'POST'}); }
-
-    function renderizarGrafico() {
-        const ctx = document.getElementById('graficoVendas').getContext('2d');
-        const hoje = new Date();
-        const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
-        const dados = new Array(diasNoMes).fill(0);
-        vendas.forEach(v => {
-            const d = new Date(v.data_venda);
-            if(d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()) { dados[d.getDate()-1] += v.total_venda; }
-        });
-        new Chart(ctx, {
-            type: 'bar',
-            data: { labels: Array.from({length: diasNoMes}, (_, i) => i + 1), datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] },
-            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#334155'}, ticks:{color:'#94a3b8'}}, x:{ticks:{color:'#94a3b8'}} } }
-        });
-    }
-
-    function gerarRelatorioFinanceiro(per) {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFillColor(15, 23, 42); doc.rect(0,0,210,35,'F');
-        doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
-        doc.setTextColor(255,255,255); doc.setFontSize(10); doc.text(`RELATÓRIO FINANCEIRO ${per.toUpperCase()}`, 14, 26);
-        doc.autoTable({
-            startY: 40, head:[['Data','Pedido','Custo','Frete','Venda','Lucro']],
-            body: vendas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, fmtEur(v.total_custo), fmtEur(v.total_frete), fmtEur(v.total_venda), fmtEur(v.lucro)]),
-            headStyles:{fillColor:[15, 23, 42], textColor:[204, 164, 59]}, theme:'grid'
-        });
-        doc.save(`Financeiro_Lust_${per}.pdf`);
-    }
-
-    function gerarPDFPedido(cod) {
-        const v = vendas.find(x => x.codigo_pedido === cod);
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F');
-        doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
-        doc.setTextColor(255,255,255); doc.text(`RECIBO DO PEDIDO: #${v.codigo_pedido}`, 14, 26);
-        const body = v.itens.map(i => [i.nome, fmtEur(i.preco)]);
-        body.push(['Frete', fmtEur(v.total_frete)], [{content:'TOTAL', styles:{fontStyle:'bold'}}, fmtEur(v.total_venda)]);
-        doc.autoTable({ startY: 45, head:[['Produto', 'Preço']], body: body, headStyles:{fillColor:[15,23,42]} });
-        doc.save(`Recibo_Lust_${cod}.pdf`);
-    }
-
-    function gerarEtiqueta(cod) { const v = vendas.find(x => x.codigo_pedido === cod); criarPDFEtiqueta([v]); }
-    function gerarEtiquetasDia() {
-        const hoje = new Date().toLocaleDateString();
-        const lista = vendas.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje);
-        if(!lista.length) return alert("Sem encomendas hoje.");
-        criarPDFEtiqueta(lista);
-    }
-
-    function criarPDFEtiqueta(listaVendas) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ format:[100, 150], unit:'mm' });
-        listaVendas.forEach((v, idx) => {
-            if(idx > 0) doc.addPage();
-            doc.setFontSize(8); doc.text("REMETENTE: LUST STORE - Portugal", 5, 10);
-            doc.line(2, 30, 98, 30);
-            doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40);
-            doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 48);
-            doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 56);
-            doc.rect(5, 120, 90, 15); doc.text(`#${v.codigo_pedido}`, 50, 130, {align:'center'});
-            doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST - LUST STORE", 50, 15, {align:'center'});
-            doc.setFontSize(10); doc.text(`Pedido: #${v.codigo_pedido}`, 5, 25);
-            let y = 40; v.itens.forEach(i => { doc.text(`[ ] ${i.nome}`, 5, y); y+=8; });
-        });
-        doc.save(`Logistica_Lust.pdf`);
-    }
-
-    async function apagarProduto(id) { if(confirm("Apagar produto definitivamente?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregarDados(); } }
-    
-    iniciar();
-</script>
+        
+        window.onload = carregarProdutos;
+    </script>
 </body>
 </html>
