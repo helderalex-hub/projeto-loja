@@ -24,15 +24,17 @@
         h1 span { color: var(--gold); }
         .btn-sair { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--borda); color: #94a3b8; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
 
-        /* 5 CARDS DASHBOARD */
+        /* 5 DASHBOARDS */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card-dash { background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--borda); text-align: center; border-bottom: 3px solid var(--gold); }
         .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; }
         .card-dash p { margin: 10px 0 0; font-size: 18px; font-weight: bold; color: white; }
 
+        /* BOTOES RELATORIOS */
         .area-relatorios { background: var(--card); padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid var(--borda); }
-        .btn-acao { background: #334155; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; text-transform: uppercase; margin-right: 5px; font-weight: bold; }
+        .btn-acao { background: #334155; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; text-transform: uppercase; margin-right: 5px; font-weight: bold; margin-bottom: 5px; }
         .btn-acao:hover { background: var(--gold); color: var(--dark); }
+        .btn-verde { background: #059669; }
 
         .grafico-box { background: var(--card); padding: 20px; border-radius: 8px; height: 300px; margin-bottom: 30px; border: 1px solid var(--borda); }
 
@@ -61,24 +63,23 @@
         </div>
 
         <div class="area-relatorios">
-            <h4 style="color:var(--gold); margin-top:0">Central de Relatórios</h4>
-            <button onclick="gerarRelatorio('semanal')" class="btn-acao">📅 Vendas da Semana</button>
-            <button onclick="gerarRelatorio('mensal')" class="btn-acao">📅 Vendas do Mês</button>
-            <button onclick="gerarEtiquetasDia()" class="btn-acao" style="background:#10b981">📦 Etiquetas de Hoje (Todas)</button>
+            <h4 style="color:var(--gold); margin-top:0">Logística & Financeiro</h4>
+            <button onclick="gerarRelatorioFinanceiro('semanal')" class="btn-acao">📅 Financeiro Semana</button>
+            <button onclick="gerarRelatorioFinanceiro('mensal')" class="btn-acao">📅 Financeiro Mês</button>
+            <button onclick="gerarEtiquetasDia()" class="btn-acao btn-verde">📦 Etiquetas de Hoje (Todas)</button>
         </div>
 
         <div class="grafico-box">
             <canvas id="graficoVendas"></canvas>
         </div>
 
-        <h3 style="color:var(--gold); font-size:14px; text-transform:uppercase">Gestão de Vendas</h3>
+        <h3 style="color:var(--gold); font-size:14px; text-transform:uppercase">Últimas Vendas</h3>
         <div style="overflow-x:auto">
             <table>
                 <thead><tr><th>Data</th><th>Pedido</th><th>Cliente</th><th>Total</th><th>Ações</th></tr></thead>
                 <tbody id="lista-vendas"></tbody>
             </table>
         </div>
-
     </div>
 
     <script>
@@ -93,26 +94,23 @@
                 calcularDashboards();
                 renderizarGrafico();
                 renderizarTabela();
-            } catch (e) { console.error(e); alert("Erro ao carregar dados."); }
+            } catch (e) { console.error(e); }
         }
 
         function calcularDashboards() {
-            // 1, 2, 3: Estoque
+            // Estoque
             let custoTotal = 0, valorTotal = 0;
             produtosCache.forEach(p => {
                 custoTotal += (p.preco_entrada || 0) * p.estoque;
                 valorTotal += p.preco * p.estoque;
             });
 
-            // 4, 5: Mês Atual
+            // Financeiro Mês
             const hoje = new Date();
-            const mesAtual = hoje.getMonth();
-            const anoAtual = hoje.getFullYear();
-            
             let vendasMes = 0, lucroMes = 0;
             vendasCache.forEach(v => {
                 const d = new Date(v.data_venda);
-                if(d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                if(d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()) {
                     vendasMes += v.total_venda;
                     lucroMes += v.lucro;
                 }
@@ -129,8 +127,6 @@
             const ctx = document.getElementById('graficoVendas').getContext('2d');
             const hoje = new Date();
             const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
-            
-            // Array com dias 1..30/31
             const labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
             const dados = new Array(diasNoMes).fill(0);
 
@@ -143,24 +139,8 @@
 
             new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Vendas Diárias (€)',
-                        data: dados,
-                        backgroundColor: '#cca43b',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                        y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
-                    }
-                }
+                data: { labels: labels, datasets: [{ label: 'Vendas Diárias (€)', data: dados, backgroundColor: '#cca43b' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8' } }, y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } } } }
             });
         }
 
@@ -173,99 +153,130 @@
                     <td>${v.cliente_nome}</td>
                     <td>€${v.total_venda.toFixed(2)}</td>
                     <td>
-                        <button onclick="reenviar('${v.id}')" class="btn-icon" style="background:#3b82f6; color:white" title="Reenviar Email">📧</button>
-                        <button onclick="gerarPDFPedido('${v.codigo_pedido}')" class="btn-icon" style="background:#cca43b; color:#0f172a" title="PDF Pedido">📄</button>
-                        <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-icon" style="background:#10b981; color:white" title="Etiqueta Envio">📦</button>
+                        <button onclick="reenviar('${v.id}')" class="btn-icon" style="background:#3b82f6; color:white" title="Email">📧</button>
+                        <button onclick="gerarPDFPedido('${v.codigo_pedido}')" class="btn-icon" style="background:#cca43b; color:#0f172a" title="Recibo">📄</button>
+                        <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-icon" style="background:#10b981; color:white" title="Etiqueta">📦</button>
                     </td>
                 </tr>`;
             });
         }
 
-        // --- AÇÕES ---
         async function reenviar(id) { if(confirm("Reenviar email?")) await fetch(`${API_URL}/reenviar-email/${id}`, {method:'POST'}); }
+
+        // --- PDFS PODEROSOS ---
+        function gerarRelatorioFinanceiro(tipo) {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            const hoje = new Date();
+            let inicio = new Date();
+            if(tipo === 'semanal') { const dia = inicio.getDay(); inicio.setDate(inicio.getDate() - dia + (dia == 0 ? -6 : 1)); } 
+            else { inicio.setDate(1); }
+            inicio.setHours(0,0,0,0);
+
+            const filtradas = vendasCache.filter(v => new Date(v.data_venda) >= inicio);
+            
+            // Cabeçalho Marca
+            doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F');
+            doc.setTextColor(204, 164, 59); doc.setFontSize(20); doc.text("LUST STORE", 14, 18);
+            doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.text(`Relatório Financeiro: ${tipo.toUpperCase()}`, 14, 25);
+
+            // Tabela Detalhada
+            const body = filtradas.map(v => [
+                new Date(v.data_venda).toLocaleDateString(),
+                v.codigo_pedido,
+                `€${(v.total_custo || 0).toFixed(2)}`,
+                `€${v.total_frete.toFixed(2)}`,
+                `€${v.total_venda.toFixed(2)}`,
+                `€${v.lucro.toFixed(2)}`
+            ]);
+
+            doc.autoTable({
+                startY: 40,
+                head: [['Data', 'Pedido', 'Custo', 'Frete', 'Venda Total', 'Lucro Liq.']],
+                body: body,
+                headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] },
+                columnStyles: { 5: { fontStyle: 'bold', textColor: [0, 100, 0] } } // Lucro Verde
+            });
+            doc.save(`Financeiro_${tipo}.pdf`);
+        }
 
         function gerarPDFPedido(cod) {
             const venda = vendasCache.find(v => v.codigo_pedido === cod);
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text(`Pedido #${venda.codigo_pedido}`, 14, 20);
-            doc.text(`Cliente: ${venda.cliente_nome}`, 14, 30);
-            doc.text(`Morada: ${venda.cliente_morada}`, 14, 36);
+            doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 20);
+            
+            doc.setTextColor(0,0,0); doc.setFontSize(12);
+            doc.text(`Recibo: #${venda.codigo_pedido}`, 14, 45);
             
             const body = venda.itens.map(i => [i.nome, `€${i.preco}`]);
+            body.push(['Frete', `€${venda.total_frete}`]);
             body.push(['TOTAL', `€${venda.total_venda.toFixed(2)}`]);
             
-            doc.autoTable({ startY: 45, head:[['Item', 'Valor']], body: body });
-            doc.save(`Pedido_${cod}.pdf`);
+            doc.autoTable({ startY: 55, head:[['Item', 'Valor']], body: body });
+            doc.save(`Recibo_${cod}.pdf`);
         }
 
-        function gerarEtiqueta(cod) {
-            const venda = vendasCache.find(v => v.codigo_pedido === cod);
-            criarPDFEtiqueta([venda]);
-        }
-
+        // --- ETIQUETAS + PACKING LIST ---
+        function gerarEtiqueta(cod) { const v = vendasCache.find(x => x.codigo_pedido === cod); criarPDFEtiqueta([v]); }
         function gerarEtiquetasDia() {
             const hoje = new Date().toLocaleDateString();
-            const vendasHoje = vendasCache.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje);
-            if(vendasHoje.length === 0) return alert("Sem vendas hoje.");
-            criarPDFEtiqueta(vendasHoje);
+            const lista = vendasCache.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje);
+            if(!lista.length) return alert("Sem vendas hoje.");
+            criarPDFEtiqueta(lista);
         }
 
         function criarPDFEtiqueta(listaVendas) {
             const { jsPDF } = window.jspdf;
-            // PDF formato 10x15cm (Etiqueta Padrão)
+            // Formato 10x15cm (Padrão Zebra/CTT)
             const doc = new jsPDF({ format: [100, 150], unit: 'mm' });
             
             listaVendas.forEach((v, index) => {
                 if(index > 0) doc.addPage();
                 
-                // Remetente
+                // PAGINA 1: ETIQUETA ENVIO
+                doc.setLineWidth(1); doc.rect(2, 2, 96, 146); // Borda
                 doc.setFontSize(8); doc.text("REMETENTE:", 5, 10);
-                doc.setFontSize(10); doc.setFont("helvetica", "bold");
-                doc.text("LUST STORE", 5, 15);
-                doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-                doc.text("Rua da Exclusividade, 100\nLisboa, Portugal", 5, 19);
-
-                doc.setLineWidth(0.5); doc.line(0, 30, 100, 30);
-
-                // Destinatário
-                doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40);
-                doc.setFontSize(14); doc.setFont("helvetica", "bold");
-                doc.text(v.cliente_nome, 5, 48);
+                doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text("LUST STORE", 5, 15);
+                doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.text("Portugal", 5, 20);
                 
-                doc.setFontSize(10); doc.setFont("helvetica", "normal");
-                const moradaSplit = doc.splitTextToSize(v.cliente_morada, 90);
-                doc.text(moradaSplit, 5, 55);
+                doc.line(2, 35, 98, 35); // Linha divisória
 
-                // Info Extra
-                doc.rect(5, 110, 90, 30);
-                doc.setFontSize(16); doc.text(`#${v.codigo_pedido}`, 50, 125, {align: 'center'});
-                doc.setFontSize(8); doc.text("Conteúdo Verificado", 50, 135, {align: 'center'});
+                doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 45);
+                doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text(v.cliente_nome, 5, 53);
+                
+                doc.setFontSize(11); doc.setFont("helvetica", "normal");
+                const morada = doc.splitTextToSize(v.cliente_morada, 90);
+                doc.text(morada, 5, 62);
+
+                // Codigo Barras Fake (Visual)
+                doc.setFillColor(0,0,0); doc.rect(10, 110, 80, 15, 'F');
+                doc.setTextColor(255,255,255); doc.text(v.codigo_pedido, 50, 120, {align:'center'});
+
+                // PAGINA 2: PACKING LIST (RESUMO PARA CAIXA)
+                doc.addPage();
+                doc.setTextColor(0,0,0);
+                doc.setFontSize(14); doc.text("RESUMO DO PEDIDO", 50, 15, {align:'center'});
+                doc.setFontSize(10); doc.text(`Pedido: #${v.codigo_pedido}`, 5, 25);
+                
+                let y = 35;
+                doc.setFontSize(9);
+                doc.text("ITEM", 5, y); doc.text("QTD", 80, y);
+                doc.line(5, y+2, 95, y+2);
+                
+                y += 8;
+                // Agrupar itens
+                const contagem = {}; v.itens.forEach(i => contagem[i.nome] = (contagem[i.nome]||0)+1);
+                
+                Object.entries(contagem).forEach(([nome, qtd]) => {
+                    doc.text(nome.substring(0, 30), 5, y);
+                    doc.text(String(qtd), 85, y);
+                    y += 6;
+                });
+                
+                doc.text("Obrigado pela preferência!", 50, 140, {align:'center'});
             });
 
-            doc.save("Etiquetas_Envio.pdf");
-        }
-
-        function gerarRelatorio(tipo) {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            const hoje = new Date();
-            let inicio = new Date();
-            
-            if(tipo === 'semanal') {
-                const diaSemana = inicio.getDay(); // 0 Dom, 1 Seg...
-                const diff = inicio.getDate() - diaSemana + (diaSemana == 0 ? -6 : 1); 
-                inicio.setDate(diff); // Segunda-feira
-            } else {
-                inicio.setDate(1); // Dia 1 do mês
-            }
-            inicio.setHours(0,0,0,0);
-
-            const filtradas = vendasCache.filter(v => new Date(v.data_venda) >= inicio);
-            
-            doc.text(`Relatório ${tipo.toUpperCase()} (Desde ${inicio.toLocaleDateString()})`, 14, 20);
-            
-            const body = filtradas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.cliente_nome, `€${v.total_venda.toFixed(2)}`]);
-            doc.autoTable({ startY: 30, head:[['Data', 'Cliente', 'Total']], body: body });
-            doc.save(`Relatorio_${tipo}.pdf`);
+            doc.save("Etiquetas_e_Resumo.pdf");
         }
 
         function sair() { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; }
