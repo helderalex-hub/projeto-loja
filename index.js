@@ -4,19 +4,22 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// --- FUNÇÃO DE EMAIL VIA BREVO API (HTTPS - PORTA 443) ---
-// Esta função nunca falha por bloqueio de porta SMTP
+// --- CONFIGURAÇÃO DE DESIGN (URL DO LOGO) ---
+// Certifique-se que o ficheiro logo.png está no seu GitHub
+const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
+
+// --- FUNÇÃO DE EMAIL VIA BREVO API (HTTPS - BLINDADA) ---
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
         method: 'POST',
         headers: {
             'accept': 'application/json',
-            'api-key': process.env.BREVO_KEY, // A chave que pegou no site
+            'api-key': process.env.BREVO_KEY,
             'content-type': 'application/json'
         },
         body: JSON.stringify({
-            sender: { name: "Lust Store", email: process.env.EMAIL_USER }, // O seu email de cadastro
+            sender: { name: "Lust Store", email: process.env.EMAIL_USER },
             to: [{ email: para }],
             subject: assunto,
             htmlContent: htmlContent
@@ -47,43 +50,55 @@ function gerarIdLust() {
     return `LS-${codigo}`;
 }
 
-// --- ORQUESTRADOR DE EMAILS ---
+// --- TEMPLATE DE EMAIL DE LUXO ---
 async function processarEmailsVenda(venda) {
-    const itensLista = venda.itens.map(i => `<li>${i.nome} (€${i.preco})</li>`).join('');
+    const itensLista = venda.itens.map(i => 
+        `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">${i.nome} <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`
+    ).join('');
     
-    // 1. Email Cliente
+    // 1. Email Cliente (Design Premium)
     const htmlCliente = `
-        <div style="font-family:sans-serif; color:#333; max-width:600px; border:1px solid #eee;">
-            <div style="background:#0f172a; padding:20px; text-align:center;">
-                <h1 style="color:#cca43b; margin:0;">LUST STORE</h1>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0;">
+            <div style="background-color: #0f172a; padding: 40px 20px; text-align: center; border-bottom: 4px solid #cca43b;">
+                <img src="${LOGO_URL}" alt="LUST STORE" style="max-width: 180px; height: auto; display: block; margin: 0 auto;">
+                <p style="color: #cca43b; margin-top: 15px; font-size: 12px; letter-spacing: 4px; text-transform: uppercase;">Premium Beauty & Care</p>
             </div>
-            <div style="padding:20px;">
-                <h2>Encomenda Confirmada!</h2>
-                <p>Olá <b>${venda.cliente_nome}</b>,</p>
-                <div style="background:#f8fafc; padding:15px; border-left:4px solid #cca43b; margin:20px 0;">
-                    <p style="margin:0; font-size:12px; color:#64748b;">ID PEDIDO</p>
-                    <p style="margin:0; font-size:20px; font-weight:bold; color:#0f172a;">#${venda.codigo_pedido}</p>
+
+            <div style="padding: 40px 30px;">
+                <h2 style="color: #0f172a; margin-top: 0; font-weight: 300;">Olá, ${venda.cliente_nome}.</h2>
+                <p style="color: #64748b; font-size: 16px; line-height: 1.5;">Agradecemos a sua preferência. A sua encomenda foi confirmada e está a ser preparada com o máximo cuidado.</p>
+                
+                <div style="background: #f8fafc; padding: 20px; border-left: 4px solid #cca43b; margin: 30px 0;">
+                    <p style="margin:0; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">ID do Pedido</p>
+                    <p style="margin:5px 0 0 0; font-size: 26px; font-weight: bold; color: #0f172a;">#${venda.codigo_pedido}</p>
                 </div>
-                <h3>Resumo:</h3>
-                <ul>${itensLista}</ul>
-                <p><b>Total: €${venda.total_venda.toFixed(2)}</b></p>
+
+                <h3 style="color: #0f172a; border-bottom: 1px solid #cca43b; padding-bottom: 10px; margin-top: 40px;">Detalhes da Compra</h3>
+                <ul style="list-style: none; padding: 0; margin: 0;">${itensLista}</ul>
+                
+                <div style="margin-top: 20px; text-align: right;">
+                    <p style="font-size: 18px; color: #0f172a;">Total: <b style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</b></p>
+                </div>
+            </div>
+
+            <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+                <p>© 2026 Lust Store. Todos os direitos reservados.<br>Portugal & Espanha</p>
             </div>
         </div>
     `;
 
-    // 2. Email Admin
+    // 2. Email Admin (Resumo Prático)
     const htmlAdmin = `
         <h3>💰 NOVA VENDA: #${venda.codigo_pedido}</h3>
         <p><b>Cliente:</b> ${venda.cliente_nome} (${venda.cliente_email})</p>
-        <p><b>Total:</b> €${venda.total_venda.toFixed(2)}</p>
-        <p><b>Lucro:</b> €${venda.lucro.toFixed(2)}</p>
+        <p><b>Total:</b> €${venda.total_venda.toFixed(2)} | <b>Lucro:</b> €${venda.lucro.toFixed(2)}</p>
         <hr>
-        <h4>Itens para Embalar:</h4>
-        <ul>${itensLista}</ul>
+        <h4>Itens:</h4>
+        <ul>${venda.itens.map(i => `<li>${i.nome}</li>`).join('')}</ul>
     `;
 
     await enviarEmailViaBrevo(venda.cliente_email, `💎 Pedido Confirmado: #${venda.codigo_pedido}`, htmlCliente);
-    await enviarEmailViaBrevo(process.env.EMAIL_USER, `💰 Venda: #${venda.codigo_pedido} (€${venda.total_venda})`, htmlAdmin);
+    await enviarEmailViaBrevo(process.env.EMAIL_USER, `💰 Venda: #${venda.codigo_pedido}`, htmlAdmin);
 }
 
 app.use((req, res, next) => {
@@ -92,23 +107,6 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') return res.status(200).end();
     next();
-});
-
-// --- ROTA RELATÓRIO DIÁRIO (BREVO) ---
-app.get('/admin/resumo-diario', async (req, res) => {
-    const { key } = req.query;
-    if (key !== (process.env.CRON_SECRET || 'LustAdmin2026')) return res.status(403).send("Acesso Proibido");
-    
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const { data: vendas } = await supabase.from('vendas').select('*').gte('data_venda', hoje.toISOString());
-    
-    if (!vendas || vendas.length === 0) return res.send("Sem vendas hoje.");
-
-    let tFat = 0; vendas.forEach(v => tFat += parseFloat(v.total_venda));
-    
-    await enviarEmailViaBrevo(process.env.EMAIL_USER, `📊 Fecho Diário: €${tFat.toFixed(2)}`, `<p>Total faturado hoje: <b>€${tFat.toFixed(2)}</b></p>`);
-    res.send("Relatório Enviado via Brevo ✅");
 });
 
 // WEBHOOK
@@ -142,7 +140,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             const novaVenda = { cliente_nome: details.name, cliente_email: session.customer_details.email, cliente_morada: morada, itens: itensVendidos, codigo_pedido: codigoPedido, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos };
             await supabase.from('vendas').insert([novaVenda]);
             
-            // DISPARO BREVO
+            // Disparo de Email
             processarEmailsVenda(novaVenda).catch(console.error);
         }
     }
@@ -152,7 +150,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-app.get('/', (req, res) => res.send("API Lust Store: ONLINE (BREVO EDITION) 💎"));
+app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
 app.get('/pedido/:codigo', async (req, res) => {
     const { codigo } = req.params;
     const { data, error } = await supabase.from('vendas').select('cliente_nome, cliente_morada, itens, total_frete, total_venda').eq('codigo_pedido', codigo).single();
@@ -160,7 +158,7 @@ app.get('/pedido/:codigo', async (req, res) => {
     res.json(data);
 });
 
-// ROTA REENVIAR (BREVO)
+// ROTA REENVIAR
 app.post('/reenviar-email/:id', async (req, res) => {
     const { data: venda } = await supabase.from('vendas').select('*').eq('id', req.params.id).single();
     if(venda) { 
@@ -169,7 +167,7 @@ app.post('/reenviar-email/:id', async (req, res) => {
     } else { res.status(404).json({ erro: "Venda off" }); }
 });
 
-// Rotas CRUD (Mantidas iguais)
+// Rotas CRUD e Checkout (Mantidas do original)
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 app.get('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true }); res.json(data || []); });
 app.post('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').insert([req.body]).select(); res.json(data ? data[0] : null); });
