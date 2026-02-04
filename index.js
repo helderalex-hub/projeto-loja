@@ -9,7 +9,6 @@ const app = express();
 const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
 
 // --- FUNÇÃO DE EMAIL VIA BREVO API (HTTPS - PORTA 443) ---
-// Mantida exatamente igual porque é a que funciona no Render
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
@@ -51,14 +50,14 @@ function gerarIdLust() {
     return `LS-${codigo}`;
 }
 
-// --- NOVO ORQUESTRADOR DE EMAILS (COM DESIGN DE LUXO) ---
+// --- ORQUESTRADOR DE EMAILS (COM DESIGN DE LUXO) ---
 async function processarEmailsVenda(venda) {
     // Cria a lista de itens formatada
     const itensLista = venda.itens.map(i => 
         `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">${i.nome} <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`
     ).join('');
     
-    // 1. Email Cliente (NOVO DESIGN PRETO/DOURADO)
+    // 1. Email Cliente (DESIGN PRETO/DOURADO)
     const htmlCliente = `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0;">
             <div style="background-color: #0f172a; padding: 40px 20px; text-align: center; border-bottom: 4px solid #cca43b;">
@@ -209,7 +208,17 @@ app.post('/checkout', async (req, res) => {
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 12500 ? 0 : 1250, currency: 'eur' }, display_name: 'Europa: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 5 }, maximum: { unit: 'business_day', value: 10 } } } },
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 2500, currency: 'eur' }, display_name: 'Europa: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 3 } } } }
         ];
-        const session = await stripe.checkout.sessions.create({ payment_method_types: ['card'], shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] }, shipping_options: s_options, line_items: line_items, mode: 'payment', success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html`, metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido } });
+        // --- CORREÇÃO AQUI (ASPAS CORRETAS) ---
+        const session = await stripe.checkout.sessions.create({ 
+            payment_method_types: ['card'], 
+            shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] }, 
+            shipping_options: s_options, 
+            line_items: line_items, 
+            mode: 'payment', 
+            success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, 
+            cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html', 
+            metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido } 
+        });
         res.json({ url: session.url });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
