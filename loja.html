@@ -33,7 +33,7 @@
         .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
         .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
         .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; }
-        .sku { font-size: 10px; color: #cbd5e1; margin-bottom: 5px; font-family: monospace; }
+        .sku { font-size: 10px; color: #cbd5e1; margin-bottom: 5px; font-family: monospace; background: #f1f5f9; padding: 2px 5px; border-radius: 4px; width: fit-content; }
         .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
         .alerta-estoque { color: #ef4444; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
         .compra-row { display: flex; gap: 10px; margin-top: auto; }
@@ -76,7 +76,7 @@
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0; const esgotado = stock <= 0;
                 let marca = p.marca ? p.marca : "Exclusive";
-                let sku = p.sku ? `REF: ${p.sku}` : '';
+                let sku = p.sku ? `Cód: ${p.sku}` : '';
                 let alertaHTML = esgotado ? '<span style="color:#94a3b8">Indisponível</span>' : (stock < 5 ? `⚠️ Restam apenas ${stock} un!` : '');
                 vitrine.innerHTML += `
                     <div class="produto-card ${esgotado ? 'esgotado' : ''}">
@@ -89,15 +89,33 @@
                             <div class="alerta-estoque">${alertaHTML}</div>
                             <div class="compra-row">
                                 <div class="qtd-seletor"><button class="qtd-btn" onclick="mudarQtd('${p.id}', -1)">−</button><span id="qtd-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span><button class="qtd-btn" onclick="mudarQtd('${p.id}', 1, ${stock})">+</button></div>
-                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">${esgotado ? 'Esgotado' : 'Comprar'}</button>
+                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}')">${esgotado ? 'Esgotado' : 'Comprar'}</button>
                             </div>
                         </div>
                     </div>`;
             });
         }
         function mudarQtd(id, delta, max) { let el = document.getElementById(`qtd-${id}`); let novo = parseInt(el.innerText) + delta; if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; }
-        function addCarrinho(id, nome, preco) { const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText); for(let i=0; i<qtd; i++) carrinho.push({id, nome, preco}); document.getElementById('cart-count').innerText = carrinho.length; document.getElementById('btn-carrinho').style.display = 'block'; const btn = event.target; const textoOriginal = btn.innerText; btn.innerText = "Adicionado!"; btn.style.background = "#cca43b"; btn.style.color = "#000"; setTimeout(() => { btn.innerText = textoOriginal; btn.style.background = ""; btn.style.color = ""; document.getElementById(`qtd-${id}`).innerText = 1; }, 1000); }
-        async function finalizarCompra() { if (!carrinho.length) return alert("Carrinho vazio!"); const btn = document.getElementById('btn-carrinho'); const txtOriginal = btn.innerHTML; btn.disabled = true; btn.innerHTML = "A PROCESSAR..."; try { const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(carrinho) }); const d = await res.json(); if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerHTML = txtOriginal; } }
+        // ATUALIZADO: Passa SKU para o carrinho
+        function addCarrinho(id, nome, preco, sku) { 
+            const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText); 
+            for(let i=0; i<qtd; i++) carrinho.push({id, nome, preco, sku}); 
+            document.getElementById('cart-count').innerText = carrinho.length; 
+            document.getElementById('btn-carrinho').style.display = 'block'; 
+            const btn = event.target; const textoOriginal = btn.innerText; 
+            btn.innerText = "Adicionado!"; btn.style.background = "#cca43b"; btn.style.color = "#000"; 
+            setTimeout(() => { btn.innerText = textoOriginal; btn.style.background = ""; btn.style.color = ""; document.getElementById(`qtd-${id}`).innerText = 1; }, 1000); 
+        }
+        async function finalizarCompra() { 
+            if (!carrinho.length) return alert("Carrinho vazio!"); 
+            const btn = document.getElementById('btn-carrinho'); const txtOriginal = btn.innerHTML; 
+            btn.disabled = true; btn.innerHTML = "A PROCESSAR..."; 
+            try { 
+                const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(carrinho) }); 
+                const d = await res.json(); 
+                if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); 
+            } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerHTML = txtOriginal; } 
+        }
         function partilharLoja() { const texto = "Confira as novidades exclusivas da Lust Store! 💎"; const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=${texto} ${url}`, '_blank'); }
         window.onload = carregarProdutos;
     </script>
