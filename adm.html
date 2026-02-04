@@ -16,7 +16,7 @@
             tempoInatividade = setTimeout(() => {
                 alert("Sessão expirada por segurança.");
                 sair();
-            }, 600000); // 10 minutos (600.000 ms)
+            }, 600000); 
         }
         window.onload = resetarTimer;
         document.onmousemove = resetarTimer;
@@ -38,7 +38,7 @@
         :root { 
             --dark: #0f172a; --card: #1e293b; --gold: #cca43b; --texto: #f8fafc; --borda: #334155; 
             --verde: #10b981; --erro: #ef4444; 
-            --campo-edit: #f1f5f9; /* Branco suave */
+            --campo-edit: #f1f5f9; 
             --texto-input: #0f172a;
         }
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
@@ -88,6 +88,22 @@
             padding: 8px; border-radius: 4px; font-size: 11px; width: 100%; box-sizing: border-box;
         }
         .input-filtro::placeholder { color: #475569; }
+
+        /* LAYOUT FILTROS MODAL RELATÓRIO (CORRIGIDO) */
+        .filtro-grid-modal {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 Colunas fixas */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--borda);
+        }
+        .filtro-item { display: flex; flex-direction: column; }
+        .filtro-item label { color: #94a3b8; font-size: 10px; margin-bottom: 4px; text-transform: uppercase; }
+        .filtro-item input { 
+            padding: 8px !important; font-size: 12px !important; height: 35px;
+            background: #f1f5f9; color: #0f172a; border-radius: 4px; border: none;
+        }
 
         /* INPUTS DA TABELA (CLAROS, SEM SETAS) */
         .input-live { 
@@ -179,11 +195,11 @@
         
         <div class="tabela-container">
             <div class="filtros-bar">
-                <div></div> <input onkeyup="filtrarInventario()" id="f-prod" class="input-filtro" placeholder="Buscar Produto...">
-                <input onkeyup="filtrarInventario()" id="f-custo" class="input-filtro" placeholder="Filtro Custo">
-                <input onkeyup="filtrarInventario()" id="f-venda" class="input-filtro" placeholder="Filtro Venda">
-                <input onkeyup="filtrarInventario()" id="f-estoque" class="input-filtro" placeholder="Filtro Estoque">
-                <input onkeyup="filtrarInventario()" id="f-validade" class="input-filtro" placeholder="Filtro Validade">
+                <div></div> <input onkeyup="filtrarInventario()" id="f-prod" class="input-filtro" placeholder="Produto...">
+                <input onkeyup="filtrarInventario()" id="f-custo" class="input-filtro" placeholder="Ex: > 20">
+                <input onkeyup="filtrarInventario()" id="f-venda" class="input-filtro" placeholder="Ex: < 50">
+                <input onkeyup="filtrarInventario()" id="f-estoque" class="input-filtro" placeholder="Ex: > 5">
+                <input onkeyup="filtrarInventario()" id="f-validade" class="input-filtro" placeholder="Ex: < 31 12 2026">
                 <div></div>
             </div>
 
@@ -230,14 +246,21 @@
     <div class="modal-content large">
         <button class="btn-fechar-modal" onclick="fecharRelatorio()">×</button>
         <h2 style="color:var(--gold); margin-top:0; text-transform:uppercase; font-size:18px;">Relatório de Vendas</h2>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--borda);">
-            <div><label style="color:#94a3b8; font-size:10px;">Início</label><input type="date" id="r-data-ini" style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
-            <div><label style="color:#94a3b8; font-size:10px;">Fim</label><input type="date" id="r-data-fim" style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
-            <div><label style="color:#94a3b8; font-size:10px;">Cliente</label><input type="text" id="r-cliente" placeholder="Nome..." style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
-            <div><label style="color:#94a3b8; font-size:10px;">Pedido</label><input type="text" id="r-pedido" placeholder="LS-..." style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
-            <div style="display:flex; align-items:flex-end;"><button onclick="filtrarRelatorio()" class="btn-acao btn-gold" style="width:100%; margin:0;">🔍 Filtrar</button></div>
-            <div style="display:flex; align-items:flex-end;"><button onclick="baixarPDFRelatorio()" class="btn-acao" style="width:100%; margin:0; background:var(--erro)">📄 PDF</button></div>
+        
+        <div class="filtro-grid-modal">
+            <div class="filtro-item"><label>Data Início</label><input type="date" id="r-data-ini"></div>
+            <div class="filtro-item"><label>Data Fim</label><input type="date" id="r-data-fim"></div>
+            <div class="filtro-item"><label>Cliente</label><input type="text" id="r-cliente" placeholder="Nome..."></div>
+            <div class="filtro-item"><label>Pedido</label><input type="text" id="r-pedido" placeholder="LS-..."></div>
+            
+            <div class="filtro-item" style="grid-column: span 2;">
+                <button onclick="filtrarRelatorio()" class="btn-acao btn-gold" style="width:100%; height:35px; margin:0;">🔍 Filtrar Resultados</button>
+            </div>
+            <div class="filtro-item" style="grid-column: span 2;">
+                <button onclick="baixarPDFRelatorio()" class="btn-acao" style="width:100%; height:35px; margin:0; background:var(--erro)">📄 Baixar PDF</button>
+            </div>
         </div>
+
         <div style="max-height:400px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead><tr><th style="color:white">Data</th><th style="color:white">Pedido</th><th style="color:white">Cliente</th><th style="color:white">Total</th></tr></thead>
@@ -292,7 +315,38 @@
         document.getElementById('dash-lucro-mes').innerText = fmtEur(lMes);
     }
 
-    // INVENTÁRIO COM FILTROS
+    // --- FILTRAGEM AVANÇADA DE INVENTÁRIO ---
+    function checkNum(val, filter) {
+        if(!filter) return true;
+        filter = filter.trim();
+        if(filter.startsWith('>')) return val > parseFloat(filter.substring(1));
+        if(filter.startsWith('<')) return val < parseFloat(filter.substring(1));
+        return val.toString().includes(filter);
+    }
+
+    function checkDate(valStr, filter) {
+        if(!filter) return true;
+        filter = filter.trim();
+        // valStr: DD MM YYYY (da tabela)
+        // filter: > DD MM YYYY
+        try {
+            const op = filter.startsWith('>') ? '>' : (filter.startsWith('<') ? '<' : '');
+            const cleanFilter = filter.replace(/[><]/g, '').trim();
+            const fParts = cleanFilter.split(' ');
+            if(fParts.length !== 3) return false;
+            
+            const vParts = valStr.split(' ');
+            if(vParts.length !== 3) return false;
+
+            const dVal = new Date(`${vParts[2]}-${vParts[1]}-${vParts[0]}`);
+            const dFil = new Date(`${fParts[2]}-${fParts[1]}-${fParts[0]}`);
+
+            if(op === '>') return dVal > dFil;
+            if(op === '<') return dVal < dFil;
+            return dVal.getTime() === dFil.getTime(); // Match exato se não tiver op
+        } catch(e) { return false; }
+    }
+
     function filtrarInventario() {
         const fProd = document.getElementById('f-prod').value.toLowerCase();
         const fCusto = document.getElementById('f-custo').value;
@@ -301,11 +355,17 @@
         const fValidade = document.getElementById('f-validade').value;
 
         const produtosFiltrados = produtos.filter(p => {
+            // Preparar data para exibição para usar no filtro
+            let dExibicao = "";
+            if(p.validade && p.validade.includes("-")) {
+                const pts = p.validade.split("-"); dExibicao = `${pts[2]} ${pts[1]} ${pts[0]}`;
+            }
+
             return (p.nome.toLowerCase().includes(fProd)) &&
-                   (fCusto === '' || p.preco_entrada.toString().includes(fCusto)) &&
-                   (fVenda === '' || p.preco.toString().includes(fVenda)) &&
-                   (fEstoque === '' || p.estoque.toString().includes(fEstoque)) &&
-                   (fValidade === '' || (p.validade && p.validade.includes(fValidade)));
+                   checkNum(parseFloat(p.preco_entrada), fCusto) &&
+                   checkNum(parseFloat(p.preco), fVenda) &&
+                   checkNum(p.estoque, fEstoque) &&
+                   (fValidade === '' || checkDate(dExibicao, fValidade));
         });
         renderizarInventario(produtosFiltrados);
     }
@@ -313,6 +373,12 @@
     function renderizarInventario(lista = produtos) {
         const tbody = document.getElementById('lista-inventario-tabela'); tbody.innerHTML = '';
         lista.forEach(p => {
+            // Formatar data visualmente
+            let dExibicao = "";
+            if(p.validade && p.validade.includes("-")) {
+                const pts = p.validade.split("-"); dExibicao = `${pts[2]} ${pts[1]} ${pts[0]}`;
+            } else { dExibicao = p.validade || ""; }
+
             tbody.innerHTML += `
                 <tr>
                     <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
@@ -320,7 +386,7 @@
                     <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
                     <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
                     <td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td>
-                    <td><input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)"></td>
+                    <td><input type="text" class="input-live" value="${dExibicao}" onchange="updateItemData(${p.id}, this.value)"></td>
                     <td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td>
                 </tr>`;
         });
@@ -330,6 +396,14 @@
         const p = produtos.find(x => x.id === id); p[campo] = valor;
         await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
         atualizarDash();
+    }
+
+    async function updateItemData(id, valorTexto) {
+        const pts = valorTexto.trim().split(" ");
+        if (pts.length === 3) {
+            const dataISO = `${pts[2]}-${pts[1]}-${pts[0]}`;
+            await updateItem(id, 'validade', dataISO);
+        } else { alert("Formato DD MM YYYY!"); }
     }
 
     function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
