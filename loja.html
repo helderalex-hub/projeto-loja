@@ -2,70 +2,97 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Lust Store | Sistema de Gestão</title>
+    <title>Lust Store | Painel Administrativo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root { 
             --dark: #0f172a; --card: #1e293b; --gold: #cca43b; --texto: #f8fafc; --borda: #334155; 
-            --verde: #10b981; --erro: #ef4444; 
-            --campo-branco: #ffffff; /* Fundo totalmente branco para edição */
+            --verde: #10b981; --erro: #ef4444; --alerta: #f59e0b; --campo-edit: #ffffff;
         }
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
+        .container { max-width: 1250px; margin: 0 auto; padding-bottom: 60px; }
         
-        .header-top { text-align: center; margin-bottom: 20px; }
-        .logo-adm { height: 50px; margin-bottom: 10px; }
-        h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 22px; color: white; text-transform: uppercase; }
+        /* HEADER & NAVEGAÇÃO */
+        .header-top { text-align: center; margin-bottom: 25px; }
+        .logo-adm { height: 55px; margin-bottom: 10px; }
+        h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: white; text-transform: uppercase; font-weight: 400; }
         h1 span { color: var(--gold); }
         
-        .tabs { display: flex; justify-content: center; gap: 5px; margin-bottom: 30px; border-bottom: 1px solid var(--borda); }
-        .tab-btn { background: none; border: none; color: #94a3b8; padding: 15px 30px; cursor: pointer; text-transform: uppercase; font-size: 12px; font-weight: bold; transition: 0.3s; }
-        .tab-btn.active { color: var(--gold); border-bottom: 3px solid var(--gold); }
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--borda); }
+        .tab-btn { background: none; border: none; color: #94a3b8; padding: 15px 35px; cursor: pointer; text-transform: uppercase; font-size: 13px; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
+        .tab-btn.active { color: var(--gold); border-bottom: 4px solid var(--gold); }
 
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-        /* DASHBOARD */
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .card-dash { background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--borda); text-align: center; border-bottom: 3px solid var(--gold); }
-        .card-dash h3 { margin: 0; font-size: 9px; color: #94a3b8; text-transform: uppercase; }
-        .card-dash p { margin: 8px 0 0; font-size: 18px; font-weight: bold; }
+        /* DASHBOARD - 5 CARDS */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; border-bottom: 4px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: 700; color: white; }
 
-        /* CAMPOS EDITÁVEIS NA TABELA (BRANCOS E SEM SETAS) */
-        .input-live { 
-            background: var(--campo-branco) !important; 
-            border: 2px solid #cbd5e1 !important; 
-            padding: 8px !important; 
-            color: #000000 !important; /* Texto preto para ler bem no branco */
-            width: 100%; 
-            font-size: 14px !important; 
-            font-weight: bold !important;
-            border-radius: 4px; 
-            box-sizing: border-box;
-            text-align: center;
+        /* BOTÕES DE AÇÃO */
+        .btn-acao { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-right: 8px; margin-bottom: 8px; transition: 0.2s; }
+        .btn-acao:hover { background: var(--gold); color: var(--dark); }
+        .btn-verde { background: var(--verde) !important; color: white !important; }
+
+        /* FORMULÁRIO INVENTÁRIO (FOTO À ESQUERDA) */
+        .card-form { 
+            background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); 
+            margin-bottom: 30px; display: flex; gap: 25px; align-items: flex-start;
         }
-        .input-live:focus { border-color: var(--gold) !important; outline: none; background: #fff !important; }
+        .area-upload { 
+            flex: 0 0 160px; height: 160px; border: 2px dashed var(--gold); 
+            border-radius: 8px; cursor: pointer; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; overflow: hidden; background: rgba(0,0,0,0.2);
+        }
+        .area-upload img { width: 100%; height: 100%; object-fit: contain; background: white; }
+        .area-upload span { font-size: 10px; color: var(--gold); font-weight: bold; }
 
-        /* REMOVER SETAS DE INPUT NUMBER */
+        .campos-container { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .full-width { grid-column: span 3; }
+        label { display: block; font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
+        
+        /* INPUTS GERAIS */
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 6px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
-        .tabela-container { background: var(--card); border-radius: 8px; border: 1px solid var(--borda); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th { text-align: left; padding: 12px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; font-size: 10px; }
-        td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .btn-salvar { background: var(--gold); color: #0f172a; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; grid-column: span 3; font-size: 13px; margin-top: 5px; }
+
+        /* TABELA DE INVENTÁRIO (LIVE EDIT - CAMPOS BRANCOS) */
+        .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
+        th { text-align: left; padding: 15px; color: var(--gold); border-bottom: 2px solid var(--borda); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+        td { padding: 10px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
         
-        .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 4px; cursor: pointer; border: 1px solid var(--borda); }
+        .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); transition: 0.2s; }
+        .img-table:hover { border-color: var(--gold); transform: scale(1.1); }
 
-        .btn-mini { background: none; border: 1px solid var(--borda); color: #94a3b8; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 10px; }
-        .grafico-box { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--borda); height: 300px; margin-bottom: 30px; }
+        .input-live { 
+            background: var(--campo-edit) !important; 
+            border: 2px solid #cbd5e1 !important; 
+            padding: 8px !important; 
+            color: #000 !important; 
+            width: 100%; 
+            font-size: 13px !important; 
+            font-weight: bold !important;
+            border-radius: 4px; 
+            text-align: center;
+        }
+        .input-live:focus { border-color: var(--gold) !important; outline: none; box-shadow: 0 0 8px rgba(204,164,59,0.4); }
+
+        .grafico-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); height: 320px; margin-bottom: 30px; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -74,7 +101,7 @@
 <div class="container">
     <div class="header-top">
         <img src="logo.png" class="logo-adm" onerror="this.style.display='none'">
-        <h1>Lust Store - <span>Gestão Lust</span></h1>
+        <h1>Lust Store - <span>Painel Administrativo</span></h1>
     </div>
 
     <div class="tabs">
@@ -85,34 +112,48 @@
     <div id="financeiro" class="tab-content active">
         <div class="dashboard">
             <div class="card-dash"><h3>Custo Estoque</h3><p id="dash-custo">€0.00</p></div>
-            <div class="card-dash"><h3>Valor Estimado</h3><p id="dash-valor">€0.00</p></div>
-            <div class="card-dash"><h3>Lucro Estimado</h3><p id="dash-lucro-est">€0.00</p></div>
-            <div class="card-dash"><h3>Vendas Mês</h3><p id="dash-vendas-mes">€0.00</p></div>
-            <div class="card-dash"><h3>Lucro Mês</h3><p id="dash-lucro-mes" style="color:var(--verde)">€0.00</p></div>
+            <div class="card-dash"><h3>Valor Venda</h3><p id="dash-valor">€0.00</p></div>
+            <div class="card-dash"><h3>Lucro Previsto</h3><p id="dash-lucro-est">€0.00</p></div>
+            <div class="card-dash"><h3>Vendas do Mês</h3><p id="dash-vendas-mes" style="color:var(--gold)">€0.00</p></div>
+            <div class="card-dash"><h3>Lucro do Mês</h3><p id="dash-lucro-mes" style="color:var(--verde)">€0.00</p></div>
         </div>
-        <div class="grafico-box"><canvas id="graficoVendas"></canvas></div>
+
+        <div style="margin-bottom: 20px;">
+            <button onclick="gerarRelatorioFinanceiro('semanal')" class="btn-acao">📅 Relatório Semanal</button>
+            <button onclick="gerarRelatorioFinanceiro('mensal')" class="btn-acao">📅 Relatório Mensal</button>
+            <button onclick="gerarEtiquetasDia()" class="btn-acao btn-verde">📦 Gerar Etiquetas de Hoje</button>
+        </div>
+
+        <div class="grafico-box">
+            <canvas id="graficoVendas"></canvas>
+        </div>
+
         <div class="tabela-container">
             <table>
-                <thead><tr><th>Data</th><th>Pedido</th><th>Cliente</th><th>Total</th><th>Ações</th></tr></thead>
+                <thead>
+                    <tr><th>Data</th><th>Pedido</th><th>Cliente</th><th>Total Pago</th><th>Ações</th></tr>
+                </thead>
                 <tbody id="lista-vendas"></tbody>
             </table>
         </div>
     </div>
 
     <div id="inventario" class="tab-content">
-        <div style="background: var(--card); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--borda); display: flex; gap: 20px;">
-             <div onclick="document.getElementById('file-input').click()" style="width: 100px; height: 100px; border: 1px dashed var(--gold); display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                <img id="preview-img" style="max-width: 100%; max-height: 100%; display: none;">
-                <span id="label-up" style="font-size: 10px; color: var(--gold);">+ FOTO</span>
+        <div class="card-form">
+            <div class="area-upload" onclick="document.getElementById('file-input').click()">
+                <img id="preview-img" style="display:none">
+                <span id="label-upload">📸 FOTO</span>
                 <input type="file" id="file-input" hidden onchange="processarFoto(this)">
-             </div>
-             <div style="flex: 1; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px;">
-                <input type="text" id="p-nome" placeholder="Nome do Produto">
-                <input type="number" id="p-custo" placeholder="Custo €">
-                <input type="number" id="p-venda" placeholder="Venda €">
-                <input type="number" id="p-stock" placeholder="Stock">
-                <button onclick="salvarProduto()" style="grid-column: span 4; background: var(--gold); border: none; padding: 10px; font-weight: bold; cursor: pointer;">CADASTRAR NOVO PRODUTO</button>
-             </div>
+            </div>
+            
+            <div class="campos-container">
+                <div class="full-width"><label>Nome do Produto</label><input type="text" id="p-nome" placeholder="Ex: Nike Air Max"></div>
+                <div><label>Custo Unitário (€)</label><input type="number" id="p-custo" step="0.01"></div>
+                <div><label>Venda Unitária (€)</label><input type="number" id="p-venda" step="0.01"></div>
+                <div><label>Stock Inicial</label><input type="number" id="p-stock"></div>
+                <div class="full-width"><label>Validade (Opcional)</label><input type="date" id="p-validade"></div>
+                <button class="btn-salvar" onclick="salvarProduto()">+ Adicionar ao Catálogo Lust</button>
+            </div>
         </div>
 
         <div class="tabela-container">
@@ -120,11 +161,11 @@
                 <thead>
                     <tr>
                         <th width="80">Foto</th>
-                        <th>Nome</th>
+                        <th>Produto</th>
                         <th width="130">Custo (€)</th>
                         <th width="130">Venda (€)</th>
                         <th width="100">Stock</th>
-                        <th width="160">Validade</th>
+                        <th width="170">Validade</th>
                         <th width="50"></th>
                     </tr>
                 </thead>
@@ -138,7 +179,7 @@
 
 <script>
     const API = "https://projeto-loja-dzqv.onrender.com";
-    let produtos = [], vendas = [], fotoBase64 = "", itemSendoEditado = null;
+    let produtos = [], vendas = [], fotoBase64 = "", itemEditTabela = null;
 
     async function iniciar() {
         const [resP, resV] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`)]);
@@ -150,26 +191,30 @@
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        event.currentTarget.classList.add('active');
     }
 
-    function fmtEur(v) { return `€${parseFloat(v || 0).toFixed(2)}`; }
+    // UTILITÁRIOS
+    const fmt = (v) => parseFloat(v || 0).toFixed(2);
+    const fmtEur = (v) => `€${fmt(v)}`;
 
     function atualizarDash() {
-        let custo = 0, valor = 0;
-        produtos.forEach(p => { custo += (parseFloat(p.preco_entrada) || 0) * p.estoque; valor += p.preco * p.estoque; });
+        let custoE = 0, valorE = 0;
+        produtos.forEach(p => { custoE += (parseFloat(p.preco_entrada) || 0) * p.estoque; valorE += p.preco * p.estoque; });
         const hoje = new Date();
         let vMes = 0, lMes = 0;
         vendas.forEach(v => {
             const dv = new Date(v.data_venda);
-            if(dv.getMonth() === hoje.getMonth()) { vMes += v.total_venda; lMes += v.lucro; }
+            if(dv.getMonth() === hoje.getMonth() && dv.getFullYear() === hoje.getFullYear()) { vMes += v.total_venda; lMes += v.lucro; }
         });
-        document.getElementById('dash-custo').innerText = fmtEur(custo);
-        document.getElementById('dash-valor').innerText = fmtEur(valor);
-        document.getElementById('dash-lucro-est').innerText = fmtEur(valor - custo);
+        document.getElementById('dash-custo').innerText = fmtEur(custoE);
+        document.getElementById('dash-valor').innerText = fmtEur(valorE);
+        document.getElementById('dash-lucro-est').innerText = fmtEur(valorE - custoE);
         document.getElementById('dash-vendas-mes').innerText = fmtEur(vMes);
         document.getElementById('dash-lucro-mes').innerText = fmtEur(lMes);
     }
 
+    // --- INVENTÁRIO LIVE EDIT ---
     function renderizarInventario() {
         const tbody = document.getElementById('lista-inventario-tabela');
         tbody.innerHTML = '';
@@ -178,11 +223,11 @@
                 <tr>
                     <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
                     <td><input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"></td>
-                    <td><input type="number" class="input-live" step="0.01" value="${parseFloat(p.preco_entrada).toFixed(2)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
-                    <td><input type="number" class="input-live" step="0.01" value="${parseFloat(p.preco).toFixed(2)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
+                    <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
+                    <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
                     <td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td>
                     <td><input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)"></td>
-                    <td><button onclick="apagarProduto(${p.id})" class="btn-mini" style="border:none">✕</button></td>
+                    <td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td>
                 </tr>`;
         });
     }
@@ -194,14 +239,14 @@
         atualizarDash();
     }
 
-    function trocarFotoTabela(id) { itemSendoEditado = id; document.getElementById('table-file-input').click(); }
+    function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
     function processarFotoTabela(input) {
         if(input.files && input.files[0]) {
             const r = new FileReader();
             r.onload = async (e) => {
-                const p = produtos.find(x => x.id === itemSendoEditado);
+                const p = produtos.find(x => x.id === itemEditTabela);
                 p.imagem = e.target.result;
-                await fetch(`${API}/produtos/${itemSendoEditado}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+                await fetch(`${API}/produtos/${itemEditTabela}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
                 renderizarInventario();
             };
             r.readAsDataURL(input.files[0]);
@@ -211,29 +256,36 @@
     function processarFoto(input) {
         if(input.files && input.files[0]) {
             const r = new FileReader();
-            r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-up').style.display='none'; };
+            r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; };
             r.readAsDataURL(input.files[0]);
         }
     }
 
     async function salvarProduto() {
-        const p = { nome: document.getElementById('p-nome').value, preco_entrada: parseFloat(document.getElementById('p-custo').value) || 0, preco: parseFloat(document.getElementById('p-venda').value) || 0, estoque: parseInt(document.getElementById('p-stock').value) || 0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Lust' };
+        const p = { nome: document.getElementById('p-nome').value, validade: document.getElementById('p-validade').value, preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, preco: parseFloat(document.getElementById('p-venda').value)||0, estoque: parseInt(document.getElementById('p-stock').value)||0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' };
         await fetch(`${API}/produtos`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) });
         location.reload();
     }
 
+    // --- FINANCEIRO & VENDAS ---
     function renderizarVendas() {
         const tb = document.getElementById('lista-vendas'); tb.innerHTML = '';
         vendas.forEach(v => {
             tb.innerHTML += `<tr>
                 <td>${new Date(v.data_venda).toLocaleDateString()}</td>
-                <td style="color:var(--gold)">#${v.codigo_pedido}</td>
+                <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
                 <td>${v.cliente_nome}</td>
                 <td>${fmtEur(v.total_venda)}</td>
-                <td><button onclick="gerarEtiqueta('${v.codigo_pedido}')" style="border:none; background:none; cursor:pointer">📦</button></td>
+                <td>
+                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta + Packing">📦</button>
+                    <button onclick="gerarPDFPedido('${v.codigo_pedido}')" class="btn-acao" title="Recibo">📄</button>
+                    <button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Email">📧</button>
+                </td>
             </tr>`;
         });
     }
+
+    async function reenviar(id) { if(confirm("Reenviar email?")) await fetch(`${API}/reenviar-email/${id}`, {method:'POST'}); }
 
     function renderizarGrafico() {
         const ctx = document.getElementById('graficoVendas').getContext('2d');
@@ -242,23 +294,71 @@
         const dados = new Array(diasNoMes).fill(0);
         vendas.forEach(v => {
             const d = new Date(v.data_venda);
-            if(d.getMonth() === hoje.getMonth()) dados[d.getDate()-1] += v.total_venda;
+            if(d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()) { dados[d.getDate()-1] += v.total_venda; }
         });
-        new Chart(ctx, { type: 'bar', data: { labels: Array.from({length: diasNoMes}, (_, i) => i + 1), datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#334155'}, ticks:{color:'#94a3b8'}}, x:{ticks:{color:'#94a3b8'}} } } });
+        new Chart(ctx, {
+            type: 'bar',
+            data: { labels: Array.from({length: diasNoMes}, (_, i) => i + 1), datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] },
+            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#334155'}, ticks:{color:'#94a3b8'}}, x:{ticks:{color:'#94a3b8'}} } }
+        });
     }
 
-    async function apagarProduto(id) { if(confirm("Apagar?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
+    // --- LOGÍSTICA & RELATÓRIOS PDF ---
+    function gerarEtiqueta(cod) { const v = vendas.find(x => x.codigo_pedido === cod); criarPDFEtiqueta([v]); }
+    function gerarEtiquetasDia() {
+        const hoje = new Date().toLocaleDateString();
+        const lista = vendas.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje);
+        if(!lista.length) return alert("Sem encomendas hoje.");
+        criarPDFEtiqueta(lista);
+    }
 
-    function gerarEtiqueta(cod) {
-        const v = vendas.find(x => x.codigo_pedido === cod);
+    function criarPDFEtiqueta(listaVendas) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ format:[100, 150], unit:'mm' });
-        doc.text("DESTINATÁRIO:", 5, 45);
-        doc.text(v.cliente_nome, 5, 53);
-        doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 62);
-        doc.save(`Etiqueta_${cod}.pdf`);
+        listaVendas.forEach((v, idx) => {
+            if(idx > 0) doc.addPage();
+            // Etiqueta 10x15
+            doc.setFontSize(8); doc.text("REMETENTE: LUST STORE - Portugal", 5, 10);
+            doc.line(2, 30, 98, 30);
+            doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40);
+            doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 48);
+            doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 56);
+            doc.rect(5, 120, 90, 15); doc.text(`#${v.codigo_pedido}`, 50, 130, {align:'center'});
+            // Pág 2: Packing List
+            doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST - LUST STORE", 50, 15, {align:'center'});
+            doc.setFontSize(10); doc.text(`Pedido: #${v.codigo_pedido}`, 5, 25);
+            let y = 40; v.itens.forEach(i => { doc.text(`[ ] ${i.nome}`, 5, y); y+=8; });
+        });
+        doc.save(`Logistica_Lust.pdf`);
     }
 
+    function gerarRelatorioFinanceiro(per) {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42); doc.rect(0,0,210,35,'F');
+        doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
+        doc.setTextColor(255,255,255); doc.setFontSize(10); doc.text(`RELATÓRIO FINANCEIRO ${per.toUpperCase()}`, 14, 26);
+        doc.autoTable({
+            startY: 40, head:[['Data','Pedido','Custo','Frete','Venda','Lucro']],
+            body: vendas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, fmtEur(v.total_custo), fmtEur(v.total_frete), fmtEur(v.total_venda), fmtEur(v.lucro)]),
+            headStyles:{fillColor:[15, 23, 42], textColor:[204, 164, 59]}, theme:'grid'
+        });
+        doc.save(`Financeiro_Lust_${per}.pdf`);
+    }
+
+    function gerarPDFPedido(cod) {
+        const v = vendas.find(x => x.codigo_pedido === cod);
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F');
+        doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
+        doc.setTextColor(255,255,255); doc.text(`RECIBO DO PEDIDO: #${v.codigo_pedido}`, 14, 26);
+        const body = v.itens.map(i => [i.nome, fmtEur(i.preco)]);
+        body.push(['Frete', fmtEur(v.total_frete)], [{content:'TOTAL', styles:{fontStyle:'bold'}}, fmtEur(v.total_venda)]);
+        doc.autoTable({ startY: 45, head:[['Produto', 'Preço']], body: body, headStyles:{fillColor:[15,23,42]} });
+        doc.save(`Recibo_Lust_${cod}.pdf`);
+    }
+
+    async function apagarProduto(id) { if(confirm("Apagar produto definitivamente?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregarDados(); } }
+    
     iniciar();
 </script>
 </body>
