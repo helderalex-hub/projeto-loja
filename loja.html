@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Lust Store | Premium Beauty</title>
+    <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
@@ -15,32 +15,31 @@
             --dark: #0f172a; 
             --gold: #cca43b; 
             --gold-light: #fcd34d;
-            --card: #ffffff;
             --texto: #334155; 
-            --alerta: #ef4444; 
             --bg-page: #f8fafc;
         }
         
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; }
         
-        /* BARRA DE PORTES GRÁTIS */
-        .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; border-bottom: 1px solid #333; letter-spacing: 1px; }
+        /* BARRA DE PORTES */
+        .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         .frete-bar span { color: #fff; }
 
         /* HEADER */
-        header { background: var(--dark); padding: 30px 20px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-        .logo-img { height: 60px; display: block; margin: 0 auto 8px; }
-        .slogan { color: #94a3b8; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+        header { background: var(--dark); padding: 25px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        
+        .header-content { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .logo-img { height: 50px; display: block; margin-bottom: 10px; }
+        header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 22px; letter-spacing: 1px; font-weight: 400; text-transform: uppercase; }
+        header h1 span { color: var(--gold); }
 
         .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
-        
-        /* GRID RESPONSIVA */
         .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
         
-        /* CARD PRODUTO */
+        /* CARTÃO */
         .produto-card { 
-            background: var(--card); border-radius: 8px; overflow: hidden; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; 
+            background: white; border-radius: 8px; overflow: hidden; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; 
             display: flex; flex-direction: column; position: relative; border: 1px solid transparent;
         }
         .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
@@ -49,39 +48,34 @@
         .img-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
         .produto-card:hover img { transform: scale(1.05); }
         
-        /* ESTADO ESGOTADO */
+        /* ESGOTADO */
         .produto-card.esgotado { opacity: 0.7; pointer-events: none; }
         .produto-card.esgotado img { filter: grayscale(100%); }
         .overlay-esgotado {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.8); color: white; padding: 8px 15px;
-            font-weight: bold; text-transform: uppercase; font-size: 12px;
-            border: 1px solid white; display: none; z-index: 10;
+            font-weight: bold; font-size: 12px; border: 1px solid white; display: none;
         }
         .produto-card.esgotado .overlay-esgotado { display: block; }
 
-        .info { padding: 20px; text-align: left; flex: 1; display: flex; flex-direction: column; }
-        .info h3 { margin: 5px 0 5px; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
+        .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
         .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; }
-
         .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
-        .alerta-estoque { color: var(--alerta); font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
+        .alerta-estoque { color: #ef4444; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
         
-        /* CONTROLO DE COMPRA */
+        /* BOTÕES */
         .compra-row { display: flex; gap: 10px; margin-top: auto; }
         .qtd-seletor { display: flex; align-items: center; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
-        .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; transition: 0.2s; font-weight: bold; height: 100%; }
+        .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; height: 100%; }
         .qtd-btn:hover { color: var(--gold); background: var(--dark); }
         
         .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
         .btn-comprar:hover { background: var(--gold); color: var(--dark); }
         .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
         
-        /* CARRINHO FLUTUANTE */
-        #btn-carrinho { position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; z-index:1000; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; display: none; }
-        #btn-carrinho:hover { transform: scale(1.05); }
+        #btn-carrinho { position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; z-index:1000; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; display: none; }
         .cart-dot { background: var(--dark); color: white; border-radius: 50%; padding: 2px 8px; font-size: 11px; margin-left: 8px; }
-
         .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px;}
     </style>
 </head>
@@ -92,8 +86,10 @@
     </div>
 
     <header>
-        <img src="logo.png" alt="LUST STORE" class="logo-img" onerror="this.style.display='none'">
-        <span class="slogan">Premium Beauty & Care</span>
+        <div class="header-content">
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <h1>Lust Store - <span>Vitrine</span></h1>
+        </div>
     </header>
 
     <div class="container">
@@ -107,8 +103,8 @@
     </button>
     
     <script>
-        // --- SERVIDOR CORRETO (RENDER) ---
-        const API = 'https://lust-store-backend.onrender.com';
+        // LINK CORRETO
+        const API = 'https://projeto-loja-dzqv.onrender.com';
         
         let todosProdutos = [];
         let carrinho = [];
@@ -120,36 +116,24 @@
                 todosProdutos = await res.json();
                 renderizarProdutos(todosProdutos);
             } catch(e) { 
-                console.error(e);
-                vitrine.innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor. Tente recarregar.</p>"; 
+                vitrine.innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; 
             }
         }
 
         function renderizarProdutos(lista) {
             const vitrine = document.getElementById('vitrine');
             vitrine.innerHTML = '';
-
-            if (lista.length === 0) {
-                vitrine.innerHTML = "<p style='text-align:center; width:100%'>Ainda não há produtos cadastrados.</p>"; 
-                return;
-            }
+            if (lista.length === 0) { vitrine.innerHTML = "<p style='text-align:center; width:100%'>Sem produtos.</p>"; return; }
 
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0;
                 const esgotado = stock <= 0;
                 
-                // Lógica de Categorias (Apenas Visual no Cartão)
                 let marca = "Exclusive";
                 if(p.nome.toLowerCase().includes('nike')) marca = "Nike";
                 else if(p.nome.toLowerCase().includes('adidas')) marca = "Adidas";
-                else if(p.nome.toLowerCase().includes('puma')) marca = "Puma";
 
-                // Avisos Visuais
-                let alertaHTML = '';
-                if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
-                else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
-
-                // Classes e Estado
+                let alertaHTML = esgotado ? '<span style="color:#94a3b8">Indisponível</span>' : (stock < 5 ? `⚠️ Restam apenas ${stock} un!` : '');
                 const classeEsgotado = esgotado ? 'esgotado' : '';
                 const btnDisabled = esgotado ? 'disabled' : '';
                 const btnTexto = esgotado ? 'Esgotado' : 'Comprar';
@@ -157,7 +141,7 @@
                 vitrine.innerHTML += `
                     <div class="produto-card ${classeEsgotado}">
                         <div class="img-container">
-                            <img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust+Store'">
+                            <img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'">
                             <div class="overlay-esgotado">ESGOTADO</div>
                         </div>
                         <div class="info">
@@ -165,16 +149,13 @@
                             <h3>${p.nome}</h3>
                             <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
                             <div class="alerta-estoque">${alertaHTML}</div>
-                            
                             <div class="compra-row">
                                 <div class="qtd-seletor">
                                     <button class="qtd-btn" onclick="mudarQtd('${p.id}', -1)">−</button>
                                     <span id="qtd-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span>
                                     <button class="qtd-btn" onclick="mudarQtd('${p.id}', 1, ${stock})">+</button>
                                 </div>
-                                <button class="btn-comprar" ${btnDisabled} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">
-                                    ${btnTexto}
-                                </button>
+                                <button class="btn-comprar" ${btnDisabled} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">${btnTexto}</button>
                             </div>
                         </div>
                     </div>`;
@@ -183,78 +164,36 @@
 
         function mudarQtd(id, delta, max) { 
             let el = document.getElementById(`qtd-${id}`);
-            let atual = parseInt(el.innerText);
-            let novo = atual + delta; 
-            
-            // Impede zero e impede ultrapassar stock real
-            if (novo >= 1 && (max === undefined || novo <= max)) {
-                el.innerText = novo; 
-            }
+            let novo = parseInt(el.innerText) + delta; 
+            if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; 
         }
 
         function addCarrinho(id, nome, preco) { 
             const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText); 
+            for(let i=0; i<qtd; i++) carrinho.push({id, nome, preco}); 
             
-            // Adiciona N vezes ao carrinho
-            for(let i=0; i<qtd; i++) {
-                carrinho.push({id, nome, preco}); 
-            }
-            
-            atualizarCarrinhoVisual();
+            document.getElementById('cart-count').innerText = carrinho.length;
+            document.getElementById('btn-carrinho').style.display = 'block';
 
-            // Feedback Visual no Botão
             const btn = event.target; 
             const textoOriginal = btn.innerText;
             btn.innerText = "Adicionado!"; 
-            btn.style.background = "#cca43b"; // Dourado
-            btn.style.color = "#000";
-            
-            setTimeout(() => { 
-                btn.innerText = textoOriginal; 
-                btn.style.background = ""; // Reset
-                btn.style.color = "";
-                document.getElementById(`qtd-${id}`).innerText = 1; // Reseta qtd para 1
-            }, 1000); 
-        }
-
-        function atualizarCarrinhoVisual() {
-            const btnCarrinho = document.getElementById('btn-carrinho');
-            const contador = document.getElementById('cart-count');
-            
-            contador.innerText = carrinho.length;
-            
-            if (carrinho.length > 0) {
-                btnCarrinho.style.display = 'block';
-            } else {
-                btnCarrinho.style.display = 'none';
-            }
+            btn.style.background = "#cca43b"; btn.style.color = "#000";
+            setTimeout(() => { btn.innerText = textoOriginal; btn.style.background = ""; btn.style.color = ""; document.getElementById(`qtd-${id}`).innerText = 1; }, 1000); 
         }
 
         async function finalizarCompra() { 
             if (!carrinho.length) return alert("Carrinho vazio!"); 
             const btn = document.getElementById('btn-carrinho'); 
             const txtOriginal = btn.innerHTML;
-            
-            btn.disabled = true;
-            btn.innerHTML = "A PROCESSAR...";
-            
+            btn.disabled = true; btn.innerHTML = "A PROCESSAR...";
             try {
-                const res = await fetch(`${API}/checkout`, { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify(carrinho) 
-                }); 
+                const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(carrinho) }); 
                 const d = await res.json(); 
                 if(d.url) window.location.href = d.url; 
-                else throw new Error("Sem URL de pagamento");
-            } catch(e) { 
-                console.error(e);
-                alert("Erro ao conectar com o servidor. Tente novamente."); 
-                btn.disabled = false;
-                btn.innerHTML = txtOriginal;
-            }
+                else throw new Error("Erro URL");
+            } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerHTML = txtOriginal; }
         }
-        
         window.onload = carregarProdutos;
     </script>
 </body>
