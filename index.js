@@ -23,14 +23,7 @@ function gerarIdLust() {
 }
 
 async function processarEmailsVenda(venda) {
-    // ATUALIZADO: Inclui Marca e SKU no email
-    const itensLista = venda.itens.map(i => 
-        `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">
-            <strong>${i.nome}</strong> 
-            <br><small style="color:#777;">${i.marca || 'Lust'} • SKU: ${i.sku || 'N/A'}</small> 
-            <span style="float:right; font-weight:bold;">€${i.preco}</span>
-        </li>`
-    ).join('');
+    const itensLista = venda.itens.map(i => `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;"><strong>${i.nome}</strong> <br><small style="color:#777;">${i.marca || 'Lust'} • SKU: ${i.sku || 'N/A'}</small> <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`).join('');
     
     const prazo = venda.total_frete > 7 ? "1 a 2 dias úteis (Expresso)" : "2 a 5 dias úteis (Standard)";
 
@@ -43,23 +36,16 @@ async function processarEmailsVenda(venda) {
             <div style="padding: 40px 30px;">
                 <h2 style="color: #0f172a; margin-top: 0; font-weight: 300;">Olá, ${venda.cliente_nome}.</h2>
                 <p style="color: #64748b; font-size: 16px; line-height: 1.5;">Agradecemos a sua preferência. A sua encomenda <b>#${venda.codigo_pedido}</b> foi confirmada.</p>
-                
-                <div style="background: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e2e8f0;">
-                    <p style="margin:0; font-size: 14px; color: #334155;">🚚 <strong>Estimativa de Entrega:</strong><br>${prazo} após envio.</p>
-                </div>
-
+                <div style="background: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e2e8f0;"><p style="margin:0; font-size: 14px; color: #334155;">🚚 <strong>Estimativa de Entrega:</strong><br>${prazo} após envio.</p></div>
                 <h3 style="color: #0f172a; border-bottom: 1px solid #cca43b; padding-bottom: 10px; margin-top: 40px;">Resumo da Compra</h3>
                 <ul style="list-style: none; padding: 0; margin: 0;">${itensLista}</ul>
-                
                 <div style="margin-top: 20px; text-align: right; border-top: 2px solid #f1f5f9; padding-top: 10px;">
                     <p style="margin: 5px 0; color: #64748b;">Subtotal: €${(venda.total_venda - venda.total_frete).toFixed(2)}</p>
                     <p style="margin: 5px 0; color: #64748b;">Envio: €${venda.total_frete.toFixed(2)}</p>
                     <p style="font-size: 20px; color: #0f172a; margin-top: 10px;">Total: <b style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</b></p>
                 </div>
             </div>
-             <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-                <p>© 2026 Lust Store. Todos os direitos reservados.</p>
-            </div>
+             <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;"><p>© 2026 Lust Store. Todos os direitos reservados.</p></div>
         </div>
     `;
 
@@ -83,7 +69,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// WEBHOOK
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -104,14 +89,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 if (p) {
                     await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - 1) }).eq('id', id);
                     custoProdutos += (p.preco_entrada || 0);
-                    // IMPORTANTE: Captura os novos campos
-                    itensVendidos.push({ 
-                        nome: p.nome, 
-                        preco: p.preco, 
-                        marca: p.marca, 
-                        categoria: p.categoria, 
-                        sku: p.sku 
-                    });
+                    itensVendidos.push({ nome: p.nome, preco: p.preco, marca: p.marca, categoria: p.categoria, sku: p.sku });
                 }
             }
             const total = session.amount_total / 100; const frete = (session.total_details?.amount_shipping || 0) / 100;
