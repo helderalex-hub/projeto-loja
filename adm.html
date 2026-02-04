@@ -19,45 +19,53 @@
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
         
-        /* HEADER & TABS */
-        .header-top { text-align: center; margin-bottom: 20px; position: relative; }
+        .header-top { text-align: center; margin-bottom: 20px; }
         .logo-adm { height: 50px; margin-bottom: 10px; }
         h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 22px; color: white; text-transform: uppercase; font-weight: 400; }
         h1 span { color: var(--gold); }
         
         .tabs { display: flex; justify-content: center; gap: 5px; margin-bottom: 30px; border-bottom: 1px solid var(--borda); }
-        .tab-btn { background: none; border: none; color: #94a3b8; padding: 15px 30px; cursor: pointer; text-transform: uppercase; font-size: 12px; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
+        .tab-btn { background: none; border: none; color: #94a3b8; padding: 15px 30px; cursor: pointer; text-transform: uppercase; font-size: 12px; font-weight: bold; transition: 0.3s; }
         .tab-btn.active { color: var(--gold); border-bottom: 3px solid var(--gold); }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
-        /* DASHBOARD */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card-dash { background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--borda); text-align: center; border-bottom: 3px solid var(--gold); }
         .card-dash h3 { margin: 0; font-size: 9px; color: #94a3b8; text-transform: uppercase; }
         .card-dash p { margin: 8px 0 0; font-size: 18px; font-weight: bold; }
 
-        /* FORMS INVENTÁRIO */
-        .card-form { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--borda); margin-bottom: 30px; }
-        .area-upload { border: 2px dashed var(--borda); padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
-        .area-upload img { max-height: 120px; object-fit: contain; display: none; margin: 10px auto; }
+        /* NOVO LAYOUT DO FORMULÁRIO (FOTO À FRENTE) */
+        .card-form { 
+            background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--borda); 
+            margin-bottom: 30px; display: flex; gap: 25px; align-items: flex-start;
+        }
+        .area-upload { 
+            flex: 0 0 160px; height: 160px; border: 2px dashed var(--borda); 
+            border-radius: 8px; cursor: pointer; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center; overflow: hidden; position: relative;
+        }
+        .area-upload img { width: 100%; height: 100%; object-fit: contain; background: white; }
+        .label-upload { font-size: 9px; color: #64748b; padding: 10px; text-transform: uppercase; }
+
+        .campos-container { flex: 1; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 15px; }
         
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
         label { display: block; font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
         input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; }
-        .btn-principal { background: var(--gold); color: #000; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; width: 100%; }
+        .btn-principal { background: var(--gold); color: #000; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
-        /* TABELAS & LISTAS */
-        .tabela-container { background: var(--card); border-radius: 8px; border: 1px solid var(--borda); overflow-x: auto; }
+        /* TABELAS */
+        .tabela-container { background: var(--card); border-radius: 8px; border: 1px solid var(--borda); overflow-x: auto; margin-top: 20px;}
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         th { text-align: left; padding: 12px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; font-size: 10px; }
         td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        .produto-item { display: flex; align-items: center; gap: 15px; padding: 10px; border-bottom: 1px solid #334155; }
-        .img-mini { width: 50px; height: 50px; background: white; object-fit: contain; border-radius: 4px; padding: 2px; }
+        .produto-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #334155; }
+        .img-mini { width: 50px; height: 50px; background: white; object-fit: contain; border-radius: 4px; }
 
-        .status-tag { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; text-transform: uppercase; margin-right: 5px; }
+        .status-tag { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; text-transform: uppercase; }
         .critico { background: rgba(239, 68, 68, 0.2); color: var(--erro); }
         .alerta { background: rgba(245, 158, 11, 0.2); color: var(--alerta); }
 
@@ -81,16 +89,16 @@
 
     <div id="financeiro" class="tab-content active">
         <div class="dashboard">
-            <div class="card-dash"><h3>Custo Estoque Total</h3><p id="dash-custo">...</p></div>
-            <div class="card-dash"><h3>Valor Venda Total</h3><p id="dash-valor">...</p></div>
-            <div class="card-dash"><h3>Lucro Est. Total</h3><p id="dash-lucro-est">...</p></div>
-            <div class="card-dash"><h3>Vendas do Mês</h3><p id="dash-vendas-mes">...</p></div>
-            <div class="card-dash"><h3>Lucro do Mês</h3><p id="dash-lucro-mes" style="color:var(--verde)">...</p></div>
+            <div class="card-dash"><h3>Custo Estoque</h3><p id="dash-custo">...</p></div>
+            <div class="card-dash"><h3>Valor Estimado</h3><p id="dash-valor">...</p></div>
+            <div class="card-dash"><h3>Lucro Estimado</h3><p id="dash-lucro-est">...</p></div>
+            <div class="card-dash"><h3>Vendas Mês</h3><p id="dash-vendas-mes">...</p></div>
+            <div class="card-dash"><h3>Lucro Mês</h3><p id="dash-lucro-mes" style="color:var(--verde)">...</p></div>
         </div>
 
         <div style="margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button onclick="gerarRelatorioFinanceiro('semanal')" class="tab-btn" style="background:var(--card); border:1px solid var(--borda)">📅 Relatório Semanal</button>
-            <button onclick="gerarRelatorioFinanceiro('mensal')" class="tab-btn" style="background:var(--card); border:1px solid var(--borda)">📅 Relatório Mensal</button>
+            <button onclick="gerarRelatorioFinanceiro('semanal')" class="tab-btn" style="background:var(--card); border:1px solid var(--borda)">📅 Semanal</button>
+            <button onclick="gerarRelatorioFinanceiro('mensal')" class="tab-btn" style="background:var(--card); border:1px solid var(--borda)">📅 Mensal</button>
             <button onclick="gerarEtiquetasDia()" class="tab-btn" style="background:var(--verde); color:white">📦 Etiquetas de Hoje</button>
         </div>
 
@@ -111,21 +119,24 @@
     <div id="inventario" class="tab-content">
         <div class="card-form">
             <div class="area-upload" onclick="document.getElementById('file-input').click()">
-                <span id="label-upload">📸 Carregar Foto (Ajuste Moderno)</span>
-                <img id="preview-img">
+                <img id="preview-img" style="display:none">
+                <span id="label-upload" class="label-upload">📸 Foto</span>
                 <input type="file" id="file-input" hidden onchange="processarFoto(this)">
             </div>
-            <div class="grid-inputs">
-                <div style="grid-column: span 2;"><label>Nome do Produto</label><input type="text" id="p-nome"></div>
-                <div><label>Validade</label><input type="date" id="p-validade"></div>
+            
+            <div class="campos-container">
+                <div class="grid-inputs">
+                    <div style="grid-column: span 2;"><label>Nome do Produto</label><input type="text" id="p-nome"></div>
+                    <div><label>Validade</label><input type="date" id="p-validade"></div>
+                </div>
+                <div class="grid-inputs">
+                    <div><label>Custo (€)</label><input type="number" id="p-custo" step="0.01"></div>
+                    <div><label>Venda (€)</label><input type="number" id="p-venda" step="0.01"></div>
+                    <div><label>Stock</label><input type="number" id="p-stock"></div>
+                </div>
+                <input type="hidden" id="edit-id">
+                <button class="btn-principal" onclick="salvarProduto()">Salvar Produto</button>
             </div>
-            <div class="grid-inputs">
-                <div><label>Custo (€)</label><input type="number" id="p-custo" step="0.01"></div>
-                <div><label>Venda (€)</label><input type="number" id="p-venda" step="0.01"></div>
-                <div><label>Stock</label><input type="number" id="p-stock"></div>
-            </div>
-            <input type="hidden" id="edit-id">
-            <button class="btn-principal" onclick="salvarProduto()">Salvar no Sistema</button>
         </div>
 
         <div id="lista-inventario" class="tabela-container">
@@ -138,9 +149,11 @@
     let produtos = [], vendas = [], fotoBase64 = "";
 
     async function iniciar() {
-        const [resP, resV] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`)]);
-        produtos = await resP.json(); vendas = await resV.json();
-        atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico();
+        try {
+            const [resP, resV] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`)]);
+            produtos = await resP.json(); vendas = await resV.json();
+            atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico();
+        } catch(e) { console.error(e); }
     }
 
     function openTab(id) {
@@ -151,9 +164,8 @@
     }
 
     function atualizarDash() {
-        let custoTotal = 0, valorTotal = 0;
-        produtos.forEach(p => { custoTotal += (p.preco_entrada || 0) * p.estoque; valorTotal += p.preco * p.estoque; });
-        
+        let custo = 0, valor = 0;
+        produtos.forEach(p => { custo += (p.preco_entrada || 0) * p.estoque; valor += p.preco * p.estoque; });
         const hoje = new Date();
         let vMes = 0, lMes = 0;
         vendas.forEach(v => {
@@ -162,10 +174,9 @@
                 vMes += v.total_venda; lMes += v.lucro;
             }
         });
-
-        document.getElementById('dash-custo').innerText = `€${custoTotal.toFixed(2)}`;
-        document.getElementById('dash-valor').innerText = `€${valorTotal.toFixed(2)}`;
-        document.getElementById('dash-lucro-est').innerText = `€${(valorTotal - custoTotal).toFixed(2)}`;
+        document.getElementById('dash-custo').innerText = `€${custo.toFixed(2)}`;
+        document.getElementById('dash-valor').innerText = `€${valor.toFixed(2)}`;
+        document.getElementById('dash-lucro-est').innerText = `€${(valor - custo).toFixed(2)}`;
         document.getElementById('dash-vendas-mes').innerText = `€${vMes.toFixed(2)}`;
         document.getElementById('dash-lucro-mes').innerText = `€${lMes.toFixed(2)}`;
     }
@@ -174,18 +185,16 @@
         const div = document.getElementById('lista-inventario'); div.innerHTML = '';
         produtos.forEach(p => {
             const critico = p.estoque <= 0 ? 'critico' : (p.estoque < 5 ? 'alerta' : '');
-            const txtStock = p.estoque <= 0 ? 'ESGOTADO' : `STOCK: ${p.estoque}`;
-            
             div.innerHTML += `
                 <div class="produto-item">
                     <img src="${p.imagem}" class="img-mini" onerror="this.src='https://placehold.co/50?text=Ls'">
                     <div style="flex:1">
                         <b>${p.nome}</b><br>
-                        <span class="status-tag ${critico}">${txtStock}</span>
+                        <span class="status-tag ${critico}">${p.estoque <= 0 ? 'ESGOTADO' : 'Stock: '+p.estoque}</span>
                         <small style="color:#94a3b8">Custo: €${p.preco_entrada} | Venda: €${p.preco}</small>
                     </div>
-                    <button onclick="prepararEdicao(${p.id})" style="background:none; border:none; color:var(--gold); cursor:pointer">✎</button>
-                    <button onclick="apagarProduto(${p.id})" style="background:none; border:none; color:var(--erro); cursor:pointer">✕</button>
+                    <button onclick="prepararEdicao(${p.id})" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:18px">✎</button>
+                    <button onclick="apagarProduto(${p.id})" style="background:none; border:none; color:var(--erro); cursor:pointer; font-size:18px">✕</button>
                 </div>`;
         });
     }
@@ -195,12 +204,12 @@
         vendas.forEach(v => {
             tb.innerHTML += `<tr>
                 <td>${new Date(v.data_venda).toLocaleDateString()}</td>
-                <td style="color:var(--gold)">#${v.codigo_pedido}</td>
+                <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
                 <td>${v.cliente_nome}</td>
                 <td>€${v.total_venda.toFixed(2)}</td>
                 <td>
-                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" title="Etiqueta" style="border:none; background:none; cursor:pointer">📦</button>
-                    <button onclick="gerarPDFPedido('${v.codigo_pedido}')" title="Recibo" style="border:none; background:none; cursor:pointer">📄</button>
+                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" title="Etiqueta" style="border:none; background:none; cursor:pointer; font-size:16px">📦</button>
+                    <button onclick="gerarPDFPedido('${v.codigo_pedido}')" title="Recibo" style="border:none; background:none; cursor:pointer; font-size:16px">📄</button>
                 </td>
             </tr>`;
         });
@@ -210,32 +219,80 @@
         const ctx = document.getElementById('graficoVendas').getContext('2d');
         const hoje = new Date();
         const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+        const labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
         const dados = new Array(diasNoMes).fill(0);
         vendas.forEach(v => {
             const d = new Date(v.data_venda);
-            if(d.getMonth() === hoje.getMonth()) dados[d.getDate()-1] += v.total_venda;
+            if(d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()) {
+                dados[d.getDate()-1] += v.total_venda;
+            }
         });
-
         new Chart(ctx, {
             type: 'bar',
-            data: { labels: Array.from({length: diasNoMes}, (_,i)=>i+1), datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] },
-            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#334155'}} } }
+            data: { labels, datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] },
+            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#334155'}, ticks:{color:'#94a3b8'}}, x:{ticks:{color:'#94a3b8'}} } }
         });
     }
 
-    // LOGÍSTICA PDF
+    function processarFoto(input) {
+        if(input.files && input.files[0]) {
+            const r = new FileReader();
+            r.onload = e => { 
+                fotoBase64 = e.target.result; 
+                const img = document.getElementById('preview-img');
+                img.src = fotoBase64; img.style.display='block'; 
+                document.getElementById('label-upload').style.display='none'; 
+            };
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function salvarProduto() {
+        const id = document.getElementById('edit-id').value;
+        const p = { 
+            nome: document.getElementById('p-nome').value, 
+            validade: document.getElementById('p-validade').value, 
+            preco_entrada: parseFloat(document.getElementById('p-custo').value), 
+            preco: parseFloat(document.getElementById('p-venda').value), 
+            estoque: parseInt(document.getElementById('p-stock').value), 
+            imagem: fotoBase64 
+        };
+        await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, { 
+            method: id?'PUT':'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify(p) 
+        });
+        location.reload();
+    }
+
+    function prepararEdicao(id) {
+        const p = produtos.find(x => x.id === id);
+        document.getElementById('p-nome').value = p.nome;
+        document.getElementById('p-custo').value = p.preco_entrada;
+        document.getElementById('p-venda').value = p.preco;
+        document.getElementById('p-stock').value = p.estoque;
+        document.getElementById('p-validade').value = p.validade || '';
+        document.getElementById('edit-id').value = p.id;
+        fotoBase64 = p.imagem;
+        const img = document.getElementById('preview-img');
+        img.src = p.imagem; img.style.display='block';
+        document.getElementById('label-upload').style.display='none';
+        openTab('inventario'); window.scrollTo(0,0);
+    }
+
+    async function apagarProduto(id) { if(confirm("Apagar produto?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
+    
+    // PDFS (IDENTIDADE MANTIDA)
     function gerarEtiqueta(cod) {
         const v = vendas.find(x => x.codigo_pedido === cod);
-        const { jsPDF } = window.jspdf; const doc = new jsPDF({ format:[100, 150], unit:'mm' });
-        
-        // Etiqueta Envio
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ format:[100, 150], unit:'mm' });
         doc.setFontSize(8); doc.text("REMETENTE: LUST STORE", 5, 10);
-        doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40);
-        doc.setFontSize(14); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 50);
-        doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 58);
+        doc.line(2, 35, 98, 35);
+        doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 45);
+        doc.setFontSize(14); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 53);
+        doc.setFontSize(11); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 62);
         doc.rect(5, 120, 90, 20); doc.text(v.codigo_pedido, 50, 132, {align:'center'});
-
-        // Packing List (Pag 2)
         doc.addPage(); doc.text("PACKING LIST - #" + v.codigo_pedido, 50, 15, {align:'center'});
         let y = 30; v.itens.forEach(i => { doc.text("- " + i.nome, 10, y); y+=8; });
         doc.save(`Etiqueta_${cod}.pdf`);
@@ -246,41 +303,29 @@
         doc.setFillColor(15, 23, 42); doc.rect(0,0,210,30,'F');
         doc.setTextColor(204,164,59); doc.setFontSize(20); doc.text("LUST STORE", 14, 20);
         doc.autoTable({
-            startY: 40, head:[['Data','Pedido','Custo','Frete','Venda','Lucro']],
+            startY: 40, 
+            head:[['Data','Pedido','Custo','Frete','Venda','Lucro']],
             body: vendas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, v.total_custo, v.total_frete, v.total_venda, v.lucro]),
             headStyles:{fillColor:[15,23,42], textColor:[204,164,59]}
         });
         doc.save(`Financeiro_${per}.pdf`);
     }
 
-    // OPERACIONAL INVENTÁRIO
-    function processarFoto(input) {
-        if(input.files && input.files[0]) {
-            const r = new FileReader();
-            r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; };
-            r.readAsDataURL(input.files[0]);
-        }
+    function gerarPDFPedido(cod) {
+        const v = vendas.find(x => x.codigo_pedido === cod);
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 30, 'F');
+        doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 20);
+        doc.setTextColor(0,0,0); doc.setFontSize(12); doc.text(`Recibo: #${v.codigo_pedido}`, 14, 45);
+        const body = v.itens.map(i => [i.nome, `€${i.preco}`]);
+        body.push(['Frete', `€${v.total_frete}`]);
+        body.push(['TOTAL', `€${v.total_venda.toFixed(2)}`]);
+        doc.autoTable({ startY: 55, head:[['Item', 'Valor']], body: body });
+        doc.save(`Recibo_${cod}.pdf`);
     }
 
-    async function salvarProduto() {
-        const id = document.getElementById('edit-id').value;
-        const p = { nome: document.getElementById('p-nome').value, validade: document.getElementById('p-validade').value, preco_entrada: parseFloat(document.getElementById('p-custo').value), preco: parseFloat(document.getElementById('p-venda').value), estoque: parseInt(document.getElementById('p-stock').value), imagem: fotoBase64 };
-        await fetch(id ? `${API}/produtos/${id}` : `${API}/produtos`, { method: id?'PUT':'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) });
-        location.reload();
-    }
+    function sair() { localStorage.removeItem('token_gerente'); window.location.href = 'login-adm.html'; }
 
-    function prepararEdicao(id) {
-        const p = produtos.find(x => x.id === id);
-        document.getElementById('p-nome').value = p.nome; document.getElementById('p-custo').value = p.preco_entrada;
-        document.getElementById('p-venda').value = p.preco; document.getElementById('p-stock').value = p.estoque;
-        document.getElementById('p-validade').value = p.validade || '';
-        document.getElementById('edit-id').value = p.id; fotoBase64 = p.imagem;
-        document.getElementById('preview-img').src = p.imagem; document.getElementById('preview-img').style.display='block';
-        openTab('inventario'); window.scrollTo(0,0);
-    }
-
-    async function apagarProduto(id) { if(confirm("Apagar produto?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
-    
     iniciar();
 </script>
 </body>
