@@ -20,7 +20,6 @@
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
         .container { max-width: 1250px; margin: 0 auto; padding-bottom: 60px; }
         
-        /* HEADER & NAVEGAÇÃO */
         .header-top { text-align: center; margin-bottom: 25px; }
         .logo-adm { height: 55px; margin-bottom: 10px; }
         h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: white; text-transform: uppercase; font-weight: 400; }
@@ -33,18 +32,15 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-        /* DASHBOARD - 5 CARDS */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; border-bottom: 4px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
         .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: 700; color: white; }
 
-        /* BOTÕES DE AÇÃO */
         .btn-acao { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-right: 8px; margin-bottom: 8px; transition: 0.2s; }
         .btn-acao:hover { background: var(--gold); color: var(--dark); }
         .btn-verde { background: var(--verde) !important; color: white !important; }
 
-        /* FORMULÁRIO INVENTÁRIO (FOTO À ESQUERDA) */
         .card-form { 
             background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); 
             margin-bottom: 30px; display: flex; gap: 25px; align-items: flex-start;
@@ -61,15 +57,16 @@
         .full-width { grid-column: span 3; }
         label { display: block; font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
         
-        /* INPUTS GERAIS */
         input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 6px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        
+        /* REMOÇÃO DE SETAS EM TODOS OS NAVEGADORES */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+        
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
         .btn-salvar { background: var(--gold); color: #0f172a; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; grid-column: span 3; font-size: 13px; margin-top: 5px; }
 
-        /* TABELA DE INVENTÁRIO (LIVE EDIT - CAMPOS BRANCOS) */
         .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
         th { text-align: left; padding: 15px; color: var(--gold); border-bottom: 2px solid var(--borda); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
@@ -151,7 +148,7 @@
                 <div><label>Custo Unitário (€)</label><input type="number" id="p-custo" step="0.01"></div>
                 <div><label>Venda Unitária (€)</label><input type="number" id="p-venda" step="0.01"></div>
                 <div><label>Stock Inicial</label><input type="number" id="p-stock"></div>
-                <div class="full-width"><label>Validade (Opcional)</label><input type="date" id="p-validade"></div>
+                <div class="full-width"><label>Validade (dd mm yyyy)</label><input type="text" id="p-validade" placeholder="01 12 2026"></div>
                 <button class="btn-salvar" onclick="salvarProduto()">+ Adicionar ao Catálogo Lust</button>
             </div>
         </div>
@@ -165,7 +162,7 @@
                         <th width="130">Custo (€)</th>
                         <th width="130">Venda (€)</th>
                         <th width="100">Stock</th>
-                        <th width="170">Validade</th>
+                        <th width="170">Validade (DD MM YYYY)</th>
                         <th width="50"></th>
                     </tr>
                 </thead>
@@ -194,7 +191,6 @@
         event.currentTarget.classList.add('active');
     }
 
-    // UTILITÁRIOS
     const fmt = (v) => parseFloat(v || 0).toFixed(2);
     const fmtEur = (v) => `€${fmt(v)}`;
 
@@ -214,11 +210,17 @@
         document.getElementById('dash-lucro-mes').innerText = fmtEur(lMes);
     }
 
-    // --- INVENTÁRIO LIVE EDIT ---
     function renderizarInventario() {
         const tbody = document.getElementById('lista-inventario-tabela');
         tbody.innerHTML = '';
         produtos.forEach(p => {
+            // FORMATAR DATA PARA DD MM YYYY
+            let dataFormatada = p.validade || "";
+            if (dataFormatada.includes("-")) {
+                const parts = dataFormatada.split("-");
+                dataFormatada = `${parts[2]} ${parts[1]} ${parts[0]}`;
+            }
+
             tbody.innerHTML += `
                 <tr>
                     <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
@@ -226,7 +228,7 @@
                     <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td>
                     <td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td>
                     <td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td>
-                    <td><input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)"></td>
+                    <td><input type="text" class="input-live" value="${dataFormatada}" onchange="updateItemData(${p.id}, this.value)"></td>
                     <td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td>
                 </tr>`;
         });
@@ -237,6 +239,17 @@
         p[campo] = valor;
         await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
         atualizarDash();
+    }
+
+    // FUNÇÃO PARA TRATAR DATA DD MM YYYY E SALVAR COMO YYYY-MM-DD
+    async function updateItemData(id, valorTexto) {
+        const parts = valorTexto.trim().split(" ");
+        if (parts.length === 3) {
+            const dataISO = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            await updateItem(id, 'validade', dataISO);
+        } else {
+            alert("Formato de data inválido! Use: DD MM YYYY (Ex: 01 12 2026)");
+        }
     }
 
     function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
@@ -262,12 +275,16 @@
     }
 
     async function salvarProduto() {
-        const p = { nome: document.getElementById('p-nome').value, validade: document.getElementById('p-validade').value, preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, preco: parseFloat(document.getElementById('p-venda').value)||0, estoque: parseInt(document.getElementById('p-stock').value)||0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' };
+        let validadeInput = document.getElementById('p-validade').value;
+        if (validadeInput.includes(" ")) {
+            const pts = validadeInput.split(" ");
+            validadeInput = `${pts[2]}-${pts[1]}-${pts[0]}`;
+        }
+        const p = { nome: document.getElementById('p-nome').value, validade: validadeInput, preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, preco: parseFloat(document.getElementById('p-venda').value)||0, estoque: parseInt(document.getElementById('p-stock').value)||0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' };
         await fetch(`${API}/produtos`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) });
         location.reload();
     }
 
-    // --- FINANCEIRO & VENDAS ---
     function renderizarVendas() {
         const tb = document.getElementById('lista-vendas'); tb.innerHTML = '';
         vendas.forEach(v => {
@@ -303,35 +320,6 @@
         });
     }
 
-    // --- LOGÍSTICA & RELATÓRIOS PDF ---
-    function gerarEtiqueta(cod) { const v = vendas.find(x => x.codigo_pedido === cod); criarPDFEtiqueta([v]); }
-    function gerarEtiquetasDia() {
-        const hoje = new Date().toLocaleDateString();
-        const lista = vendas.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje);
-        if(!lista.length) return alert("Sem encomendas hoje.");
-        criarPDFEtiqueta(lista);
-    }
-
-    function criarPDFEtiqueta(listaVendas) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ format:[100, 150], unit:'mm' });
-        listaVendas.forEach((v, idx) => {
-            if(idx > 0) doc.addPage();
-            // Etiqueta 10x15
-            doc.setFontSize(8); doc.text("REMETENTE: LUST STORE - Portugal", 5, 10);
-            doc.line(2, 30, 98, 30);
-            doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40);
-            doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 48);
-            doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 56);
-            doc.rect(5, 120, 90, 15); doc.text(`#${v.codigo_pedido}`, 50, 130, {align:'center'});
-            // Pág 2: Packing List
-            doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST - LUST STORE", 50, 15, {align:'center'});
-            doc.setFontSize(10); doc.text(`Pedido: #${v.codigo_pedido}`, 5, 25);
-            let y = 40; v.itens.forEach(i => { doc.text(`[ ] ${i.nome}`, 5, y); y+=8; });
-        });
-        doc.save(`Logistica_Lust.pdf`);
-    }
-
     function gerarRelatorioFinanceiro(per) {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFillColor(15, 23, 42); doc.rect(0,0,210,35,'F');
@@ -355,6 +343,32 @@
         body.push(['Frete', fmtEur(v.total_frete)], [{content:'TOTAL', styles:{fontStyle:'bold'}}, fmtEur(v.total_venda)]);
         doc.autoTable({ startY: 45, head:[['Produto', 'Preço']], body: body, headStyles:{fillColor:[15,23,42]} });
         doc.save(`Recibo_Lust_${cod}.pdf`);
+    }
+
+    function gerarEtiqueta(cod) { const v = vendas.find(x => x.codigo_pedido === cod); criarPDFEtiqueta([v]); }
+    function gerarEtiquetasDia() {
+        const hoje = new Date().toLocaleDateString();
+        const lista = vendas.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje);
+        if(!lista.length) return alert("Sem encomendas hoje.");
+        criarPDFEtiqueta(lista);
+    }
+
+    function criarPDFEtiqueta(listaVendas) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ format:[100, 150], unit:'mm' });
+        listaVendas.forEach((v, idx) => {
+            if(idx > 0) doc.addPage();
+            doc.setFontSize(8); doc.text("REMETENTE: LUST STORE - Portugal", 5, 10);
+            doc.line(2, 30, 98, 30);
+            doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40);
+            doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 48);
+            doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 56);
+            doc.rect(5, 120, 90, 15); doc.text(`#${v.codigo_pedido}`, 50, 130, {align:'center'});
+            doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST - LUST STORE", 50, 15, {align:'center'});
+            doc.setFontSize(10); doc.text(`Pedido: #${v.codigo_pedido}`, 5, 25);
+            let y = 40; v.itens.forEach(i => { doc.text(`[ ] ${i.nome}`, 5, y); y+=8; });
+        });
+        doc.save(`Logistica_Lust.pdf`);
     }
 
     async function apagarProduto(id) { if(confirm("Apagar produto definitivamente?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); carregarDados(); } }
