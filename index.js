@@ -23,7 +23,13 @@ function gerarIdLust() {
 }
 
 async function processarEmailsVenda(venda) {
-    const itensLista = venda.itens.map(i => `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;"><strong>${i.nome}</strong> <br><small style="color:#777;">${i.marca || 'Lust'} • SKU: ${i.sku || 'N/A'}</small> <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`).join('');
+    const itensLista = venda.itens.map(i => 
+        `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">
+            <strong>[${i.sku || 'N/A'}] ${i.nome}</strong> 
+            <br><small style="color:#777;">Marca: ${i.marca || 'Lust'}</small> 
+            <span style="float:right; font-weight:bold;">€${i.preco}</span>
+        </li>`
+    ).join('');
     
     const prazo = venda.total_frete > 7 ? "1 a 2 dias úteis (Expresso)" : "2 a 5 dias úteis (Standard)";
 
@@ -89,7 +95,13 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 if (p) {
                     await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - 1) }).eq('id', id);
                     custoProdutos += (p.preco_entrada || 0);
-                    itensVendidos.push({ nome: p.nome, preco: p.preco, marca: p.marca, categoria: p.categoria, sku: p.sku });
+                    itensVendidos.push({ 
+                        nome: p.nome, 
+                        preco: p.preco, 
+                        marca: p.marca, 
+                        categoria: p.categoria, 
+                        sku: p.sku 
+                    });
                 }
             }
             const total = session.amount_total / 100; const frete = (session.total_details?.amount_shipping || 0) / 100;
@@ -133,7 +145,11 @@ app.post('/checkout', async (req, res) => {
         const itens = req.body;
         const novoIdPedido = gerarIdLust(); 
         let total = 0;
-        const line_items = itens.map(i => { total += Math.round(i.preco * 100); return { price_data: { currency: 'eur', product_data: { name: i.nome }, unit_amount: Math.round(i.preco * 100) }, quantity: 1 }; });
+        const line_items = itens.map(i => { 
+            total += Math.round(i.preco * 100); 
+            // NOME NO STRIPE: [COD] NOME
+            return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(i.preco * 100) }, quantity: 1 }; 
+        });
         const s_options = [
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 6000 ? 0 : 450, currency: 'eur' }, display_name: 'Portugal: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 4 } } } },
             { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 800, currency: 'eur' }, display_name: 'Portugal: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 1 }, maximum: { unit: 'business_day', value: 2 } } } },
