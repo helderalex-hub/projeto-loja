@@ -1,231 +1,261 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
+    <title>Lust Store | Premium Beauty</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lust Store | Luxo & Exclusividade</title>
     
-    <meta name="description" content="Lust Store - Cosméticos e Calçado de Luxo.">
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     <meta property="og:image" content="https://helderalex-hub.github.io/projeto-loja/social-share.jpg">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
-        :root {
-            --gold: #cca43b;
-            --dark: #0f172a;
-            --text: #334155;
+        :root { 
+            --dark: #0f172a; 
+            --gold: #cca43b; 
+            --gold-light: #fcd34d;
+            --card: #ffffff;
+            --texto: #334155; 
+            --alerta: #ef4444; 
             --bg-page: #f8fafc;
-            --danger: #ef4444; /* Vermelho para avisos */
         }
-
-        body { font-family: 'Montserrat', sans-serif; background-color: var(--bg-page); margin: 0; color: var(--text); }
         
+        body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; }
+        
+        /* BARRA DE PORTES GRÁTIS */
+        .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; border-bottom: 1px solid #333; letter-spacing: 1px; }
+        .frete-bar span { color: #fff; }
+
         /* HEADER */
-        header { background-color: var(--dark); padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--gold); }
-        .logo-img { height: 60px; display: block; margin: 0 auto 10px; }
-        .slogan { color: #94a3b8; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; }
+        header { background: var(--dark); padding: 30px 20px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .logo-img { height: 60px; display: block; margin: 0 auto 8px; }
+        .slogan { color: #94a3b8; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
 
-        /* FILTROS */
-        .filtros { display: flex; justify-content: center; gap: 10px; padding: 20px; flex-wrap: wrap; background: #fff; border-bottom: 1px solid #e2e8f0; }
-        .btn-filtro { padding: 8px 20px; border: 1px solid #e2e8f0; background: white; cursor: pointer; border-radius: 30px; font-size: 13px; text-transform: uppercase; transition: 0.3s; }
-        .btn-filtro:hover, .btn-filtro.ativo { background-color: var(--dark); color: var(--gold); border-color: var(--dark); }
-
-        /* GRID */
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
         
-        /* PRODUTO CARD */
-        .produto { 
-            background: #fff; border-radius: 12px; overflow: hidden; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
-            transition: transform 0.3s; border: 1px solid transparent;
-            display: flex; flex-direction: column; position: relative;
+        /* GRID RESPONSIVA */
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
+        
+        /* CARD PRODUTO */
+        .produto-card { 
+            background: var(--card); border-radius: 8px; overflow: hidden; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; 
+            display: flex; flex-direction: column; position: relative; border: 1px solid transparent;
         }
-        .produto:hover { transform: translateY(-5px); border-color: var(--gold); }
+        .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         
-        .img-container { width: 100%; height: 280px; overflow: hidden; background: #f1f5f9; position: relative; }
-        .produto img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .img-container { width: 100%; height: 280px; background: #f1f5f9; position: relative; overflow: hidden; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .produto-card:hover img { transform: scale(1.05); }
         
-        /* ESTADO ESGOTADO (PRETO E BRANCO) */
-        .produto.esgotado { opacity: 0.8; }
-        .produto.esgotado img { filter: grayscale(100%); }
-        .produto.esgotado .img-container::after {
-            content: "ESGOTADO";
+        /* ESTADO ESGOTADO */
+        .produto-card.esgotado { opacity: 0.7; pointer-events: none; }
+        .produto-card.esgotado img { filter: grayscale(100%); }
+        .overlay-esgotado {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.7); color: white; padding: 10px 20px;
-            font-weight: bold; letter-spacing: 2px; border: 1px solid white;
+            background: rgba(0,0,0,0.8); color: white; padding: 8px 15px;
+            font-weight: bold; text-transform: uppercase; font-size: 12px;
+            border: 1px solid white; display: none; z-index: 10;
         }
+        .produto-card.esgotado .overlay-esgotado { display: block; }
 
-        .info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .produto h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin: 0 0 5px; color: var(--dark); }
+        .info { padding: 20px; text-align: left; flex: 1; display: flex; flex-direction: column; }
+        .info h3 { margin: 5px 0 5px; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
         .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; }
-        
-        .preco-box { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
-        .preco { font-size: 18px; font-weight: bold; color: var(--gold); }
-        
-        /* AVISOS DE STOCK */
-        .aviso-stock { font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .poucas-unidades { color: var(--danger); animation: pulsar 1.5s infinite; }
-        @keyframes pulsar { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* BOTÕES */
-        .btn-comprar { 
-            background-color: var(--dark); color: white; border: none; padding: 12px; width: 100%; 
-            cursor: pointer; text-transform: uppercase; font-size: 12px; font-weight: bold; 
-            margin-top: 15px; border-radius: 4px; transition: 0.3s; 
-        }
-        .btn-comprar:hover { background-color: var(--gold); color: var(--dark); }
-        .btn-comprar:disabled { background-color: #cbd5e1; cursor: not-allowed; color: #64748b; }
+        .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
+        .alerta-estoque { color: var(--alerta); font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
+        
+        /* CONTROLO DE COMPRA */
+        .compra-row { display: flex; gap: 10px; margin-top: auto; }
+        .qtd-seletor { display: flex; align-items: center; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
+        .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; transition: 0.2s; font-weight: bold; height: 100%; }
+        .qtd-btn:hover { color: var(--gold); background: var(--dark); }
+        
+        .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
+        .btn-comprar:hover { background: var(--gold); color: var(--dark); }
+        .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+        
+        /* CARRINHO FLUTUANTE */
+        #btn-carrinho { position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; z-index:1000; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; display: none; }
+        #btn-carrinho:hover { transform: scale(1.05); }
+        .cart-dot { background: var(--dark); color: white; border-radius: 50%; padding: 2px 8px; font-size: 11px; margin-left: 8px; }
 
-        /* CARRINHO */
-        #carrinho-flutuante { 
-            position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: var(--dark); 
-            padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; 
-            box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); display: none; z-index: 100;
-        }
+        .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px;}
     </style>
 </head>
 <body>
+    
+    <div class="frete-bar">
+        PORTES GRÁTIS: PT <span>> 60€</span> | ES <span>> 85€</span> | EUROPA <span>> 125€</span>
+    </div>
 
     <header>
         <img src="logo.png" alt="LUST STORE" class="logo-img" onerror="this.style.display='none'">
         <span class="slogan">Premium Beauty & Care</span>
     </header>
 
-    <div class="filtros">
-        <button class="btn-filtro ativo" onclick="filtrar('todos')">Todos</button>
-        <button class="btn-filtro" onclick="filtrar('Nike')">Nike</button>
-        <button class="btn-filtro" onclick="filtrar('Adidas')">Adidas</button>
-        <button class="btn-filtro" onclick="filtrar('Puma')">Puma</button>
-        <button class="btn-filtro" onclick="filtrar('NB')">New Balance</button>
-    </div>
-
     <div class="container">
-        <div id="lista-produtos" class="grid">
-            <p style="text-align:center; width:100%; color:#94a3b8">A carregar coleção...</p>
+        <div id="vitrine" class="vitrine">
+            <div class="loading">A CARREGAR COLEÇÃO EXCLUSIVA...</div>
         </div>
     </div>
-
-    <div id="carrinho-flutuante" onclick="checkout()">
-        🛒 Finalizar (<span id="contagem">0</span>)
-    </div>
-
+    
+    <button id="btn-carrinho" onclick="finalizarCompra()">
+        🛒 Finalizar <span id="cart-count" class="cart-dot">0</span>
+    </button>
+    
     <script>
-        // --- SEU BACKEND ---
-        const API_URL = "https://lust-store-backend.onrender.com"; 
+        // --- SERVIDOR CORRETO (RENDER) ---
+        const API = 'https://lust-store-backend.onrender.com';
         
         let todosProdutos = [];
         let carrinho = [];
-
+        
         async function carregarProdutos() {
+            const vitrine = document.getElementById('vitrine');
             try {
-                const res = await fetch(`${API_URL}/produtos`);
+                const res = await fetch(`${API}/produtos`);
                 todosProdutos = await res.json();
                 renderizarProdutos(todosProdutos);
-            } catch (e) {
-                document.getElementById('lista-produtos').innerHTML = '<p style="text-align:center">Erro de conexão.</p>';
+            } catch(e) { 
+                console.error(e);
+                vitrine.innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor. Tente recarregar.</p>"; 
             }
         }
 
         function renderizarProdutos(lista) {
-            const div = document.getElementById('lista-produtos');
-            div.innerHTML = '';
+            const vitrine = document.getElementById('vitrine');
+            vitrine.innerHTML = '';
 
             if (lista.length === 0) {
-                div.innerHTML = '<p style="text-align:center; width:100%">Nenhum item encontrado.</p>';
+                vitrine.innerHTML = "<p style='text-align:center; width:100%'>Ainda não há produtos cadastrados.</p>"; 
                 return;
             }
 
             lista.forEach(p => {
-                // LÓGICA DE STOCK INTELIGENTE
-                const semStock = p.estoque <= 0;
-                const poucoStock = p.estoque > 0 && p.estoque < 4; // Menos de 4 unidades avisa
+                const stock = parseInt(p.estoque) || 0;
+                const esgotado = stock <= 0;
                 
-                // Classes CSS dinâmicas
-                const classeCard = semStock ? 'produto esgotado' : 'produto';
-                const textoBotao = semStock ? 'Indisponível' : 'Adicionar ao Carrinho';
-                const estadoBotao = semStock ? 'disabled' : '';
-                
-                // Mensagem de Aviso
-                let htmlAviso = '';
-                if (semStock) htmlAviso = '<span class="aviso-stock" style="color:#64748b">Esgotado</span>';
-                else if (poucoStock) htmlAviso = '<span class="aviso-stock poucas-unidades">⚡ Últimas Unidades!</span>';
-                else htmlAviso = `<span class="aviso-stock" style="color:#10b981">Disponível (${p.estoque})</span>`;
-
-                // Detectar Marca
+                // Lógica de Categorias (Apenas Visual no Cartão)
                 let marca = "Exclusive";
                 if(p.nome.toLowerCase().includes('nike')) marca = "Nike";
-                if(p.nome.toLowerCase().includes('adidas')) marca = "Adidas";
+                else if(p.nome.toLowerCase().includes('adidas')) marca = "Adidas";
+                else if(p.nome.toLowerCase().includes('puma')) marca = "Puma";
 
-                div.innerHTML += `
-                    <div class="${classeCard}">
+                // Avisos Visuais
+                let alertaHTML = '';
+                if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
+                else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
+
+                // Classes e Estado
+                const classeEsgotado = esgotado ? 'esgotado' : '';
+                const btnDisabled = esgotado ? 'disabled' : '';
+                const btnTexto = esgotado ? 'Esgotado' : 'Comprar';
+
+                vitrine.innerHTML += `
+                    <div class="produto-card ${classeEsgotado}">
                         <div class="img-container">
-                            <img src="${p.imagem}" alt="${p.nome}" onerror="this.src='https://placehold.co/300x300?text=Lust'">
+                            <img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust+Store'">
+                            <div class="overlay-esgotado">ESGOTADO</div>
                         </div>
                         <div class="info">
-                            <div>
-                                <span class="marca">${marca}</span>
-                                <h3>${p.nome}</h3>
-                                ${htmlAviso}
-                            </div>
-                            <div>
-                                <div class="preco-box">
-                                    <span class="preco">€${p.preco.toFixed(2)}</span>
+                            <span class="marca">${marca}</span>
+                            <h3>${p.nome}</h3>
+                            <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
+                            <div class="alerta-estoque">${alertaHTML}</div>
+                            
+                            <div class="compra-row">
+                                <div class="qtd-seletor">
+                                    <button class="qtd-btn" onclick="mudarQtd('${p.id}', -1)">−</button>
+                                    <span id="qtd-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span>
+                                    <button class="qtd-btn" onclick="mudarQtd('${p.id}', 1, ${stock})">+</button>
                                 </div>
-                                <button class="btn-comprar" ${estadoBotao} onclick="adicionar(${p.id}, '${p.nome}', ${p.preco})">
-                                    ${textoBotao}
+                                <button class="btn-comprar" ${btnDisabled} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco})">
+                                    ${btnTexto}
                                 </button>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
-        function filtrar(categoria) {
-            document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('ativo'));
-            event.target.classList.add('ativo');
-            if (categoria === 'todos') renderizarProdutos(todosProdutos);
-            else renderizarProdutos(todosProdutos.filter(p => p.nome.toLowerCase().includes(categoria.toLowerCase())));
-        }
-
-        function adicionar(id, nome, preco) {
-            carrinho.push({ id, nome, preco });
-            atualizarCarrinho();
-            const btn = event.target;
-            const original = btn.innerText;
-            btn.innerText = "Adicionado ✔";
-            btn.style.background = "#cca43b";
-            setTimeout(() => { btn.innerText = original; btn.style.background = ""; }, 1000);
-        }
-
-        function atualizarCarrinho() {
-            const qtd = carrinho.length;
-            document.getElementById('contagem').innerText = qtd;
-            document.getElementById('carrinho-flutuante').style.display = qtd > 0 ? 'block' : 'none';
-        }
-
-        async function checkout() {
-            if (carrinho.length === 0) return;
-            const btn = document.getElementById('carrinho-flutuante');
-            btn.innerHTML = "A processar...";
-            try {
-                const res = await fetch(`${API_URL}/checkout`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(carrinho)
-                });
-                const data = await res.json();
-                if (data.url) window.location.href = data.url;
-            } catch (error) {
-                alert("Erro ao conectar.");
-                btn.innerHTML = "Tentar Novamente";
+        function mudarQtd(id, delta, max) { 
+            let el = document.getElementById(`qtd-${id}`);
+            let atual = parseInt(el.innerText);
+            let novo = atual + delta; 
+            
+            // Impede zero e impede ultrapassar stock real
+            if (novo >= 1 && (max === undefined || novo <= max)) {
+                el.innerText = novo; 
             }
         }
 
-        carregarProdutos();
+        function addCarrinho(id, nome, preco) { 
+            const qtd = parseInt(document.getElementById(`qtd-${id}`).innerText); 
+            
+            // Adiciona N vezes ao carrinho
+            for(let i=0; i<qtd; i++) {
+                carrinho.push({id, nome, preco}); 
+            }
+            
+            atualizarCarrinhoVisual();
+
+            // Feedback Visual no Botão
+            const btn = event.target; 
+            const textoOriginal = btn.innerText;
+            btn.innerText = "Adicionado!"; 
+            btn.style.background = "#cca43b"; // Dourado
+            btn.style.color = "#000";
+            
+            setTimeout(() => { 
+                btn.innerText = textoOriginal; 
+                btn.style.background = ""; // Reset
+                btn.style.color = "";
+                document.getElementById(`qtd-${id}`).innerText = 1; // Reseta qtd para 1
+            }, 1000); 
+        }
+
+        function atualizarCarrinhoVisual() {
+            const btnCarrinho = document.getElementById('btn-carrinho');
+            const contador = document.getElementById('cart-count');
+            
+            contador.innerText = carrinho.length;
+            
+            if (carrinho.length > 0) {
+                btnCarrinho.style.display = 'block';
+            } else {
+                btnCarrinho.style.display = 'none';
+            }
+        }
+
+        async function finalizarCompra() { 
+            if (!carrinho.length) return alert("Carrinho vazio!"); 
+            const btn = document.getElementById('btn-carrinho'); 
+            const txtOriginal = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = "A PROCESSAR...";
+            
+            try {
+                const res = await fetch(`${API}/checkout`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify(carrinho) 
+                }); 
+                const d = await res.json(); 
+                if(d.url) window.location.href = d.url; 
+                else throw new Error("Sem URL de pagamento");
+            } catch(e) { 
+                console.error(e);
+                alert("Erro ao conectar com o servidor. Tente novamente."); 
+                btn.disabled = false;
+                btn.innerHTML = txtOriginal;
+            }
+        }
+        
+        window.onload = carregarProdutos;
     </script>
 </body>
 </html>
