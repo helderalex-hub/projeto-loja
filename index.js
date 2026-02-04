@@ -23,9 +23,15 @@ function gerarIdLust() {
 }
 
 async function processarEmailsVenda(venda) {
-    const itensLista = venda.itens.map(i => `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">${i.nome} <span style="float:right; font-weight:bold;">€${i.preco}</span></li>`).join('');
+    // ATUALIZADO: Inclui Marca e SKU no email
+    const itensLista = venda.itens.map(i => 
+        `<li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #555;">
+            <strong>${i.nome}</strong> 
+            <br><small style="color:#777;">${i.marca || 'Lust'} • SKU: ${i.sku || 'N/A'}</small> 
+            <span style="float:right; font-weight:bold;">€${i.preco}</span>
+        </li>`
+    ).join('');
     
-    // Define prazo estimado baseado no tipo de frete (simples lógica visual)
     const prazo = venda.total_frete > 7 ? "1 a 2 dias úteis (Expresso)" : "2 a 5 dias úteis (Standard)";
 
     const htmlCliente = `
@@ -98,7 +104,14 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 if (p) {
                     await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - 1) }).eq('id', id);
                     custoProdutos += (p.preco_entrada || 0);
-                    itensVendidos.push({ nome: p.nome, preco: p.preco });
+                    // IMPORTANTE: Captura os novos campos
+                    itensVendidos.push({ 
+                        nome: p.nome, 
+                        preco: p.preco, 
+                        marca: p.marca, 
+                        categoria: p.categoria, 
+                        sku: p.sku 
+                    });
                 }
             }
             const total = session.amount_total / 100; const frete = (session.total_details?.amount_shipping || 0) / 100;
