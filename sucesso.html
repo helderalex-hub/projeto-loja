@@ -4,54 +4,94 @@
     <meta charset="UTF-8">
     <title>Pedido Confirmado | Lust Store</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
-        .card { background: white; color: #333; padding: 40px; border-radius: 8px; border-top: 5px solid #cca43b; max-width: 400px; width: 90%; }
-        h1 { color: #0f172a; margin: 10px 0; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; color: #333; padding: 40px; border-radius: 8px; border-top: 5px solid #cca43b; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .check { font-size: 50px; color: #cca43b; }
-        .btn { display: inline-block; margin-top: 20px; padding: 12px 25px; background: #0f172a; color: #cca43b; text-decoration: none; font-weight: bold; border-radius: 4px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
-        .info { background: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 4px; text-align: left; font-size: 14px; }
+        h1 { color: #0f172a; font-family: 'Playfair Display', serif; margin: 10px 0; }
+        .btn { display: inline-block; padding: 12px 25px; background: #0f172a; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; text-transform: uppercase; font-size: 12px; margin: 5px; cursor: pointer; border: none; }
+        .btn-gold { background: #cca43b; color: #0f172a; }
+        
+        .resumo-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 20px 0; text-align: left; border-radius: 4px; }
+        .linha { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 13px; }
+        .total { font-weight: bold; font-size: 16px; color: #cca43b; border-top: 2px solid #e2e8f0; border-bottom: none; margin-top: 10px; padding-top: 10px; }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="check">✔</div>
-        <h1>Lust Store</h1>
-        <p style="color:#666; text-transform:uppercase; font-size:12px; letter-spacing:1px">Pedido Confirmado</p>
+        <h1>Compra Confirmada!</h1>
+        <p>Obrigado pela preferência.</p>
         
         <div id="loading">A carregar detalhes...</div>
 
         <div id="detalhes" style="display:none;">
-            <div class="info">
-                <p><strong>Pedido:</strong> <span id="id-pedido" style="color:#cca43b; font-weight:bold">...</span></p>
-                <p><strong>Total:</strong> <span id="total-pedido">...</span></p>
-                <p><strong>Cliente:</strong> <span id="nome-cliente">...</span></p>
+            <div class="resumo-box">
+                <p style="margin-top:0"><strong>Pedido:</strong> <span id="id-pedido" style="color:#cca43b"></span></p>
+                <div id="lista-itens"></div>
+                <div class="linha"><span>Envio</span><span id="valor-frete"></span></div>
+                <div class="linha total"><span>TOTAL</span><span id="valor-total"></span></div>
             </div>
-            <small style="color: #94a3b8;">Enviámos um email de confirmação.</small>
+            
+            <button onclick="baixarRecibo()" class="btn btn-gold">📄 Baixar Recibo (PDF)</button>
+            <a href="loja.html" class="btn">Voltar à Loja</a>
         </div>
-        
-        <br>
-        <a href="loja.html" class="btn">Voltar à Loja</a>
     </div>
 
     <script>
         const API_URL = "https://projeto-loja-dzqv.onrender.com"; 
         const params = new URLSearchParams(window.location.search);
         const codigo = params.get('pedido');
+        let dadosVenda = null;
 
         if(codigo) {
             fetch(`${API_URL}/pedido/${codigo}`)
                 .then(r => r.json())
                 .then(data => {
                     if(!data.erro) {
+                        dadosVenda = data;
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('detalhes').style.display = 'block';
+                        
                         document.getElementById('id-pedido').innerText = `#${codigo}`;
-                        document.getElementById('total-pedido').innerText = `€${data.total_venda.toFixed(2)}`;
-                        document.getElementById('nome-cliente').innerText = data.cliente_nome;
+                        document.getElementById('valor-frete').innerText = `€${data.total_frete.toFixed(2)}`;
+                        document.getElementById('valor-total').innerText = `€${data.total_venda.toFixed(2)}`;
+                        
+                        const divItens = document.getElementById('lista-itens');
+                        data.itens.forEach(i => {
+                            divItens.innerHTML += `<div class="linha"><span>${i.nome}</span><span>€${i.preco.toFixed(2)}</span></div>`;
+                        });
                     }
                 })
-                .catch(() => document.getElementById('loading').innerText = "Sucesso! Verifique o seu email.");
+                .catch(() => document.getElementById('loading').innerText = "Erro ao carregar recibo.");
+        }
+
+        function baixarRecibo() {
+            if(!dadosVenda) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Cabeçalho
+            doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 20);
+            doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.text("Recibo de Compra", 14, 28);
+
+            doc.setTextColor(0, 0, 0); doc.setFontSize(12);
+            doc.text(`Pedido: #${codigo}`, 14, 55);
+            doc.text(`Cliente: ${dadosVenda.cliente_nome}`, 14, 62);
+            
+            const body = dadosVenda.itens.map(i => [i.nome, `€${i.preco.toFixed(2)}`]);
+            body.push(['Envio', `€${dadosVenda.total_frete.toFixed(2)}`]);
+            body.push([{content: 'TOTAL', styles: {fontStyle: 'bold', textColor: [204, 164, 59]}}, `€${dadosVenda.total_venda.toFixed(2)}`]);
+
+            doc.autoTable({
+                startY: 70, head: [['Descrição', 'Valor']], body: body,
+                headStyles: { fillColor: [15, 23, 42] }, theme: 'grid'
+            });
+            doc.save(`Recibo_Lust_${codigo}.pdf`);
         }
     </script>
 </body>
