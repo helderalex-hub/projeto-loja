@@ -2,10 +2,32 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>Lust Store | Gestão</title>
+    <title>Lust Store | Gestão Profissional</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
+    <script>
+        const token = localStorage.getItem('token_gerente');
+        if (token !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';
+
+        // AUTO-LOGOUT 10 MINUTOS
+        let tempoInatividade;
+        function resetarTimer() {
+            clearTimeout(tempoInatividade);
+            tempoInatividade = setTimeout(() => {
+                alert("Sessão expirada por segurança.");
+                sair();
+            }, 600000); // 10 minutos (600.000 ms)
+        }
+        window.onload = resetarTimer;
+        document.onmousemove = resetarTimer;
+        document.onkeypress = resetarTimer;
+        document.onclick = resetarTimer;
+
+        function sair() {
+            localStorage.removeItem('token_gerente');
+            window.location.href = 'login-adm.html';
+        }
+    </script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -16,18 +38,27 @@
         :root { 
             --dark: #0f172a; --card: #1e293b; --gold: #cca43b; --texto: #f8fafc; --borda: #334155; 
             --verde: #10b981; --erro: #ef4444; 
-            --campo-edit: #f1f5f9; /* Branco suave para inputs */
+            --campo-edit: #f1f5f9; /* Branco suave */
             --texto-input: #0f172a;
         }
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
         .container { max-width: 1250px; margin: 0 auto; padding-bottom: 60px; }
         
-        /* HEADER */
-        .header-top { text-align: center; margin-bottom: 25px; }
+        /* HEADER & LOGOUT */
+        .header-top { text-align: center; margin-bottom: 25px; position: relative; }
         .logo-adm { height: 55px; margin-bottom: 10px; }
         h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: white; text-transform: uppercase; }
         h1 span { color: var(--gold); }
         
+        .btn-sair-topo {
+            position: absolute; top: 0; right: 0;
+            background: transparent; border: 1px solid var(--erro); color: var(--erro);
+            padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .btn-sair-topo:hover { background: var(--erro); color: white; }
+
+        /* TABS */
         .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--borda); }
         .tab-btn { background: none; border: none; color: #94a3b8; padding: 15px 35px; cursor: pointer; text-transform: uppercase; font-size: 13px; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
         .tab-btn.active { color: var(--gold); border-bottom: 4px solid var(--gold); }
@@ -41,37 +72,24 @@
         .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
         .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: 700; color: white; }
 
-        /* MODAL (PRODUTO & RELATÓRIO) */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9); z-index: 1000; justify-content: center; align-items: center; overflow-y: auto;
-        }
-        .modal-content {
-            background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid var(--gold);
-            width: 95%; max-width: 900px; position: relative; animation: slideDown 0.3s; margin: 20px 0;
-        }
-        .modal-content.large { max-width: 1100px; } /* Modal maior para relatório */
-
-        .btn-fechar-modal {
-            position: absolute; top: 15px; right: 20px; background: none; border: none; 
-            color: var(--erro); font-size: 28px; cursor: pointer; font-weight: bold;
-        }
-
-        /* FILTROS DO RELATÓRIO */
-        .filtro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--borda); }
-        .filtro-item label { font-size: 10px; color: var(--gold); display: block; margin-bottom: 5px; text-transform: uppercase; }
-        .input-filtro { 
-            width: 100%; padding: 8px; background: var(--campo-edit); color: var(--texto-input); 
-            border: 1px solid #cbd5e1; border-radius: 4px; font-weight: bold; box-sizing: border-box;
-        }
-
-        /* TABELA GERAL */
-        .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        /* TABELA */
+        .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
         th { text-align: left; padding: 15px; color: var(--gold); border-bottom: 2px solid var(--borda); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
         td { padding: 10px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
-        
-        /* ESTILOS ESPECÍFICOS DE INPUT E BOTÕES */
+
+        /* BARRA DE FILTROS INVENTÁRIO */
+        .filtros-bar {
+            display: grid; grid-template-columns: 80px 2fr 1fr 1fr 1fr 1fr 50px; 
+            gap: 10px; padding: 10px 15px; background: #162032; border-bottom: 1px solid var(--borda);
+        }
+        .input-filtro {
+            background: var(--dark); border: 1px solid var(--borda); color: #94a3b8;
+            padding: 8px; border-radius: 4px; font-size: 11px; width: 100%; box-sizing: border-box;
+        }
+        .input-filtro::placeholder { color: #475569; }
+
+        /* INPUTS DA TABELA (CLAROS, SEM SETAS) */
         .input-live { 
             background-color: var(--campo-edit) !important; 
             border: 1px solid #cbd5e1 !important; 
@@ -83,10 +101,19 @@
         .input-live::-webkit-outer-spin-button, .input-live::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .input-live:focus { border-color: var(--gold) !important; outline: none; background: #fff !important; }
 
+        .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); transition: 0.2s; }
+        .img-table:hover { border-color: var(--gold); transform: scale(1.1); }
+
+        /* BOTÕES & MODAIS */
         .btn-acao { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-right: 8px; margin-bottom: 8px; }
         .btn-verde { background: var(--verde) !important; }
         .btn-gold { background: var(--gold) !important; color: #0f172a !important; }
         .btn-novo-prod { background: var(--gold); color: #0f172a; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; overflow-y: auto; }
+        .modal-content { background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid var(--gold); width: 95%; max-width: 900px; position: relative; animation: slideDown 0.3s; margin: 20px 0; }
+        .modal-content.large { max-width: 1100px; }
+        .btn-fechar-modal { position: absolute; top: 15px; right: 20px; background: none; border: none; color: var(--erro); font-size: 28px; cursor: pointer; font-weight: bold; }
 
         /* FORMULÁRIO PRODUTO */
         .form-layout { display: flex; gap: 25px; align-items: flex-start; margin-top: 10px; }
@@ -97,9 +124,7 @@
         .campos-container input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--borda); color: white; border-radius: 6px; box-sizing: border-box; }
         .btn-salvar { background: var(--gold); color: #0f172a; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; grid-column: span 2; margin-top: 10px; width: 100%; }
 
-        .grafico-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); height: 320px; margin-bottom: 30px; }
-        .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); transition: 0.2s; }
-        .img-table:hover { border-color: var(--gold); transform: scale(1.1); }
+        .grafico-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); height: 320px; margin-top: 20px; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -111,6 +136,7 @@
     <div class="header-top">
         <img src="logo.png" class="logo-adm" onerror="this.style.display='none'">
         <h1>Lust Store - <span>Painel Administrativo</span></h1>
+        <button class="btn-sair-topo" onclick="sair()">Sair 🔒</button>
     </div>
 
     <div class="tabs">
@@ -128,12 +154,8 @@
         </div>
 
         <div style="margin-bottom: 20px;">
-            <button onclick="abrirRelatorioAvancado()" class="btn-acao btn-gold">📊 Relatório Detalhado (Filtros)</button>
-            <button onclick="gerarEtiquetasDia()" class="btn-acao btn-verde">📦 Gerar Etiquetas de Hoje</button>
-        </div>
-
-        <div class="grafico-box">
-            <canvas id="graficoVendas"></canvas>
+            <button onclick="abrirRelatorioAvancado()" class="btn-acao btn-gold">📊 Relatório Detalhado</button>
+            <button onclick="gerarEtiquetasDia()" class="btn-acao btn-verde">📦 Etiquetas de Hoje</button>
         </div>
 
         <h3 style="color:var(--gold); font-size:12px; text-transform:uppercase; margin-bottom:10px;">Últimas 10 Vendas</h3>
@@ -145,11 +167,26 @@
                 <tbody id="lista-vendas"></tbody>
             </table>
         </div>
+
+        <h3 style="color:var(--gold); font-size:12px; text-transform:uppercase; margin-top:30px;">Performance Mensal</h3>
+        <div class="grafico-box">
+            <canvas id="graficoVendas"></canvas>
+        </div>
     </div>
 
     <div id="inventario" class="tab-content">
         <button class="btn-novo-prod" onclick="abrirModalProduto()"><span>+</span> Adicionar Novo Produto</button>
+        
         <div class="tabela-container">
+            <div class="filtros-bar">
+                <div></div> <input onkeyup="filtrarInventario()" id="f-prod" class="input-filtro" placeholder="Buscar Produto...">
+                <input onkeyup="filtrarInventario()" id="f-custo" class="input-filtro" placeholder="Filtro Custo">
+                <input onkeyup="filtrarInventario()" id="f-venda" class="input-filtro" placeholder="Filtro Venda">
+                <input onkeyup="filtrarInventario()" id="f-estoque" class="input-filtro" placeholder="Filtro Estoque">
+                <input onkeyup="filtrarInventario()" id="f-validade" class="input-filtro" placeholder="Filtro Validade">
+                <div></div>
+            </div>
+
             <table>
                 <thead>
                     <tr>
@@ -157,7 +194,7 @@
                         <th>Produto</th>
                         <th width="130">Custo (€)</th>
                         <th width="130">Venda (€)</th>
-                        <th width="100">Stock</th>
+                        <th width="100">Estoque</th>
                         <th width="160">Validade</th>
                         <th width="50"></th>
                     </tr>
@@ -181,7 +218,7 @@
                 <div class="full-width"><label>Nome</label><input type="text" id="p-nome"></div>
                 <div><label>Custo (€)</label><input type="number" id="p-custo" step="0.01"></div>
                 <div><label>Venda (€)</label><input type="number" id="p-venda" step="0.01"></div>
-                <div><label>Stock</label><input type="number" id="p-stock"></div>
+                <div><label>Estoque</label><input type="number" id="p-stock"></div>
                 <div><label>Validade</label><input type="date" id="p-validade"></div>
                 <button class="btn-salvar" onclick="salvarProduto()">Salvar Produto</button>
             </div>
@@ -193,32 +230,19 @@
     <div class="modal-content large">
         <button class="btn-fechar-modal" onclick="fecharRelatorio()">×</button>
         <h2 style="color:var(--gold); margin-top:0; text-transform:uppercase; font-size:18px;">Relatório de Vendas</h2>
-        
-        <div class="filtro-grid">
-            <div class="filtro-item"><label>Data Início</label><input type="date" id="r-data-ini" class="input-filtro"></div>
-            <div class="filtro-item"><label>Data Fim</label><input type="date" id="r-data-fim" class="input-filtro"></div>
-            <div class="filtro-item"><label>Cliente</label><input type="text" id="r-cliente" class="input-filtro" placeholder="Nome..."></div>
-            <div class="filtro-item"><label>Nº Pedido</label><input type="text" id="r-pedido" class="input-filtro" placeholder="LS-..."></div>
-            <div class="filtro-item" style="display:flex; align-items:flex-end;">
-                <button onclick="filtrarRelatorio()" class="btn-acao btn-gold" style="width:100%; margin:0;">🔍 Filtrar</button>
-            </div>
-            <div class="filtro-item" style="display:flex; align-items:flex-end;">
-                <button onclick="baixarPDFRelatorio()" class="btn-acao" style="width:100%; margin:0; background:var(--erro)">📄 Baixar PDF</button>
-            </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--borda);">
+            <div><label style="color:#94a3b8; font-size:10px;">Início</label><input type="date" id="r-data-ini" style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
+            <div><label style="color:#94a3b8; font-size:10px;">Fim</label><input type="date" id="r-data-fim" style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
+            <div><label style="color:#94a3b8; font-size:10px;">Cliente</label><input type="text" id="r-cliente" placeholder="Nome..." style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
+            <div><label style="color:#94a3b8; font-size:10px;">Pedido</label><input type="text" id="r-pedido" placeholder="LS-..." style="padding:8px; width:100%; border-radius:4px; background:#f1f5f9; color:#0f172a;"></div>
+            <div style="display:flex; align-items:flex-end;"><button onclick="filtrarRelatorio()" class="btn-acao btn-gold" style="width:100%; margin:0;">🔍 Filtrar</button></div>
+            <div style="display:flex; align-items:flex-end;"><button onclick="baixarPDFRelatorio()" class="btn-acao" style="width:100%; margin:0; background:var(--erro)">📄 PDF</button></div>
         </div>
-
         <div style="max-height:400px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse;">
-                <thead>
-                    <tr><th style="color:white">Data</th><th style="color:white">Pedido</th><th style="color:white">Cliente</th><th style="color:white">Total</th></tr>
-                </thead>
+                <thead><tr><th style="color:white">Data</th><th style="color:white">Pedido</th><th style="color:white">Cliente</th><th style="color:white">Total</th></tr></thead>
                 <tbody id="tabela-relatorio"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" style="text-align:right; font-weight:bold; padding:15px; color:var(--gold)">TOTAL DO PERÍODO:</td>
-                        <td id="total-relatorio" style="font-weight:bold; color:var(--gold)">€0.00</td>
-                    </tr>
-                </tfoot>
+                <tfoot><tr><td colspan="3" style="text-align:right; font-weight:bold; padding:15px; color:var(--gold)">TOTAL:</td><td id="total-relatorio" style="font-weight:bold; color:var(--gold)">€0.00</td></tr></tfoot>
             </table>
         </div>
     </div>
@@ -233,9 +257,7 @@
     async function iniciar() {
         const [resP, resV] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`)]);
         produtos = await resP.json(); 
-        // Ordenar vendas da mais recente para a mais antiga
         vendas = (await resV.json()).sort((a,b) => new Date(b.data_venda) - new Date(a.data_venda));
-        
         atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico();
     }
 
@@ -246,16 +268,10 @@
         event.currentTarget.classList.add('active');
     }
 
-    // MODAL PRODUTO
+    // MODAL
     function abrirModalProduto() { document.getElementById('modal-produto').style.display = 'flex'; }
     function fecharModalProduto() { document.getElementById('modal-produto').style.display = 'none'; limparForm(); }
-    
-    function limparForm() {
-        document.getElementById('p-nome').value = ''; document.getElementById('p-custo').value = '';
-        document.getElementById('p-venda').value = ''; document.getElementById('p-stock').value = '';
-        document.getElementById('p-validade').value = ''; fotoBase64 = '';
-        document.getElementById('preview-img').style.display = 'none'; document.getElementById('label-upload').style.display = 'block';
-    }
+    function limparForm() { document.getElementById('p-nome').value = ''; document.getElementById('p-custo').value = ''; document.getElementById('p-venda').value = ''; document.getElementById('p-stock').value = ''; document.getElementById('p-validade').value = ''; fotoBase64 = ''; document.getElementById('preview-img').style.display = 'none'; document.getElementById('label-upload').style.display = 'block'; }
 
     const fmt = (v) => parseFloat(v || 0).toFixed(2);
     const fmtEur = (v) => `€${fmt(v)}`;
@@ -276,10 +292,27 @@
         document.getElementById('dash-lucro-mes').innerText = fmtEur(lMes);
     }
 
-    // INVENTÁRIO (LIVE EDIT + DATE PICKER)
-    function renderizarInventario() {
+    // INVENTÁRIO COM FILTROS
+    function filtrarInventario() {
+        const fProd = document.getElementById('f-prod').value.toLowerCase();
+        const fCusto = document.getElementById('f-custo').value;
+        const fVenda = document.getElementById('f-venda').value;
+        const fEstoque = document.getElementById('f-estoque').value;
+        const fValidade = document.getElementById('f-validade').value;
+
+        const produtosFiltrados = produtos.filter(p => {
+            return (p.nome.toLowerCase().includes(fProd)) &&
+                   (fCusto === '' || p.preco_entrada.toString().includes(fCusto)) &&
+                   (fVenda === '' || p.preco.toString().includes(fVenda)) &&
+                   (fEstoque === '' || p.estoque.toString().includes(fEstoque)) &&
+                   (fValidade === '' || (p.validade && p.validade.includes(fValidade)));
+        });
+        renderizarInventario(produtosFiltrados);
+    }
+
+    function renderizarInventario(lista = produtos) {
         const tbody = document.getElementById('lista-inventario-tabela'); tbody.innerHTML = '';
-        produtos.forEach(p => {
+        lista.forEach(p => {
             tbody.innerHTML += `
                 <tr>
                     <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
@@ -300,7 +333,7 @@
     }
 
     function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
-    function processarFotoTabela(input) { if(input.files[0]) { const r = new FileReader(); r.onload = async (e) => { const p = produtos.find(x => x.id === itemEditTabela); p.imagem = e.target.result; await fetch(`${API}/produtos/${itemEditTabela}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); renderizarInventario(); }; r.readAsDataURL(input.files[0]); } }
+    function processarFotoTabela(input) { if(input.files[0]) { const r = new FileReader(); r.onload = async (e) => { const p = produtos.find(x => x.id === itemEditTabela); p.imagem = e.target.result; await fetch(`${API}/produtos/${itemEditTabela}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); iniciar(); }; r.readAsDataURL(input.files[0]); } }
     function processarFoto(input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
 
     async function salvarProduto() {
@@ -309,13 +342,10 @@
         fecharModalProduto(); iniciar();
     }
 
-    // LISTA DE VENDAS (LIMITADA A 10)
+    // LISTA 10 ULTIMAS VENDAS
     function renderizarVendas() {
         const tb = document.getElementById('lista-vendas'); tb.innerHTML = '';
-        // PEGAR APENAS AS 10 PRIMEIRAS
-        const ultimas10 = vendas.slice(0, 10);
-        
-        ultimas10.forEach(v => {
+        vendas.slice(0, 10).forEach(v => {
             tb.innerHTML += `<tr>
                 <td>${new Date(v.data_venda).toLocaleDateString()}</td>
                 <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
@@ -337,103 +367,49 @@
         new Chart(ctx, { type: 'bar', data: { labels: Array.from({length: diasNoMes}, (_, i) => i + 1), datasets:[{ label:'Vendas €', data:dados, backgroundColor:'#cca43b' }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#334155'}, ticks:{color:'#94a3b8'}}, x:{ticks:{color:'#94a3b8'}} } } });
     }
 
-    // --- SISTEMA DE RELATÓRIO AVANÇADO ---
+    // RELATÓRIO AVANÇADO
     function abrirRelatorioAvancado() {
         document.getElementById('modal-relatorio').style.display = 'flex';
-        // Definir padrão: Mês Atual
         const hoje = new Date();
-        const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0];
-        const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0];
-        
-        document.getElementById('r-data-ini').value = primeiroDia;
-        document.getElementById('r-data-fim').value = ultimoDia;
+        const pDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0];
+        const uDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0];
+        document.getElementById('r-data-ini').value = pDia;
+        document.getElementById('r-data-fim').value = uDia;
         filtrarRelatorio();
     }
-
     function fecharRelatorio() { document.getElementById('modal-relatorio').style.display = 'none'; }
 
     function filtrarRelatorio() {
         const dIni = new Date(document.getElementById('r-data-ini').value);
-        const dFim = new Date(document.getElementById('r-data-fim').value);
-        dFim.setHours(23,59,59); // Incluir o final do dia
-        
-        const cliente = document.getElementById('r-cliente').value.toLowerCase();
-        const pedido = document.getElementById('r-pedido').value.toLowerCase();
+        const dFim = new Date(document.getElementById('r-data-fim').value); dFim.setHours(23,59,59);
+        const cli = document.getElementById('r-cliente').value.toLowerCase();
+        const ped = document.getElementById('r-pedido').value.toLowerCase();
 
         vendasFiltradas = vendas.filter(v => {
-            const dVenda = new Date(v.data_venda);
-            const matchData = (!isNaN(dIni) ? dVenda >= dIni : true) && (!isNaN(dFim) ? dVenda <= dFim : true);
-            const matchCli = v.cliente_nome.toLowerCase().includes(cliente);
-            const matchPed = v.codigo_pedido.toLowerCase().includes(pedido);
-            return matchData && matchCli && matchPed;
+            const d = new Date(v.data_venda);
+            return (!isNaN(dIni) ? d>=dIni : true) && (!isNaN(dFim) ? d<=dFim : true) && v.cliente_nome.toLowerCase().includes(cli) && v.codigo_pedido.toLowerCase().includes(ped);
         });
 
-        const tb = document.getElementById('tabela-relatorio'); tb.innerHTML = '';
-        let total = 0;
-        vendasFiltradas.forEach(v => {
-            total += v.total_venda;
-            tb.innerHTML += `<tr>
-                <td style="color:#cbd5e1; padding:8px; border-bottom:1px solid #334155;">${new Date(v.data_venda).toLocaleDateString()}</td>
-                <td style="color:var(--gold); padding:8px; border-bottom:1px solid #334155;">#${v.codigo_pedido}</td>
-                <td style="color:white; padding:8px; border-bottom:1px solid #334155;">${v.cliente_nome}</td>
-                <td style="color:white; padding:8px; border-bottom:1px solid #334155;">${fmtEur(v.total_venda)}</td>
-            </tr>`;
-        });
-        document.getElementById('total-relatorio').innerText = fmtEur(total);
+        const tb = document.getElementById('tabela-relatorio'); tb.innerHTML = ''; let t = 0;
+        vendasFiltradas.forEach(v => { t += v.total_venda; tb.innerHTML += `<tr><td style="color:#cbd5e1; padding:8px;">${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold); padding:8px;">#${v.codigo_pedido}</td><td style="color:white; padding:8px;">${v.cliente_nome}</td><td style="color:white; padding:8px;">${fmtEur(v.total_venda)}</td></tr>`; });
+        document.getElementById('total-relatorio').innerText = fmtEur(t);
     }
 
     function baixarPDFRelatorio() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFillColor(15, 23, 42); doc.rect(0,0,210,35,'F');
-        doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
+        doc.setFillColor(15, 23, 42); doc.rect(0,0,210,35,'F'); doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
         doc.setTextColor(255,255,255); doc.setFontSize(10); doc.text(`RELATÓRIO FILTRADO`, 14, 26);
-        
-        doc.autoTable({
-            startY: 40, head:[['Data','Pedido','Cliente','Custo','Frete','Venda','Lucro']],
-            body: vendasFiltradas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, v.cliente_nome, fmtEur(v.total_custo), fmtEur(v.total_frete), fmtEur(v.total_venda), fmtEur(v.lucro)]),
-            headStyles:{fillColor:[15, 23, 42], textColor:[204, 164, 59]}, theme:'grid',
-            foot: [['TOTAL', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+b.total_venda,0)), fmtEur(vendasFiltradas.reduce((a,b)=>a+b.lucro,0))]]
-        });
-        doc.save(`Relatorio_Lust_${new Date().toISOString().slice(0,10)}.pdf`);
+        doc.autoTable({ startY: 40, head:[['Data','Pedido','Cliente','Custo','Frete','Venda','Lucro']], body: vendasFiltradas.map(v => [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, v.cliente_nome, fmtEur(v.total_custo), fmtEur(v.total_frete), fmtEur(v.total_venda), fmtEur(v.lucro)]), headStyles:{fillColor:[15, 23, 42], textColor:[204, 164, 59]}, theme:'grid', foot:[['TOTAL', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+b.total_venda,0)), fmtEur(vendasFiltradas.reduce((a,b)=>a+b.lucro,0))]] });
+        doc.save(`Relatorio_Lust.pdf`);
     }
 
-    // PDF INDIVIDUAL
+    // PDFS INDIVIDUAIS
     function gerarEtiqueta(cod) { const v = vendas.find(x => x.codigo_pedido === cod); criarPDFEtiqueta([v]); }
-    function gerarEtiquetasDia() {
-        const hoje = new Date().toLocaleDateString();
-        const lista = vendas.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje);
-        if(!lista.length) return alert("Sem encomendas hoje.");
-        criarPDFEtiqueta(lista);
-    }
-    function criarPDFEtiqueta(listaVendas) {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF({ format:[100, 150], unit:'mm' });
-        listaVendas.forEach((v, idx) => {
-            if(idx > 0) doc.addPage();
-            doc.setFontSize(8); doc.text("REMETENTE: LUST STORE - Portugal", 5, 10);
-            doc.line(2, 30, 98, 30); doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40);
-            doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 48);
-            doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 56);
-            doc.rect(5, 120, 90, 15); doc.text(`#${v.codigo_pedido}`, 50, 130, {align:'center'});
-            doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST - LUST STORE", 50, 15, {align:'center'});
-            doc.setFontSize(10); doc.text(`Pedido: #${v.codigo_pedido}`, 5, 25);
-            let y = 40; v.itens.forEach(i => { doc.text(`[ ] ${i.nome}`, 5, y); y+=8; });
-        });
-        doc.save(`Logistica_Lust.pdf`);
-    }
-    function gerarPDFPedido(cod) {
-        const v = vendas.find(x => x.codigo_pedido === cod); const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F');
-        doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
-        doc.setTextColor(255,255,255); doc.text(`RECIBO DO PEDIDO: #${v.codigo_pedido}`, 14, 26);
-        const body = v.itens.map(i => [i.nome, fmtEur(i.preco)]);
-        body.push(['Frete', fmtEur(v.total_frete)], [{content:'TOTAL', styles:{fontStyle:'bold'}}, fmtEur(v.total_venda)]);
-        doc.autoTable({ startY: 45, head:[['Produto', 'Preço']], body: body, headStyles:{fillColor:[15,23,42]} });
-        doc.save(`Recibo_Lust_${cod}.pdf`);
-    }
+    function gerarEtiquetasDia() { const hoje = new Date().toLocaleDateString(); const l = vendas.filter(v => new Date(v.data_venda).toLocaleDateString() === hoje); if(!l.length) return alert("Sem encomendas hoje."); criarPDFEtiqueta(l); }
+    function criarPDFEtiqueta(l) { const { jsPDF } = window.jspdf; const doc = new jsPDF({ format:[100, 150], unit:'mm' }); l.forEach((v, i) => { if(i > 0) doc.addPage(); doc.setFontSize(8); doc.text("REMETENTE: LUST STORE - Portugal", 5, 10); doc.line(2, 30, 98, 30); doc.setFontSize(10); doc.text("DESTINATÁRIO:", 5, 40); doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome, 5, 48); doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada, 90), 5, 56); doc.rect(5, 120, 90, 15); doc.text(`#${v.codigo_pedido}`, 50, 130, {align:'center'}); doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST - LUST STORE", 50, 15, {align:'center'}); doc.setFontSize(10); doc.text(`Pedido: #${v.codigo_pedido}`, 5, 25); let y = 40; v.itens.forEach(i => { doc.text(`[ ] ${i.nome}`, 5, y); y+=8; }); }); doc.save(`Logistica_Lust.pdf`); }
+    function gerarPDFPedido(cod) { const v = vendas.find(x => x.codigo_pedido === cod); const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F'); doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18); doc.setTextColor(255,255,255); doc.text(`RECIBO: #${v.codigo_pedido}`, 14, 26); const body = v.itens.map(i => [i.nome, fmtEur(i.preco)]); body.push(['Frete', fmtEur(v.total_frete)], [{content:'TOTAL', styles:{fontStyle:'bold'}}, fmtEur(v.total_venda)]); doc.autoTable({ startY: 45, head:[['Produto', 'Preço']], body: body, headStyles:{fillColor:[15,23,42]} }); doc.save(`Recibo_Lust_${cod}.pdf`); }
 
-    async function reenviar(id) { if(confirm("Reenviar email?")) await fetch(`${API}/reenviar-email/${id}`, {method:'POST'}); }
     async function apagarProduto(id) { if(confirm("Apagar?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
-    
     iniciar();
 </script>
 </body>
