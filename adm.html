@@ -28,44 +28,32 @@
         .tab-btn.active { color: var(--gold); border-bottom: 4px solid var(--gold); }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s; }
+        
+        /* ESTILOS COMUNS */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; border-bottom: 4px solid var(--gold); }
         .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; }
         .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: 700; color: white; }
-        
         .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1200px; }
         th { text-align: left; padding: 15px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; font-size: 10px; vertical-align: top; }
         td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
-        
         .filtro-row th { padding: 5px 12px 15px 12px; border-bottom: 2px solid var(--borda); background: #162032; }
         .filtro-wrapper { display: flex; gap: 5px; }
         .sel-op { width: 40px; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; font-size: 11px; text-align: center; cursor: pointer; }
         .inp-filtro { width: 100%; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; padding: 6px; font-size: 11px; }
-        
         .input-live { background-color: var(--campo-edit) !important; border: 1px solid #94a3b8 !important; padding: 0 8px !important; color: var(--texto-input) !important; width: 100%; font-size: 13px !important; font-weight: bold !important; border-radius: 4px; text-align: center; appearance: none; -moz-appearance: textfield; transition: 0.3s; height: 36px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .input-live:focus { border-color: var(--gold) !important; outline: none; background: #fff !important; }
-        
-        /* Select na tabela */
-        select.input-live { 
-            text-align-last: center; 
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); 
-            background-repeat: no-repeat; background-position: right 5px center; background-size: 16px; 
-            padding-right: 20px !important; margin-bottom: 4px;
-        }
-
+        select.input-live { text-align-last: center; background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 5px center; background-size: 16px; padding-right: 20px !important; margin-bottom: 4px; }
         .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); }
-        
         .cod-tag { font-family: monospace; color: var(--gold); font-size: 10px; display: block; margin-top: 2px; }
         .aviso-validade { font-size: 9px; font-weight: bold; text-align: center; display: block; padding-top: 4px; }
         .texto-critico { color: var(--erro); }
         .texto-atencao { color: var(--alerta); }
-
         .btn-novo-prod { background: var(--gold); color: #0f172a; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-acao { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-right: 8px; }
         .btn-verde { background: var(--verde) !important; }
         .btn-gold { background: var(--gold) !important; color: #0f172a !important; }
-        
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid var(--gold); width: 95%; max-width: 900px; position: relative; animation: slideDown 0.3s; }
         .modal-content.large { max-width: 1100px; }
@@ -79,13 +67,27 @@
         .campos-grid label { font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; display: block; font-weight: bold; }
         .btn-salvar { background: var(--gold); color: #0f172a; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 10px; grid-column: span 2; }
         .grafico-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); height: 320px; margin-top: 20px; }
+        
+        /* ESTILOS ESPECÍFICOS ABA FRETE */
+        .frete-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .frete-card { background: #162032; padding: 20px; border-radius: 8px; border: 1px solid var(--borda); }
+        .frete-card h3 { color: var(--gold); margin-top: 0; text-align: center; border-bottom: 1px solid var(--borda); padding-bottom: 10px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
+        .form-group input { width: 100%; padding: 10px; background: var(--dark); border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; }
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header-top"><img src="logo.png" class="logo-adm" onerror="this.style.display='none'"><h1>Lust Store - <span>Painel Administrativo</span></h1><button class="btn-sair-topo" onclick="sair()">Sair 🔒</button></div>
-    <div class="tabs"><button class="tab-btn active" onclick="openTab('financeiro')">📈 Financeiro</button><button class="tab-btn" onclick="openTab('inventario')">📦 Inventário</button></div>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('financeiro')">📈 Financeiro</button>
+        <button class="tab-btn" onclick="openTab('inventario')">📦 Inventário</button>
+        <button class="tab-btn" onclick="openTab('frete')">🚚 Frete</button>
+    </div>
     
     <div id="financeiro" class="tab-content active">
         <div class="dashboard">
@@ -114,6 +116,30 @@
             </table>
         </div>
     </div>
+
+    <div id="frete" class="tab-content">
+        <div class="frete-grid">
+            <div class="frete-card">
+                <h3>🇵🇹 Portugal</h3>
+                <div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="pt_std" step="0.01"></div>
+                <div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="pt_exp" step="0.01"></div>
+                <div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="pt_free" step="0.01"></div>
+            </div>
+            <div class="frete-card">
+                <h3>🇪🇸 Espanha</h3>
+                <div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="es_std" step="0.01"></div>
+                <div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="es_exp" step="0.01"></div>
+                <div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="es_free" step="0.01"></div>
+            </div>
+            <div class="frete-card">
+                <h3>🇪🇺 Europa</h3>
+                <div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="eu_std" step="0.01"></div>
+                <div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="eu_exp" step="0.01"></div>
+                <div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="eu_free" step="0.01"></div>
+            </div>
+        </div>
+        <button class="btn-salvar" onclick="salvarConfigFrete()" style="margin-top: 20px;">Salvar Configurações de Frete</button>
+    </div>
 </div>
 
 <div id="modal-produto" class="modal-overlay">
@@ -126,7 +152,7 @@
                 <div class="full"><label>Nome do Produto</label><input type="text" id="p-nome"></div>
                 <div><label>Marca</label><input type="text" id="p-marca" placeholder="Ex: L'Oréal" oninput="gerarSKU()"></div>
                 <div><label>Categoria</label><select id="p-categoria" onchange="gerarSKU()"><option value="">Selecione...</option><option value="Pele">Pele</option><option value="Cabelo">Cabelo</option><option value="Olhos">Olhos</option><option value="Labios">Lábios</option><option value="Unhas">Unhas</option></select></div>
-                <div class="full"><label>Cód. Produto (SKU)</label><input type="text" id="p-sku" readonly style="background:#1e293b; color:#94a3b8; font-family:monospace; border:1px dashed #334155;"></div>
+                <div class="full"><label>Código (Automático)</label><input type="text" id="p-sku" readonly style="background:#1e293b; color:#94a3b8; font-family:monospace; border:1px dashed #334155;"></div>
                 <div><label>Custo (€)</label><input type="number" id="p-custo" step="0.01"></div><div><label>Venda (€)</label><input type="number" id="p-venda" step="0.01"></div><div><label>Estoque</label><input type="number" id="p-stock"></div><div><label>Validade</label><input type="date" id="p-validade"></div>
                 <button class="btn-salvar" onclick="salvarProduto()">Salvar Produto</button>
             </div>
@@ -146,7 +172,7 @@
             <button onclick="filtrarRelatorio()" class="btn-acao btn-gold" style="grid-column:span 2; margin:0;">🔍 Filtrar</button>
             <button onclick="baixarPDFRelatorio()" class="btn-acao" style="grid-column:span 2; margin:0; background:var(--erro)">📄 PDF</button>
         </div>
-        <div style="max-height:400px; overflow-y:auto;"><table style="width:100%; border-collapse:collapse;"><thead><tr><th style="color:white">Data</th><th style="color:white">Pedido</th><th style="color:white">Itens (Cód. + Nome)</th><th style="color:white">Cliente</th><th style="color:white">Total</th></tr></thead><tbody id="tabela-relatorio"></tbody><tfoot><tr><td colspan="4" style="text-align:right; padding:15px; font-weight:bold; color:var(--gold)">TOTAL:</td><td id="total-relatorio" style="font-weight:bold; color:var(--gold)">€0.00</td></tr></tfoot></table></div>
+        <div style="max-height:400px; overflow-y:auto;"><table style="width:100%; border-collapse:collapse;"><thead><tr><th style="color:white">Data</th><th style="color:white">Pedido</th><th style="color:white">Itens (Cód + Nome)</th><th style="color:white">Cliente</th><th style="color:white">Total</th></tr></thead><tbody id="tabela-relatorio"></tbody><tfoot><tr><td colspan="4" style="text-align:right; padding:15px; font-weight:bold; color:var(--gold)">TOTAL:</td><td id="total-relatorio" style="font-weight:bold; color:var(--gold)">€0.00</td></tr></tfoot></table></div>
     </div>
 </div>
 
@@ -155,8 +181,57 @@
 <script>
     const API = "https://projeto-loja-dzqv.onrender.com";
     let produtos = [], vendas = [], vendasFiltradas = [], fotoBase64 = "", itemEditTabela = null;
-    async function iniciar() { const [resP, resV] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`)]); produtos = await resP.json(); vendas = (await resV.json()).sort((a,b) => new Date(b.data_venda) - new Date(a.data_venda)); atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico(); }
-    function openTab(id) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); }
+    let configFrete = {};
+
+    async function iniciar() { 
+        const [resP, resV, resC] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/vendas`), fetch(`${API}/config`)]); 
+        produtos = await resP.json(); 
+        vendas = (await resV.json()).sort((a,b) => new Date(b.data_venda) - new Date(a.data_venda));
+        configFrete = await resC.json();
+        
+        carregarConfigNoForm();
+        atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico(); 
+    }
+
+    function openTab(id) { 
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); 
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+        document.getElementById(id).classList.add('active'); 
+        event.currentTarget.classList.add('active'); 
+    }
+
+    // --- FUNÇÕES DE FRETE ---
+    function carregarConfigNoForm() {
+        if (!configFrete) return;
+        document.getElementById('pt_std').value = configFrete.pt_std;
+        document.getElementById('pt_exp').value = configFrete.pt_exp;
+        document.getElementById('pt_free').value = configFrete.pt_free;
+        document.getElementById('es_std').value = configFrete.es_std;
+        document.getElementById('es_exp').value = configFrete.es_exp;
+        document.getElementById('es_free').value = configFrete.es_free;
+        document.getElementById('eu_std').value = configFrete.eu_std;
+        document.getElementById('eu_exp').value = configFrete.eu_exp;
+        document.getElementById('eu_free').value = configFrete.eu_free;
+    }
+
+    async function salvarConfigFrete() {
+        const novaConfig = {
+            pt_std: parseFloat(document.getElementById('pt_std').value),
+            pt_exp: parseFloat(document.getElementById('pt_exp').value),
+            pt_free: parseFloat(document.getElementById('pt_free').value),
+            es_std: parseFloat(document.getElementById('es_std').value),
+            es_exp: parseFloat(document.getElementById('es_exp').value),
+            es_free: parseFloat(document.getElementById('es_free').value),
+            eu_std: parseFloat(document.getElementById('eu_std').value),
+            eu_exp: parseFloat(document.getElementById('eu_exp').value),
+            eu_free: parseFloat(document.getElementById('eu_free').value)
+        };
+        await fetch(`${API}/config`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(novaConfig) });
+        alert("Configurações de frete atualizadas!");
+        iniciar();
+    }
+
+    // --- FUNÇÕES DE PRODUTO ---
     function abrirModalProd() { document.getElementById('modal-produto').style.display='flex'; }
     function fecharModalProd() { document.getElementById('modal-produto').style.display='none'; limparForm(); }
     function limparForm() { document.getElementById('p-nome').value=''; document.getElementById('p-marca').value=''; document.getElementById('p-categoria').value=''; document.getElementById('p-sku').value=''; document.getElementById('p-custo').value=''; document.getElementById('p-venda').value=''; document.getElementById('p-stock').value=''; document.getElementById('p-validade').value=''; fotoBase64=''; document.getElementById('preview-img').style.display='none'; document.getElementById('label-upload').style.display='block'; }
@@ -167,7 +242,6 @@
     function checkNum(val, filter, op) { if(!filter) return true; const n = parseFloat(filter); if(op === '>') return val > n; if(op === '<') return val < n; return val == n; }
     function filtrarInv() { const fProd = document.getElementById('f-prod').value.toLowerCase(); const fCusto = document.getElementById('f-custo').value; const opCusto = document.getElementById('op-custo').value; const fVenda = document.getElementById('f-venda').value; const opVenda = document.getElementById('op-venda').value; const fEstoque = document.getElementById('f-estoque').value; const opEstoque = document.getElementById('op-estoque').value; const listaFiltrada = produtos.filter(p => { return (p.nome.toLowerCase().includes(fProd)) && checkNum(parseFloat(p.preco_entrada||0), fCusto, opCusto) && checkNum(parseFloat(p.preco||0), fVenda, opVenda) && checkNum(p.estoque, fEstoque, opEstoque); }); renderizarInventario(listaFiltrada); }
     
-    // INVENTÁRIO COM MENU POP-UP PARA CATEGORIAS
     function renderizarInventario(lista = produtos) {
         const tbody = document.getElementById('lista-inventario-tabela'); tbody.innerHTML = '';
         const hoje = new Date();
@@ -197,8 +271,6 @@
     function processarFotoTabela(input) { if(input.files[0]) { const r = new FileReader(); r.onload = async (e) => { const p = produtos.find(x => x.id === itemEditTabela); p.imagem = e.target.result; await fetch(`${API}/produtos/${itemEditTabela}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); iniciar(); }; r.readAsDataURL(input.files[0]); } }
     function processarFoto(input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
     async function salvarProduto() { const p = { nome: document.getElementById('p-nome').value, marca: document.getElementById('p-marca').value, categoria: document.getElementById('p-categoria').value, sku: document.getElementById('p-sku').value, validade: document.getElementById('p-validade').value, preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, preco: parseFloat(document.getElementById('p-venda').value)||0, estoque: parseInt(document.getElementById('p-stock').value)||0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' }; await fetch(`${API}/produtos`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) }); fecharModalProd(); iniciar(); }
-    
-    // TABELA DE VENDAS (CÓDIGO PRIMEIRO)
     function renderizarVendas() { const tb = document.getElementById('lista-vendas'); tb.innerHTML = ''; vendas.slice(0, 10).forEach(v => { const itensResumo = v.itens.map(i => `[${i.sku||'?'}] ${i.nome}`).join('<br>'); tb.innerHTML += `<tr><td>${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td><td>${v.cliente_nome}<div style="font-size:10px; color:#64748b; margin-top:2px;">${itensResumo}</div></td><td>${fmtEur(v.total_venda)}</td><td><button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde">📦</button><button onclick="gerarPDFPedido('${v.codigo_pedido}')" class="btn-acao">📄</button><button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6">📧</button></td></tr>`; }); }
     function renderizarGrafico() { const ctx = document.getElementById('graficoVendas').getContext('2d'); const hoje=new Date(); const dias=new Array(new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate()).fill(0); vendas.forEach(v => { const d=new Date(v.data_venda); if(d.getMonth()===hoje.getMonth()) dias[d.getDate()-1]+=v.total_venda; }); new Chart(ctx, { type:'bar', data:{labels:Array.from({length:dias.length},(_,i)=>i+1), datasets:[{label:'Vendas €',data:dias,backgroundColor:'#cca43b'}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#334155'},ticks:{color:'#94a3b8'}},x:{ticks:{color:'#94a3b8'}}}} }); }
     function abrirRelatorio() { document.getElementById('modal-relatorio').style.display='flex'; const h=new Date(); document.getElementById('r-data-ini').value=new Date(h.getFullYear(),h.getMonth(),1).toISOString().split('T')[0]; document.getElementById('r-data-fim').value=new Date(h.getFullYear(),h.getMonth()+1,0).toISOString().split('T')[0]; filtrarRelatorio(); }
