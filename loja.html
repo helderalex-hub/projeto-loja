@@ -1,28 +1,3 @@
-I will now analyze the `loja (2).html` and `loja (3).html` files, compare them, and define the best and most complete code with all the features: side cart, real-time search, filters, sorting, and product codes.
-
-Based on the analysis of `loja (3).html` provided in the user's prompt, it already includes the **search bar**, **category filters**, **sorting dropdown**, and **SKU display**.
-
-However, the user's latest request was to implement the **Side Cart (Carrinho Lateral)**. The file `loja (3).html` *does not* have the side cart implemented; it still uses the basic bottom floating button logic (`#btn-carrinho`).
-
-Therefore, the definitive code must allow for:
-
-1. **Search & Filters & Sort** (from `loja (3)`).
-2. **SKU Display** (from `loja (3)`).
-3. **Side Cart Logic** (requested now).
-
-I will merge the features of `loja (3).html` (Search/Filter/Sort/SKU) with the **Side Cart** logic I proposed earlier.
-
-Here is the **final, definitive code for `loja.html**` merging all functionalities.
-
-### 🛍️ `loja.html` (Versão Definitiva: Filtros + Busca + Ordenação + Side Cart + SKU)
-
-Este código combina o melhor de tudo:
-
-* **Barra de Controlo:** Busca, Filtros e Ordenação.
-* **Carrinho Lateral:** Desliza da direita, permite editar quantidades e ver o total em tempo real.
-* **Cartão de Produto:** Mostra o Código (SKU) e envia-o para o carrinho.
-
-```html
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -44,9 +19,10 @@ Este código combina o melhor de tudo:
         
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
-        /* HEADER COM CARRINHO */
+        /* HEADER */
         header { background: var(--dark); padding: 20px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .logo-img { height: 40px; margin-right: 10px; }
+        .header-content { display: flex; align-items: center; gap: 10px; }
+        .logo-img { height: 40px; }
         header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; font-weight: 400; }
         
         .cart-trigger { position: relative; cursor: pointer; color: white; transition: 0.3s; }
@@ -54,72 +30,6 @@ Este código combina o melhor de tudo:
         .cart-trigger svg { width: 28px; height: 28px; }
         .cart-badge { position: absolute; top: -5px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-        /* BARRA DE CONTROLO (BUSCA + FILTROS + ORDENAÇÃO) */
-        .controls-container {
-            background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px;
-            display: flex; flex-direction: column; gap: 15px; align-items: center;
-        }
-        @media(min-width: 900px) {
-            .controls-container { flex-direction: row; justify-content: space-between; }
-        }
-        
-        .search-wrapper { position: relative; width: 100%; max-width: 300px; }
-        .search-input {
-            width: 100%; padding: 8px 35px 8px 15px; border-radius: 50px; 
-            border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Inter', sans-serif;
-            font-size: 13px; outline: none; transition: 0.3s; box-sizing: border-box;
-        }
-        .search-input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.1); }
-        .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
-
-        .filtros-lista { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .btn-filtro {
-            background: transparent; border: 1px solid #cbd5e1; color: var(--dark);
-            padding: 6px 16px; border-radius: 50px; cursor: pointer; font-size: 12px;
-            text-transform: uppercase; font-weight: bold; transition: 0.3s;
-        }
-        .btn-filtro:hover { border-color: var(--gold); color: var(--gold); }
-        .btn-filtro.ativo { background: var(--gold); color: #0f172a; border-color: var(--gold); box-shadow: 0 4px 10px rgba(204, 164, 59, 0.3); }
-
-        .sort-wrapper select {
-            padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;
-            background: #f8fafc; color: var(--dark); font-family: 'Inter', sans-serif;
-            font-size: 12px; font-weight: bold; cursor: pointer; outline: none;
-        }
-        .sort-wrapper select:focus { border-color: var(--gold); }
-
-        /* VITRINE */
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
-        .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
-        
-        .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; display: flex; flex-direction: column; border: 1px solid transparent; position: relative; }
-        .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        
-        .img-container { width: 100%; height: 280px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .img-container img { width: 90%; height: 90%; object-fit: contain; transition: transform 0.5s ease; mix-blend-mode: multiply; }
-        .produto-card:hover img { transform: scale(1.08); }
-        
-        .produto-card.esgotado { opacity: 0.6; pointer-events: none; }
-        .produto-card.esgotado img { filter: grayscale(100%); }
-        .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 15px; font-weight: bold; font-size: 12px; border: 1px solid white; display: none; }
-        .produto-card.esgotado .overlay-esgotado { display: block; }
-
-        .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-        .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
-        .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; font-weight: bold; }
-        .sku { font-size: 10px; color: #cbd5e1; margin-bottom: 5px; font-family: monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; width: fit-content; }
-        
-        .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
-        .alerta-estoque { color: #ef4444; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
-        
-        .compra-row { display: flex; gap: 10px; margin-top: auto; }
-        .qtd-seletor { display: flex; align-items: center; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
-        .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; height: 100%; }
-        .qtd-btn:hover { color: var(--gold); background: var(--dark); }
-        .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
-        .btn-comprar:hover { background: var(--gold); color: var(--dark); }
-        .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
-        
         /* SIDE CART (CARRINHO LATERAL) */
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(2px); }
         .cart-overlay.open { opacity: 1; visibility: visible; }
@@ -152,7 +62,69 @@ Este código combina o melhor de tudo:
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
 
+        /* CONTROLOS */
+        .controls-container {
+            background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px;
+            display: flex; flex-direction: column; gap: 15px; align-items: center;
+        }
+        @media(min-width: 900px) { .controls-container { flex-direction: row; justify-content: space-between; } }
+        
+        .search-wrapper { position: relative; width: 100%; max-width: 300px; }
+        .search-input {
+            width: 100%; padding: 8px 35px 8px 15px; border-radius: 50px; 
+            border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Inter', sans-serif;
+            font-size: 13px; outline: none; transition: 0.3s; box-sizing: border-box;
+        }
+        .search-input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.1); }
+        .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+
+        .filtros-lista { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .btn-filtro {
+            background: transparent; border: 1px solid #cbd5e1; color: var(--dark);
+            padding: 6px 16px; border-radius: 50px; cursor: pointer; font-size: 12px;
+            text-transform: uppercase; font-weight: bold; transition: 0.3s;
+        }
+        .btn-filtro:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-filtro.ativo { background: var(--gold); color: #0f172a; border-color: var(--gold); box-shadow: 0 4px 10px rgba(204, 164, 59, 0.3); }
+
+        .sort-wrapper select {
+            padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;
+            background: #f8fafc; color: var(--dark); font-family: 'Inter', sans-serif;
+            font-size: 12px; font-weight: bold; cursor: pointer; outline: none;
+        }
+        .sort-wrapper select:focus { border-color: var(--gold); }
+
+        /* VITRINE */
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
+        
+        .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; display: flex; flex-direction: column; border: 1px solid transparent; position: relative; }
+        .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .img-container { width: 100%; height: 280px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .img-container img { width: 90%; height: 90%; object-fit: contain; transition: transform 0.5s ease; mix-blend-mode: multiply; }
+        .produto-card:hover img { transform: scale(1.08); }
+        .produto-card.esgotado { opacity: 0.6; pointer-events: none; }
+        .produto-card.esgotado img { filter: grayscale(100%); }
+        .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 15px; font-weight: bold; font-size: 12px; border: 1px solid white; display: none; }
+        .produto-card.esgotado .overlay-esgotado { display: block; }
+        
+        .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
+        .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; font-weight: bold; }
+        .sku { font-size: 10px; color: #cbd5e1; margin-bottom: 5px; font-family: monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; width: fit-content; }
+        .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
+        .alerta-estoque { color: #ef4444; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
+        
+        .compra-row { display: flex; gap: 10px; margin-top: auto; }
+        .qtd-seletor { display: flex; align-items: center; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
+        .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; height: 100%; }
+        .qtd-btn:hover { color: var(--gold); background: var(--dark); }
+        .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
+        .btn-comprar:hover { background: var(--gold); color: var(--dark); }
+        .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+        
         .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; align-items: flex-end; }
+        #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; display: none; }
         .btn-share { width: 50px; height: 50px; border-radius: 50%; background: #25D366; color: white; border: none; cursor: pointer; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.3s; }
         .btn-share:hover { transform: scale(1.1); }
         
@@ -164,11 +136,9 @@ Este código combina o melhor de tudo:
     <div class="frete-bar">PORTES GRÁTIS: PT > 60€ | ES > 85€ | EUROPA > 125€</div>
     
     <header>
-        <div class="header-content" style="flex-direction: row; gap: 15px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
-                <h1>Lust Store</h1>
-            </div>
+        <div class="header-content">
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <h1>Lust Store - <span>Vitrine</span></h1>
         </div>
         <div class="cart-trigger" onclick="toggleCart()">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,12 +194,15 @@ Este código combina o melhor de tudo:
     
     <div class="floating-container">
         <button class="btn-share" onclick="partilharLoja()" title="Partilhar no WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.017-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg></button>
+        <button id="btn-carrinho-float" onclick="toggleCart()">
+            🛒 Ver Carrinho <span id="cart-count">0</span>
+        </button>
     </div>
     
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let todosProdutos = [];
-        let carrinho = []; // ARRAY COM OBJETOS {id, nome, preco, sku, imagem, qtd}
+        let carrinho = [];
         let catAtual = 'todos';
         
         async function carregarProdutos() {
@@ -250,11 +223,15 @@ Este código combina o melhor de tudo:
 
         function aplicarRegras() {
             let lista = [...todosProdutos];
+            
+            // 1. Categoria
             if (catAtual !== 'todos') lista = lista.filter(p => p.categoria === catAtual);
             
+            // 2. Busca
             const termo = document.getElementById('search-input').value.toLowerCase();
             if (termo) lista = lista.filter(p => p.nome.toLowerCase().includes(termo) || (p.marca && p.marca.toLowerCase().includes(termo)));
 
+            // 3. Ordenação
             const ordem = document.getElementById('sort-select').value;
             if (ordem === 'preco-menor') lista.sort((a,b) => a.preco - b.preco);
             else if (ordem === 'preco-maior') lista.sort((a,b) => b.preco - a.preco);
@@ -290,7 +267,7 @@ Este código combina o melhor de tudo:
             });
         }
 
-        // --- LÓGICA DO CARRINHO ---
+        // --- LÓGICA DO CARRINHO LATERAL ---
         function toggleCart() {
             document.getElementById('side-cart').classList.toggle('open');
             document.getElementById('cart-overlay').classList.toggle('open');
@@ -303,20 +280,17 @@ Este código combina o melhor de tudo:
         }
 
         function addCarrinho(id, nome, preco, sku, img) { 
-            // Pega quantidade escolhida no card
             const qtdSpan = document.getElementById(`qtd-card-${id}`);
             const qtdAdicionar = qtdSpan ? parseInt(qtdSpan.innerText) : 1;
 
-            // Verifica se já existe
             const item = carrinho.find(i => i.id == id);
             if (item) item.qtd += qtdAdicionar;
             else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdAdicionar});
 
-            // Reset do card
-            if (qtdSpan) qtdSpan.innerText = "1";
+            if (qtdSpan) qtdSpan.innerText = "1"; // Reset do card
 
             atualizarCarrinhoUI();
-            toggleCart(); // Abre o carrinho automaticamente
+            toggleCart(); // Abre o carrinho
         }
 
         function removeDoCarrinho(id) {
@@ -337,6 +311,8 @@ Este código combina o melhor de tudo:
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total-val');
             const badge = document.getElementById('header-cart-count');
+            const floatBtn = document.getElementById('btn-carrinho-float');
+            const floatCount = document.getElementById('cart-count');
             
             container.innerHTML = '';
             let total = 0;
@@ -345,12 +321,14 @@ Este código combina o melhor de tudo:
             if (carrinho.length === 0) {
                 container.innerHTML = '<p class="empty-msg">O seu carrinho está vazio.</p>';
                 document.getElementById('btn-checkout').disabled = true;
+                floatBtn.style.display = 'none';
             } else {
                 document.getElementById('btn-checkout').disabled = false;
+                floatBtn.style.display = 'block';
+                
                 carrinho.forEach(item => {
                     total += item.preco * item.qtd;
                     count += item.qtd;
-                    // Garante imagem válida
                     const imgUrl = (item.imagem && item.imagem.length > 10) ? item.imagem : 'https://placehold.co/60x60?text=Lust';
                     
                     container.innerHTML += `
@@ -372,6 +350,7 @@ Este código combina o melhor de tudo:
             
             totalEl.innerText = `€${total.toFixed(2)}`;
             badge.innerText = count;
+            floatCount.innerText = count;
         }
 
         async function finalizarCompra() { 
@@ -380,7 +359,7 @@ Este código combina o melhor de tudo:
             const txtOriginal = btn.innerText;
             btn.disabled = true; btn.innerText = "A PROCESSAR...";
             
-            // DESCOMPACTA O CARRINHO (TRANSFORMA "2x BATOM" EM "BATOM, BATOM") PARA O BACKEND
+            // DESCOMPACTA PARA O BACKEND
             let itensParaBackend = [];
             carrinho.forEach(item => {
                 for(let k=0; k<item.qtd; k++) {
@@ -391,11 +370,8 @@ Este código combina o melhor de tudo:
             try { 
                 const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(itensParaBackend) }); 
                 const d = await res.json(); 
-                if(d.url) window.location.href = d.url; 
-                else throw new Error("Sem URL"); 
-            } catch(e) { 
-                alert("Erro ao conectar."); btn.disabled = false; btn.innerText = txtOriginal; 
-            } 
+                if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); 
+            } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerText = txtOriginal; } 
         }
 
         function partilharLoja() { const texto = "Confira as novidades exclusivas da Lust Store! 💎"; const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=${texto} ${url}`, '_blank'); }
@@ -403,4 +379,3 @@ Este código combina o melhor de tudo:
     </script>
 </body>
 </html>
-```
