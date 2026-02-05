@@ -120,6 +120,20 @@ app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
+
+// ENDPOINTS DE CONFIGURAÇÃO DE FRETE
+app.get('/config', async (req, res) => {
+    const { data } = await supabase.from('config_loja').select('*').single();
+    // Retorna valores padrão se a tabela estiver vazia
+    res.json(data || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60, es_std: 5.95, es_exp: 9.95, es_free: 85, eu_std: 12.50, eu_exp: 25.00, eu_free: 125 });
+});
+
+app.put('/config', async (req, res) => {
+    const { error } = await supabase.from('config_loja').upsert({ id: 1, ...req.body });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+});
+
 app.get('/pedido/:codigo', async (req, res) => {
     const { codigo } = req.params;
     const { data, error } = await supabase.from('vendas').select('*').eq('codigo_pedido', codigo).single();
@@ -144,19 +158,26 @@ app.post('/checkout', async (req, res) => {
     try {
         const itens = req.body;
         const novoIdPedido = gerarIdLust(); 
+        
+        // Carrega configurações de frete
+        const { data: config } = await supabase.from('config_loja').select('*').single();
+        const cf = config || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60, es_std: 5.95, es_exp: 9.95, es_free: 85, eu_std: 12.50, eu_exp: 25.00, eu_free: 125 };
+
         let total = 0;
         const line_items = itens.map(i => { 
             total += Math.round(i.preco * 100); 
-            // NOME NO STRIPE: [COD] NOME
             return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(i.preco * 100) }, quantity: 1 }; 
         });
+
+        // Configura opções de frete dinâmicas
         const s_options = [
-            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 6000 ? 0 : 450, currency: 'eur' }, display_name: 'Portugal: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 4 } } } },
-            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 800, currency: 'eur' }, display_name: 'Portugal: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 1 }, maximum: { unit: 'business_day', value: 2 } } } },
-            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 8500 ? 0 : 595, currency: 'eur' }, display_name: 'Espanha: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 3 }, maximum: { unit: 'business_day', value: 5 } } } },
-            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= 12500 ? 0 : 1250, currency: 'eur' }, display_name: 'Europa: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 5 }, maximum: { unit: 'business_day', value: 10 } } } },
-            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 2500, currency: 'eur' }, display_name: 'Europa: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 3 } } } }
+            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= (cf.pt_free * 100) ? 0 : Math.round(cf.pt_std * 100), currency: 'eur' }, display_name: 'Portugal: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 4 } } } },
+            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(cf.pt_exp * 100), currency: 'eur' }, display_name: 'Portugal: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 1 }, maximum: { unit: 'business_day', value: 2 } } } },
+            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= (cf.es_free * 100) ? 0 : Math.round(cf.es_std * 100), currency: 'eur' }, display_name: 'Espanha: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 3 }, maximum: { unit: 'business_day', value: 5 } } } },
+            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: total >= (cf.eu_free * 100) ? 0 : Math.round(cf.eu_std * 100), currency: 'eur' }, display_name: 'Europa: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 5 }, maximum: { unit: 'business_day', value: 10 } } } },
+            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(cf.eu_exp * 100), currency: 'eur' }, display_name: 'Europa: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 3 } } } }
         ];
+
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'], 
             shipping_address_collection: { allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'] }, 
@@ -168,5 +189,6 @@ app.post('/checkout', async (req, res) => {
         res.json({ url: session.url });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Porta ${PORT}`));
