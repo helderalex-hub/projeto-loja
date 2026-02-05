@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     <meta property="og:description" content="Descubra a coleção exclusiva de calçado e cosmética premium.">
     <meta property="og:image" content="https://helderalex-hub.github.io/projeto-loja/social-share.jpg">
     <meta property="og:url" content="https://projeto-loja-dzqv.onrender.com">
     <meta property="og:type" content="website">
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
+        
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
         /* HEADER */
@@ -48,6 +52,7 @@
         .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
         .cart-total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: var(--dark); margin-bottom: 15px; }
+        .country-select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; font-weight: bold; color: var(--dark); }
         .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; }
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
@@ -106,7 +111,6 @@
 </head>
 <body>
     <div id="frete-bar" class="frete-bar">A CARREGAR OFERTAS...</div>
-    
     <header>
         <div class="header-content">
             <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
@@ -126,6 +130,11 @@
         <div class="cart-body" id="cart-items"><p class="empty-msg">O seu carrinho está vazio.</p></div>
         <div class="cart-footer">
             <div class="cart-total-row"><span>Total</span><span id="cart-total-val">€0.00</span></div>
+            <select id="pais-destino" class="country-select">
+                <option value="PT">🇵🇹 Portugal</option>
+                <option value="ES">🇪🇸 Espanha</option>
+                <option value="EU">🇪🇺 Outros (Europa)</option>
+            </select>
             <button class="btn-checkout" onclick="finalizarCompra()" id="btn-checkout" disabled>Finalizar Compra</button>
         </div>
     </div>
@@ -165,27 +174,18 @@
     
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com';
-        let todosProdutos = [];
-        let carrinho = [];
-        let catAtual = 'todos';
+        let todosProdutos = [], carrinho = [], catAtual = 'todos';
         
         async function carregarProdutos() {
             try {
-                // CARREGA PRODUTOS E CONFIG DE FRETE
                 const [resP, resC] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/config`)]);
                 todosProdutos = await resP.json();
                 const config = await resC.json();
-                
-                // ATUALIZA BANNER DE FRETE
-                if(config) {
-                    document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${config.pt_free} | ES > €${config.es_free} | EUROPA > €${config.eu_free}`;
-                }
-
+                if(config) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${config.pt_free} | ES > €${config.es_free} | EUROPA > €${config.eu_free}`;
                 aplicarRegras(); 
             } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; }
         }
 
-        // --- FILTROS E ORDENAÇÃO ---
         function mudarCategoria(cat, btn) {
             catAtual = cat;
             document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo'));
@@ -196,47 +196,33 @@
         function aplicarRegras() {
             let lista = [...todosProdutos];
             if (catAtual !== 'todos') lista = lista.filter(p => p.categoria === catAtual);
-            
             const termo = document.getElementById('search-input').value.toLowerCase();
             if (termo) lista = lista.filter(p => p.nome.toLowerCase().includes(termo) || (p.marca && p.marca.toLowerCase().includes(termo)));
-
             const ordem = document.getElementById('sort-select').value;
             if (ordem === 'preco-menor') lista.sort((a,b) => a.preco - b.preco);
             else if (ordem === 'preco-maior') lista.sort((a,b) => b.preco - a.preco);
             else if (ordem === 'a-z') lista.sort((a,b) => a.nome.localeCompare(b.nome));
             else if (ordem === 'z-a') lista.sort((a,b) => b.nome.localeCompare(a.nome));
-
             renderizarProdutos(lista);
         }
 
         function renderizarProdutos(lista) {
             const vitrine = document.getElementById('vitrine'); vitrine.innerHTML = '';
             const hoje = new Date();
-
             if (lista.length === 0) { vitrine.innerHTML = "<div class='sem-result'>Nenhum produto encontrado.</div>"; return; }
-            
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0; 
                 let esgotado = stock <= 0;
-                
-                if (p.validade) {
-                    const dataVal = new Date(p.validade);
-                    if (dataVal < hoje) esgotado = true; 
-                }
-
+                if (p.validade) { const dataVal = new Date(p.validade); if (dataVal < hoje) esgotado = true; }
                 let marca = p.marca ? p.marca : "Exclusive";
                 let sku = p.sku ? `Cód: ${p.sku}` : '';
-                
                 let alertaHTML = "";
                 if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
                 else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
                 
                 vitrine.innerHTML += `
                     <div class="produto-card ${esgotado ? 'esgotado' : ''}">
-                        <div class="img-container">
-                            <img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'">
-                            <div class="overlay-esgotado">ESGOTADO</div>
-                        </div>
+                        <div class="img-container"><img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'"><div class="overlay-esgotado">ESGOTADO</div></div>
                         <div class="info">
                             <span class="marca">${marca}</span>
                             <h3>${p.nome}</h3>
@@ -244,11 +230,7 @@
                             <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
                             <div class="alerta-estoque">${alertaHTML}</div>
                             <div class="compra-row">
-                                <div class="qtd-seletor">
-                                    <button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', -1)">−</button>
-                                    <span id="qtd-card-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span>
-                                    <button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', 1, ${stock})">+</button>
-                                </div>
+                                <div class="qtd-seletor"><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', -1)">−</button><span id="qtd-card-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', 1, ${stock})">+</button></div>
                                 <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">${esgotado ? 'Esgotado' : 'Comprar'}</button>
                             </div>
                         </div>
@@ -256,48 +238,22 @@
             });
         }
 
-        // --- CARRINHO ---
-        function toggleCart() {
-            document.getElementById('side-cart').classList.toggle('open');
-            document.getElementById('cart-overlay').classList.toggle('open');
-        }
-
-        function mudarQtdVitrine(id, delta, max) { 
-            let el = document.getElementById(`qtd-card-${id}`); 
-            let novo = parseInt(el.innerText) + delta; 
-            if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; 
-        }
-
+        function toggleCart() { document.getElementById('side-cart').classList.toggle('open'); document.getElementById('cart-overlay').classList.toggle('open'); }
+        function mudarQtdVitrine(id, delta, max) { let el = document.getElementById(`qtd-card-${id}`); let novo = parseInt(el.innerText) + delta; if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; }
+        
         function addCarrinho(id, nome, preco, sku, img, stockMax) { 
             const qtdSpan = document.getElementById(`qtd-card-${id}`);
             const qtdAdicionar = qtdSpan ? parseInt(qtdSpan.innerText) : 1;
             const item = carrinho.find(i => i.id == id);
-            
             const qtdAtual = item ? item.qtd : 0;
             if ((qtdAtual + qtdAdicionar) > stockMax) { alert(`Apenas ${stockMax} unidades disponíveis.`); return; }
-
-            if (item) item.qtd += qtdAdicionar;
-            else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdAdicionar, max: stockMax});
-
+            if (item) item.qtd += qtdAdicionar; else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdAdicionar, max: stockMax});
             if (qtdSpan) qtdSpan.innerText = "1";
             atualizarCarrinhoUI(); toggleCart();
         }
 
-        function removeDoCarrinho(id) {
-            carrinho = carrinho.filter(i => i.id != id);
-            atualizarCarrinhoUI();
-        }
-
-        function mudarQtdCarrinho(id, delta) {
-            const item = carrinho.find(i => i.id == id);
-            if (item) {
-                const novaQtd = item.qtd + delta;
-                if (novaQtd > item.max) { alert("Limite de estoque atingido."); return; }
-                item.qtd = novaQtd;
-                if (item.qtd <= 0) removeDoCarrinho(id);
-                else atualizarCarrinhoUI();
-            }
-        }
+        function removeDoCarrinho(id) { carrinho = carrinho.filter(i => i.id != id); atualizarCarrinhoUI(); }
+        function mudarQtdCarrinho(id, delta) { const item = carrinho.find(i => i.id == id); if (item) { const novaQtd = item.qtd + delta; if (novaQtd > item.max) { alert("Limite de estoque atingido."); return; } item.qtd = novaQtd; if (item.qtd <= 0) removeDoCarrinho(id); else atualizarCarrinhoUI(); } }
 
         function atualizarCarrinhoUI() {
             const container = document.getElementById('cart-items');
@@ -305,53 +261,21 @@
             const badge = document.getElementById('header-cart-count');
             const floatBtn = document.getElementById('btn-carrinho-float');
             const floatCount = document.getElementById('cart-count');
-            
-            container.innerHTML = '';
-            let total = 0; let count = 0;
-
-            if (carrinho.length === 0) {
-                container.innerHTML = '<p class="empty-msg">O seu carrinho está vazio.</p>';
-                document.getElementById('btn-checkout').disabled = true;
-                floatBtn.style.display = 'none';
-            } else {
-                document.getElementById('btn-checkout').disabled = false;
-                floatBtn.style.display = 'block';
-                carrinho.forEach(item => {
-                    total += item.preco * item.qtd;
-                    count += item.qtd;
-                    const imgUrl = (item.imagem && item.imagem.length > 10) ? item.imagem : 'https://placehold.co/60x60?text=Lust';
-                    container.innerHTML += `
-                        <div class="cart-item">
-                            <img src="${imgUrl}">
-                            <div class="item-details">
-                                <span class="item-name">${item.nome}</span>
-                                <span class="item-sku">Cód: ${item.sku || '-'}</span>
-                                <span class="item-price">€${(item.preco * item.qtd).toFixed(2)}</span>
-                                <div class="qty-controls">
-                                    <div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">−</div>
-                                    <span class="qty-val">${item.qtd}</span>
-                                    <div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</div>
-                                </div>
-                            </div>
-                        </div>`;
-                });
-            }
-            totalEl.innerText = `€${total.toFixed(2)}`;
-            badge.innerText = count;
-            floatCount.innerText = count;
+            container.innerHTML = ''; let total = 0; let count = 0;
+            if (carrinho.length === 0) { container.innerHTML = '<p class="empty-msg">O seu carrinho está vazio.</p>'; document.getElementById('btn-checkout').disabled = true; floatBtn.style.display = 'none'; } else { document.getElementById('btn-checkout').disabled = false; floatBtn.style.display = 'block'; carrinho.forEach(item => { total += item.preco * item.qtd; count += item.qtd; const imgUrl = (item.imagem && item.imagem.length > 10) ? item.imagem : 'https://placehold.co/60x60?text=Lust'; container.innerHTML += `<div class="cart-item"><img src="${imgUrl}"><div class="item-details"><span class="item-name">${item.nome}</span><span class="item-sku">Cód: ${item.sku || '-'}</span><span class="item-price">€${(item.preco * item.qtd).toFixed(2)}</span><div class="qty-controls"><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">−</div><span class="qty-val">${item.qtd}</span><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</div></div></div></div>`; }); }
+            totalEl.innerText = `€${total.toFixed(2)}`; badge.innerText = count; floatCount.innerText = count;
         }
 
         async function finalizarCompra() { 
             if (!carrinho.length) return; 
             const btn = document.getElementById('btn-checkout'); 
             const txtOriginal = btn.innerText;
+            const pais = document.getElementById('pais-destino').value;
             btn.disabled = true; btn.innerText = "A PROCESSAR...";
-            
             let itensParaBackend = [];
             carrinho.forEach(item => { for(let k=0; k<item.qtd; k++) itensParaBackend.push({ id: item.id, nome: item.nome, preco: item.preco, sku: item.sku }); });
-
             try { 
-                const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(itensParaBackend) }); 
+                const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ itens: itensParaBackend, pais: pais }) }); 
                 const d = await res.json(); 
                 if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); 
             } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerText = txtOriginal; } 
