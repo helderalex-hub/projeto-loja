@@ -4,19 +4,15 @@
     <meta charset="UTF-8">
     <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     <meta property="og:description" content="Descubra a coleção exclusiva de calçado e cosmética premium.">
     <meta property="og:image" content="https://helderalex-hub.github.io/projeto-loja/social-share.jpg">
     <meta property="og:url" content="https://projeto-loja-dzqv.onrender.com">
     <meta property="og:type" content="website">
-
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
-        
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
         /* HEADER */
@@ -52,10 +48,13 @@
         .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
         .cart-total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: var(--dark); margin-bottom: 15px; }
-        .country-select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; font-weight: bold; color: var(--dark); }
         .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; }
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
+        
+        /* SELETOR DE PAÍS */
+        .country-select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; font-weight: bold; color: var(--dark); }
+        .country-group-label { color: var(--gold); font-weight: bold; background: #1e293b; }
 
         /* CONTROLOS E VITRINE */
         .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -130,11 +129,22 @@
         <div class="cart-body" id="cart-items"><p class="empty-msg">O seu carrinho está vazio.</p></div>
         <div class="cart-footer">
             <div class="cart-total-row"><span>Total</span><span id="cart-total-val">€0.00</span></div>
+            
             <select id="pais-destino" class="country-select">
-                <option value="PT">🇵🇹 Portugal</option>
+                <option value="PT" selected>🇵🇹 Portugal</option>
                 <option value="ES">🇪🇸 Espanha</option>
-                <option value="EU">🇪🇺 Outros (Europa)</option>
+                <optgroup label="🇪🇺 Outros (Europa)" class="country-group-label">
+                    <option value="FR">🇫🇷 França</option>
+                    <option value="DE">🇩🇪 Alemanha</option>
+                    <option value="IT">🇮🇹 Itália</option>
+                    <option value="NL">🇳🇱 Holanda</option>
+                    <option value="BE">🇧🇪 Bélgica</option>
+                    <option value="LU">🇱🇺 Luxemburgo</option>
+                    <option value="IE">🇮🇪 Irlanda</option>
+                    <option value="AT">🇦🇹 Áustria</option>
+                </optgroup>
             </select>
+
             <button class="btn-checkout" onclick="finalizarCompra()" id="btn-checkout" disabled>Finalizar Compra</button>
         </div>
     </div>
