@@ -105,7 +105,8 @@
     </style>
 </head>
 <body>
-    <div class="frete-bar">PORTES GRÁTIS: PT > 60€ | ES > 85€ | EUROPA > 125€</div>
+    <div id="frete-bar" class="frete-bar">A CARREGAR OFERTAS...</div>
+    
     <header>
         <div class="header-content">
             <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
@@ -165,13 +166,21 @@
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let todosProdutos = [];
-        let carrinho = []; // Agora armazena objetos {id, qtd, nome, preco, sku, imagem}
+        let carrinho = [];
         let catAtual = 'todos';
         
         async function carregarProdutos() {
             try {
-                const res = await fetch(`${API}/produtos`);
-                todosProdutos = await res.json();
+                // CARREGA PRODUTOS E CONFIG DE FRETE
+                const [resP, resC] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/config`)]);
+                todosProdutos = await resP.json();
+                const config = await resC.json();
+                
+                // ATUALIZA BANNER DE FRETE
+                if(config) {
+                    document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${config.pt_free} | ES > €${config.es_free} | EUROPA > €${config.eu_free}`;
+                }
+
                 aplicarRegras(); 
             } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; }
         }
@@ -186,15 +195,11 @@
 
         function aplicarRegras() {
             let lista = [...todosProdutos];
-            
-            // 1. Categoria
             if (catAtual !== 'todos') lista = lista.filter(p => p.categoria === catAtual);
             
-            // 2. Busca
             const termo = document.getElementById('search-input').value.toLowerCase();
             if (termo) lista = lista.filter(p => p.nome.toLowerCase().includes(termo) || (p.marca && p.marca.toLowerCase().includes(termo)));
 
-            // 3. Ordenação
             const ordem = document.getElementById('sort-select').value;
             if (ordem === 'preco-menor') lista.sort((a,b) => a.preco - b.preco);
             else if (ordem === 'preco-maior') lista.sort((a,b) => b.preco - a.preco);
@@ -206,7 +211,7 @@
 
         function renderizarProdutos(lista) {
             const vitrine = document.getElementById('vitrine'); vitrine.innerHTML = '';
-            const hoje = new Date(); // DATA DE HOJE PARA VALIDADE
+            const hoje = new Date();
 
             if (lista.length === 0) { vitrine.innerHTML = "<div class='sem-result'>Nenhum produto encontrado.</div>"; return; }
             
@@ -214,16 +219,14 @@
                 const stock = parseInt(p.estoque) || 0; 
                 let esgotado = stock <= 0;
                 
-                // VERIFICA VALIDADE
                 if (p.validade) {
                     const dataVal = new Date(p.validade);
-                    if (dataVal < hoje) esgotado = true; // Se venceu, está esgotado
+                    if (dataVal < hoje) esgotado = true; 
                 }
 
                 let marca = p.marca ? p.marca : "Exclusive";
                 let sku = p.sku ? `Cód: ${p.sku}` : '';
                 
-                // AVISO ESTOQUE BAIXO (Se não estiver esgotado)
                 let alertaHTML = "";
                 if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
                 else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
@@ -253,7 +256,7 @@
             });
         }
 
-        // --- LÓGICA DO CARRINHO LATERAL ---
+        // --- CARRINHO ---
         function toggleCart() {
             document.getElementById('side-cart').classList.toggle('open');
             document.getElementById('cart-overlay').classList.toggle('open');
@@ -266,28 +269,18 @@
         }
 
         function addCarrinho(id, nome, preco, sku, img, stockMax) { 
-            // Pega quantidade escolhida no card
             const qtdSpan = document.getElementById(`qtd-card-${id}`);
             const qtdAdicionar = qtdSpan ? parseInt(qtdSpan.innerText) : 1;
-
-            // Verifica se já existe
             const item = carrinho.find(i => i.id == id);
             
-            // VERIFICAÇÃO DE ESTOQUE GLOBAL (Carrinho + Novo)
-            const qtdAtualNoCarrinho = item ? item.qtd : 0;
-            if ((qtdAtualNoCarrinho + qtdAdicionar) > stockMax) {
-                alert(`Desculpe, só temos ${stockMax} unidades em estoque.`);
-                return;
-            }
+            const qtdAtual = item ? item.qtd : 0;
+            if ((qtdAtual + qtdAdicionar) > stockMax) { alert(`Apenas ${stockMax} unidades disponíveis.`); return; }
 
             if (item) item.qtd += qtdAdicionar;
             else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdAdicionar, max: stockMax});
 
-            // Reset do card
             if (qtdSpan) qtdSpan.innerText = "1";
-
-            atualizarCarrinhoUI();
-            toggleCart(); // Abre o carrinho automaticamente
+            atualizarCarrinhoUI(); toggleCart();
         }
 
         function removeDoCarrinho(id) {
@@ -299,11 +292,7 @@
             const item = carrinho.find(i => i.id == id);
             if (item) {
                 const novaQtd = item.qtd + delta;
-                // Valida Estoque no Carrinho
-                if (novaQtd > item.max) {
-                    alert("Limite de estoque atingido.");
-                    return;
-                }
+                if (novaQtd > item.max) { alert("Limite de estoque atingido."); return; }
                 item.qtd = novaQtd;
                 if (item.qtd <= 0) removeDoCarrinho(id);
                 else atualizarCarrinhoUI();
@@ -318,8 +307,7 @@
             const floatCount = document.getElementById('cart-count');
             
             container.innerHTML = '';
-            let total = 0;
-            let count = 0;
+            let total = 0; let count = 0;
 
             if (carrinho.length === 0) {
                 container.innerHTML = '<p class="empty-msg">O seu carrinho está vazio.</p>';
@@ -328,12 +316,10 @@
             } else {
                 document.getElementById('btn-checkout').disabled = false;
                 floatBtn.style.display = 'block';
-                
                 carrinho.forEach(item => {
                     total += item.preco * item.qtd;
                     count += item.qtd;
                     const imgUrl = (item.imagem && item.imagem.length > 10) ? item.imagem : 'https://placehold.co/60x60?text=Lust';
-                    
                     container.innerHTML += `
                         <div class="cart-item">
                             <img src="${imgUrl}">
@@ -350,7 +336,6 @@
                         </div>`;
                 });
             }
-            
             totalEl.innerText = `€${total.toFixed(2)}`;
             badge.innerText = count;
             floatCount.innerText = count;
@@ -362,22 +347,14 @@
             const txtOriginal = btn.innerText;
             btn.disabled = true; btn.innerText = "A PROCESSAR...";
             
-            // DESCOMPACTA O CARRINHO (TRANSFORMA "2x BATOM" EM "BATOM, BATOM") PARA O BACKEND
             let itensParaBackend = [];
-            carrinho.forEach(item => {
-                for(let k=0; k<item.qtd; k++) {
-                    itensParaBackend.push({ id: item.id, nome: item.nome, preco: item.preco, sku: item.sku });
-                }
-            });
+            carrinho.forEach(item => { for(let k=0; k<item.qtd; k++) itensParaBackend.push({ id: item.id, nome: item.nome, preco: item.preco, sku: item.sku }); });
 
             try { 
                 const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(itensParaBackend) }); 
                 const d = await res.json(); 
-                if(d.url) window.location.href = d.url; 
-                else throw new Error("Sem URL"); 
-            } catch(e) { 
-                alert("Erro ao conectar."); btn.disabled = false; btn.innerText = txtOriginal; 
-            } 
+                if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); 
+            } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerText = txtOriginal; } 
         }
 
         function partilharLoja() { const texto = "Confira as novidades exclusivas da Lust Store! 💎"; const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=${texto} ${url}`, '_blank'); }
@@ -385,4 +362,3 @@
     </script>
 </body>
 </html>
-```
