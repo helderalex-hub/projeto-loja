@@ -1,22 +1,31 @@
+Compreendido. Vamos ajustar a lógica para ser mais "amigável" ao cliente na vitrine.
+
+**Regra Final:**
+
+* Se o produto tiver **estoque 0**, mostra **"ESGOTADO"**.
+* Se o produto estiver **vencido**, também mostra **"ESGOTADO"** (em vez de "VENCIDO"), pois para o cliente o efeito é o mesmo: não pode comprar.
+* Se tiver estoque baixo (< 5), mostra o aviso de restam poucas unidades.
+
+Aqui está o código completo da **`loja.html`** atualizado com esta lógica unificada.
+
+### 🛍️ `loja.html` (Versão Final Ajustada)
+
+```html
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     <meta property="og:description" content="Descubra a coleção exclusiva de calçado e cosmética premium.">
     <meta property="og:image" content="https://helderalex-hub.github.io/projeto-loja/social-share.jpg">
     <meta property="og:url" content="https://projeto-loja-dzqv.onrender.com">
     <meta property="og:type" content="website">
-
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
-        
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
         /* HEADER */
@@ -30,84 +39,61 @@
         .cart-trigger svg { width: 28px; height: 28px; }
         .cart-badge { position: absolute; top: -5px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-        /* SIDE CART (CARRINHO LATERAL) */
+        /* SIDE CART */
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(2px); }
         .cart-overlay.open { opacity: 1; visibility: visible; }
-        
         .side-cart { position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100vh; background: white; z-index: 999; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.77, 0, 0.175, 1); box-shadow: -5px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
         .side-cart.open { transform: translateX(0); }
-        
         .cart-header { background: var(--dark); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--gold); }
         .cart-header h2 { margin: 0; font-family: 'Playfair Display', serif; font-size: 18px; }
         .close-cart { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-        
         .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
         .empty-msg { text-align: center; color: #94a3b8; margin-top: 50px; }
-        
         .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
         .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
         .item-details { flex: 1; }
         .item-name { font-size: 13px; font-weight: bold; color: var(--dark); display: block; }
         .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; }
         .item-price { font-size: 13px; color: var(--gold); font-weight: bold; margin-top: 4px; display: block; }
-        
         .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
         .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); }
         .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
         .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
-
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
         .cart-total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: var(--dark); margin-bottom: 15px; }
         .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; }
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-        /* CONTROLOS */
-        .controls-container {
-            background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px;
-            display: flex; flex-direction: column; gap: 15px; align-items: center;
-        }
+        /* CONTROLOS E VITRINE */
+        .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         @media(min-width: 900px) { .controls-container { flex-direction: row; justify-content: space-between; } }
-        
         .search-wrapper { position: relative; width: 100%; max-width: 300px; }
-        .search-input {
-            width: 100%; padding: 8px 35px 8px 15px; border-radius: 50px; 
-            border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Inter', sans-serif;
-            font-size: 13px; outline: none; transition: 0.3s; box-sizing: border-box;
-        }
+        .search-input { width: 100%; padding: 8px 35px 8px 15px; border-radius: 50px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; transition: 0.3s; box-sizing: border-box; }
         .search-input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.1); }
         .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
-
         .filtros-lista { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .btn-filtro {
-            background: transparent; border: 1px solid #cbd5e1; color: var(--dark);
-            padding: 6px 16px; border-radius: 50px; cursor: pointer; font-size: 12px;
-            text-transform: uppercase; font-weight: bold; transition: 0.3s;
-        }
+        .btn-filtro { background: transparent; border: 1px solid #cbd5e1; color: var(--dark); padding: 6px 16px; border-radius: 50px; cursor: pointer; font-size: 12px; text-transform: uppercase; font-weight: bold; transition: 0.3s; }
         .btn-filtro:hover { border-color: var(--gold); color: var(--gold); }
         .btn-filtro.ativo { background: var(--gold); color: #0f172a; border-color: var(--gold); box-shadow: 0 4px 10px rgba(204, 164, 59, 0.3); }
-
-        .sort-wrapper select {
-            padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;
-            background: #f8fafc; color: var(--dark); font-family: 'Inter', sans-serif;
-            font-size: 12px; font-weight: bold; cursor: pointer; outline: none;
-        }
-        .sort-wrapper select:focus { border-color: var(--gold); }
-
-        /* VITRINE */
+        .sort-wrapper select { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: var(--dark); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: bold; cursor: pointer; outline: none; }
+        
         .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
         .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
         
+        /* CARD PRODUTO */
         .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; display: flex; flex-direction: column; border: 1px solid transparent; position: relative; }
         .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         .img-container { width: 100%; height: 280px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .img-container img { width: 90%; height: 90%; object-fit: contain; transition: transform 0.5s ease; mix-blend-mode: multiply; }
         .produto-card:hover img { transform: scale(1.08); }
-        .produto-card.esgotado { opacity: 0.6; pointer-events: none; }
-        .produto-card.esgotado img { filter: grayscale(100%); }
-        .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 15px; font-weight: bold; font-size: 12px; border: 1px solid white; display: none; }
-        .produto-card.esgotado .overlay-esgotado { display: block; }
         
+        /* ESTADOS ESGOTADO / VENCIDO */
+        .produto-card.esgotado { opacity: 0.7; pointer-events: none; }
+        .produto-card.esgotado img { filter: grayscale(100%); }
+        .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; font-weight: bold; font-size: 12px; border: 1px solid var(--gold); display: none; text-transform: uppercase; letter-spacing: 1px; }
+        .produto-card.esgotado .overlay-esgotado { display: block; }
+
         .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
         .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
         .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; font-weight: bold; }
@@ -127,14 +113,12 @@
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; display: none; }
         .btn-share { width: 50px; height: 50px; border-radius: 50%; background: #25D366; color: white; border: none; cursor: pointer; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.3s; }
         .btn-share:hover { transform: scale(1.1); }
-        
         .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
         .sem-result { text-align: center; width: 100%; grid-column: span 3; color: #94a3b8; padding: 40px; font-size: 14px; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div class="frete-bar">PORTES GRÁTIS: PT > 60€ | ES > 85€ | EUROPA > 125€</div>
-    
     <header>
         <div class="header-content">
             <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
@@ -150,18 +134,10 @@
 
     <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
     <div class="side-cart" id="side-cart">
-        <div class="cart-header">
-            <h2>Seu Carrinho</h2>
-            <button class="close-cart" onclick="toggleCart()">×</button>
-        </div>
-        <div class="cart-body" id="cart-items">
-            <p class="empty-msg">O seu carrinho está vazio.</p>
-        </div>
+        <div class="cart-header"><h2>Seu Carrinho</h2><button class="close-cart" onclick="toggleCart()">×</button></div>
+        <div class="cart-body" id="cart-items"><p class="empty-msg">O seu carrinho está vazio.</p></div>
         <div class="cart-footer">
-            <div class="cart-total-row">
-                <span>Total</span>
-                <span id="cart-total-val">€0.00</span>
-            </div>
+            <div class="cart-total-row"><span>Total</span><span id="cart-total-val">€0.00</span></div>
             <button class="btn-checkout" onclick="finalizarCompra()" id="btn-checkout" disabled>Finalizar Compra</button>
         </div>
     </div>
@@ -202,7 +178,7 @@
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let todosProdutos = [];
-        let carrinho = [];
+        let carrinho = []; // Agora armazena objetos {id, qtd, nome, preco, sku, imagem}
         let catAtual = 'todos';
         
         async function carregarProdutos() {
@@ -243,15 +219,34 @@
 
         function renderizarProdutos(lista) {
             const vitrine = document.getElementById('vitrine'); vitrine.innerHTML = '';
+            const hoje = new Date(); // DATA DE HOJE PARA VALIDADE
+
             if (lista.length === 0) { vitrine.innerHTML = "<div class='sem-result'>Nenhum produto encontrado.</div>"; return; }
+            
             lista.forEach(p => {
-                const stock = parseInt(p.estoque) || 0; const esgotado = stock <= 0;
+                const stock = parseInt(p.estoque) || 0; 
+                let esgotado = stock <= 0;
+                
+                // VERIFICA VALIDADE
+                if (p.validade) {
+                    const dataVal = new Date(p.validade);
+                    if (dataVal < hoje) esgotado = true; // Se venceu, está esgotado
+                }
+
                 let marca = p.marca ? p.marca : "Exclusive";
                 let sku = p.sku ? `Cód: ${p.sku}` : '';
-                let alertaHTML = esgotado ? '<span style="color:#94a3b8">Indisponível</span>' : (stock < 5 ? `⚠️ Restam apenas ${stock} un!` : '');
+                
+                // AVISO ESTOQUE BAIXO (Se não estiver esgotado)
+                let alertaHTML = "";
+                if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
+                else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
+                
                 vitrine.innerHTML += `
                     <div class="produto-card ${esgotado ? 'esgotado' : ''}">
-                        <div class="img-container"><img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'"><div class="overlay-esgotado">ESGOTADO</div></div>
+                        <div class="img-container">
+                            <img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'">
+                            <div class="overlay-esgotado">ESGOTADO</div>
+                        </div>
                         <div class="info">
                             <span class="marca">${marca}</span>
                             <h3>${p.nome}</h3>
@@ -259,8 +254,12 @@
                             <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
                             <div class="alerta-estoque">${alertaHTML}</div>
                             <div class="compra-row">
-                                <div class="qtd-seletor"><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', -1)">−</button><span id="qtd-card-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', 1, ${stock})">+</button></div>
-                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}')">${esgotado ? 'Esgotado' : 'Comprar'}</button>
+                                <div class="qtd-seletor">
+                                    <button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', -1)">−</button>
+                                    <span id="qtd-card-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span>
+                                    <button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', 1, ${stock})">+</button>
+                                </div>
+                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">${esgotado ? 'Esgotado' : 'Comprar'}</button>
                             </div>
                         </div>
                     </div>`;
@@ -279,18 +278,29 @@
             if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; 
         }
 
-        function addCarrinho(id, nome, preco, sku, img) { 
+        function addCarrinho(id, nome, preco, sku, img, stockMax) { 
+            // Pega quantidade escolhida no card
             const qtdSpan = document.getElementById(`qtd-card-${id}`);
             const qtdAdicionar = qtdSpan ? parseInt(qtdSpan.innerText) : 1;
 
+            // Verifica se já existe
             const item = carrinho.find(i => i.id == id);
-            if (item) item.qtd += qtdAdicionar;
-            else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdAdicionar});
+            
+            // VERIFICAÇÃO DE ESTOQUE GLOBAL (Carrinho + Novo)
+            const qtdAtualNoCarrinho = item ? item.qtd : 0;
+            if ((qtdAtualNoCarrinho + qtdAdicionar) > stockMax) {
+                alert(`Desculpe, só temos ${stockMax} unidades em estoque.`);
+                return;
+            }
 
-            if (qtdSpan) qtdSpan.innerText = "1"; // Reset do card
+            if (item) item.qtd += qtdAdicionar;
+            else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdAdicionar, max: stockMax});
+
+            // Reset do card
+            if (qtdSpan) qtdSpan.innerText = "1";
 
             atualizarCarrinhoUI();
-            toggleCart(); // Abre o carrinho
+            toggleCart(); // Abre o carrinho automaticamente
         }
 
         function removeDoCarrinho(id) {
@@ -301,7 +311,13 @@
         function mudarQtdCarrinho(id, delta) {
             const item = carrinho.find(i => i.id == id);
             if (item) {
-                item.qtd += delta;
+                const novaQtd = item.qtd + delta;
+                // Valida Estoque no Carrinho
+                if (novaQtd > item.max) {
+                    alert("Limite de estoque atingido.");
+                    return;
+                }
+                item.qtd = novaQtd;
                 if (item.qtd <= 0) removeDoCarrinho(id);
                 else atualizarCarrinhoUI();
             }
@@ -359,7 +375,7 @@
             const txtOriginal = btn.innerText;
             btn.disabled = true; btn.innerText = "A PROCESSAR...";
             
-            // DESCOMPACTA PARA O BACKEND
+            // DESCOMPACTA O CARRINHO (TRANSFORMA "2x BATOM" EM "BATOM, BATOM") PARA O BACKEND
             let itensParaBackend = [];
             carrinho.forEach(item => {
                 for(let k=0; k<item.qtd; k++) {
@@ -370,8 +386,11 @@
             try { 
                 const res = await fetch(`${API}/checkout`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(itensParaBackend) }); 
                 const d = await res.json(); 
-                if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); 
-            } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerText = txtOriginal; } 
+                if(d.url) window.location.href = d.url; 
+                else throw new Error("Sem URL"); 
+            } catch(e) { 
+                alert("Erro ao conectar."); btn.disabled = false; btn.innerText = txtOriginal; 
+            } 
         }
 
         function partilharLoja() { const texto = "Confira as novidades exclusivas da Lust Store! 💎"; const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=${texto} ${url}`, '_blank'); }
@@ -379,3 +398,4 @@
     </script>
 </body>
 </html>
+```
