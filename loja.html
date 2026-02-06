@@ -11,10 +11,10 @@
     <meta property="og:type" content="website">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* ESTILOS (Mantidos iguais à versão anterior) */
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
+        
         header { background: var(--dark); padding: 20px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header-content { display: flex; align-items: center; gap: 10px; }
         .logo-img { height: 40px; }
@@ -23,6 +23,7 @@
         .cart-trigger:hover { color: var(--gold); }
         .cart-trigger svg { width: 28px; height: 28px; }
         .cart-badge { position: absolute; top: -5px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(2px); }
         .cart-overlay.open { opacity: 1; visibility: visible; }
         .side-cart { position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100vh; background: white; z-index: 999; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.77, 0, 0.175, 1); box-shadow: -5px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
@@ -42,13 +43,16 @@
         .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); }
         .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
         .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
+        
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
-        .cart-total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: var(--dark); margin-bottom: 15px; }
-        .country-select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; font-weight: bold; color: var(--dark); }
-        .country-group-label { color: var(--gold); font-weight: bold; background: #1e293b; }
-        .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; }
+        .cart-row { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 5px; }
+        .cart-row.total { font-size: 18px; font-weight: bold; color: var(--dark); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
+        .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; margin-top: 15px; }
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .country-select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-weight: bold; color: var(--dark); margin-top: 5px; }
+
+        /* OUTROS ESTILOS */
         .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         @media(min-width: 900px) { .controls-container { flex-direction: row; justify-content: space-between; } }
         .search-wrapper { position: relative; width: 100%; max-width: 300px; }
@@ -90,7 +94,6 @@
         .btn-share:hover { transform: scale(1.1); }
         .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
         .sem-result { text-align: center; width: 100%; grid-column: span 3; color: #94a3b8; padding: 40px; font-size: 14px; text-transform: uppercase; }
-        .tax-info { font-size: 11px; color: #94a3b8; text-align: right; margin-bottom: 5px; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -113,24 +116,22 @@
         <div class="cart-header"><h2>Seu Carrinho</h2><button class="close-cart" onclick="toggleCart()">×</button></div>
         <div class="cart-body" id="cart-items"><p class="empty-msg">O seu carrinho está vazio.</p></div>
         <div class="cart-footer">
-            <div class="cart-total-row"><span>Total</span><span id="cart-total-val">€0.00</span></div>
-            <div id="tax-display" class="tax-info">Inclui IVA</div>
-            
-            <select id="pais-destino" class="country-select" onchange="atualizarCarrinhoUI()">
-                <option value="PT" selected>🇵🇹 Portugal (IVA 23%)</option>
-                <option value="ES">🇪🇸 Espanha (IVA 21%)</option>
-                <optgroup label="🇪🇺 Outros (Europa)" class="country-group-label">
-                    <option value="FR">🇫🇷 França (20%)</option>
-                    <option value="DE">🇩🇪 Alemanha (19%)</option>
-                    <option value="IT">🇮🇹 Itália (22%)</option>
-                    <option value="NL">🇳🇱 Holanda (21%)</option>
-                    <option value="BE">🇧🇪 Bélgica (21%)</option>
-                    <option value="LU">🇱🇺 Luxemburgo (17%)</option>
-                    <option value="IE">🇮🇪 Irlanda (23%)</option>
-                    <option value="AT">🇦🇹 Áustria (20%)</option>
-                </optgroup>
-            </select>
-
+            <div class="cart-row">
+                <span>País de Destino</span>
+                <select id="pais-destino" class="country-select" onchange="atualizarCarrinhoUI()">
+                    <option value="PT" selected>🇵🇹 Portugal</option>
+                    <option value="ES">🇪🇸 Espanha</option>
+                    <optgroup label="🇪🇺 Outros (Europa)">
+                        <option value="FR">🇫🇷 França</option>
+                        <option value="DE">🇩🇪 Alemanha</option>
+                        <option value="IT">🇮🇹 Itália</option>
+                        <option value="NL">🇳🇱 Holanda</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="cart-row"><span>Subtotal (Base)</span><span id="cart-subtotal">€0.00</span></div>
+            <div class="cart-row"><span id="cart-tax-label">IVA (23%)</span><span id="cart-tax-val">€0.00</span></div>
+            <div class="cart-row total"><span>Total</span><span id="cart-total-val">€0.00</span></div>
             <button class="btn-checkout" onclick="finalizarCompra()" id="btn-checkout" disabled>Finalizar Compra</button>
         </div>
     </div>
@@ -153,8 +154,6 @@
                 <option value="padrao">✨ Destaques</option>
                 <option value="preco-menor">€ Preço: Menor</option>
                 <option value="preco-maior">€ Preço: Maior</option>
-                <option value="a-z">Aa Nome: A - Z</option>
-                <option value="z-a">Aa Nome: Z - A</option>
             </select>
         </div>
     </div>
@@ -178,27 +177,16 @@
                 const [resP, resC, resT] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/config`), fetch(`${API}/taxas`)]);
                 todosProdutos = await resP.json();
                 const config = await resC.json();
-                taxasPorPais = await resT.json(); // Carrega taxas do backend
-                
-                // Fallback local caso a tabela esteja vazia
+                taxasPorPais = await resT.json();
                 if(!taxasPorPais.length) {
                     taxasPorPais = [
                         {pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20},
-                        {pais_iso: 'DE', taxa_percentual: 19}, {pais_iso: 'IT', taxa_percentual: 22}, {pais_iso: 'NL', taxa_percentual: 21},
-                        {pais_iso: 'BE', taxa_percentual: 21}, {pais_iso: 'LU', taxa_percentual: 17}, {pais_iso: 'IE', taxa_percentual: 23}, {pais_iso: 'AT', taxa_percentual: 20}
+                        {pais_iso: 'DE', taxa_percentual: 19}, {pais_iso: 'IT', taxa_percentual: 22}, {pais_iso: 'NL', taxa_percentual: 21}
                     ];
                 }
-
                 if(config) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${config.pt_free} | ES > €${config.es_free} | EUROPA > €${config.eu_free}`;
                 aplicarRegras(); 
             } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; }
-        }
-
-        function mudarCategoria(cat, btn) {
-            catAtual = cat;
-            document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo'));
-            btn.classList.add('ativo');
-            aplicarRegras();
         }
 
         function aplicarRegras() {
@@ -209,8 +197,6 @@
             const ordem = document.getElementById('sort-select').value;
             if (ordem === 'preco-menor') lista.sort((a,b) => a.preco - b.preco);
             else if (ordem === 'preco-maior') lista.sort((a,b) => b.preco - a.preco);
-            else if (ordem === 'a-z') lista.sort((a,b) => a.nome.localeCompare(b.nome));
-            else if (ordem === 'z-a') lista.sort((a,b) => b.nome.localeCompare(a.nome));
             renderizarProdutos(lista);
         }
 
@@ -221,9 +207,8 @@
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0; 
                 let esgotado = stock <= 0;
-                if (p.validade) { const dataVal = new Date(p.validade); if (dataVal < hoje) esgotado = true; }
-                let marca = p.marca ? p.marca : "Exclusive";
-                let sku = p.sku ? `Cód: ${p.sku}` : '';
+                if (p.validade && new Date(p.validade) < hoje) esgotado = true;
+                
                 let alertaHTML = "";
                 if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
                 else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
@@ -232,10 +217,10 @@
                     <div class="produto-card ${esgotado ? 'esgotado' : ''}">
                         <div class="img-container"><img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'"><div class="overlay-esgotado">ESGOTADO</div></div>
                         <div class="info">
-                            <span class="marca">${marca}</span>
+                            <span class="marca">${p.marca || 'Lust'}</span>
                             <h3>${p.nome}</h3>
-                            <div class="sku">${sku}</div>
-                            <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
+                            <div class="sku">${p.sku ? `Cód: ${p.sku}` : ''}</div>
+                            <div class="preco">€${parseFloat(p.preco).toFixed(2)} <span style="font-size:10px; color:#999;">+ IVA</span></div>
                             <div class="alerta-estoque">${alertaHTML}</div>
                             <div class="compra-row">
                                 <div class="qtd-seletor"><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', -1)">−</button><span id="qtd-card-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', 1, ${stock})">+</button></div>
@@ -246,6 +231,7 @@
             });
         }
 
+        function mudarCategoria(cat, btn) { catAtual = cat; document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); btn.classList.add('ativo'); aplicarRegras(); }
         function toggleCart() { document.getElementById('side-cart').classList.toggle('open'); document.getElementById('cart-overlay').classList.toggle('open'); }
         function mudarQtdVitrine(id, delta, max) { let el = document.getElementById(`qtd-card-${id}`); let novo = parseInt(el.innerText) + delta; if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; }
         
@@ -266,13 +252,15 @@
         function atualizarCarrinhoUI() {
             const container = document.getElementById('cart-items');
             const totalEl = document.getElementById('cart-total-val');
+            const subtotalEl = document.getElementById('cart-subtotal');
+            const taxValEl = document.getElementById('cart-tax-val');
+            const taxLabelEl = document.getElementById('cart-tax-label');
             const badge = document.getElementById('header-cart-count');
             const floatBtn = document.getElementById('btn-carrinho-float');
             const floatCount = document.getElementById('cart-count');
-            const taxDisplay = document.getElementById('tax-display');
             const paisSelect = document.getElementById('pais-destino').value;
             
-            container.innerHTML = ''; let total = 0; let count = 0;
+            container.innerHTML = ''; let totalBase = 0; let count = 0;
 
             if (carrinho.length === 0) {
                 container.innerHTML = '<p class="empty-msg">O seu carrinho está vazio.</p>';
@@ -282,34 +270,25 @@
                 document.getElementById('btn-checkout').disabled = false;
                 floatBtn.style.display = 'block';
                 carrinho.forEach(item => {
-                    total += item.preco * item.qtd;
+                    totalBase += item.preco * item.qtd;
                     count += item.qtd;
                     const imgUrl = (item.imagem && item.imagem.length > 10) ? item.imagem : 'https://placehold.co/60x60?text=Lust';
-                    container.innerHTML += `
-                        <div class="cart-item">
-                            <img src="${imgUrl}">
-                            <div class="item-details">
-                                <span class="item-name">${item.nome}</span>
-                                <span class="item-sku">Cód: ${item.sku || '-'}</span>
-                                <span class="item-price">€${(item.preco * item.qtd).toFixed(2)}</span>
-                                <div class="qty-controls">
-                                    <div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">−</div>
-                                    <span class="qty-val">${item.qtd}</span>
-                                    <div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</div>
-                                </div>
-                            </div>
-                        </div>`;
+                    container.innerHTML += `<div class="cart-item"><img src="${imgUrl}"><div class="item-details"><span class="item-name">${item.nome}</span><span class="item-sku">Cód: ${item.sku || '-'}</span><span class="item-price">€${item.preco.toFixed(2)} (Base)</span><div class="qty-controls"><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">−</div><span class="qty-val">${item.qtd}</span><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</div></div></div></div>`;
                 });
             }
             
-            // CÁLCULO DE IVA VISUAL
+            // CÁLCULO DINÂMICO
             const taxaObj = taxasPorPais.find(t => t.pais_iso === paisSelect);
             const taxa = taxaObj ? taxaObj.taxa_percentual : 23;
-            const base = total / (1 + (taxa/100));
-            const valorIva = total - base;
+            
+            const valorIva = totalBase * (taxa / 100);
+            const totalFinal = totalBase + valorIva;
 
-            totalEl.innerText = `€${total.toFixed(2)}`;
-            taxDisplay.innerText = `Inclui €${valorIva.toFixed(2)} de IVA (${taxa}%)`;
+            subtotalEl.innerText = `€${totalBase.toFixed(2)}`;
+            taxLabelEl.innerText = `IVA (${taxa}%)`;
+            taxValEl.innerText = `€${valorIva.toFixed(2)}`;
+            totalEl.innerText = `€${totalFinal.toFixed(2)}`;
+            
             badge.innerText = count;
             floatCount.innerText = count;
         }
