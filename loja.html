@@ -14,7 +14,6 @@
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
-        
         header { background: var(--dark); padding: 20px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header-content { display: flex; align-items: center; gap: 10px; }
         .logo-img { height: 40px; }
@@ -23,7 +22,6 @@
         .cart-trigger:hover { color: var(--gold); }
         .cart-trigger svg { width: 28px; height: 28px; }
         .cart-badge { position: absolute; top: -5px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(2px); }
         .cart-overlay.open { opacity: 1; visibility: visible; }
         .side-cart { position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100vh; background: white; z-index: 999; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.77, 0, 0.175, 1); box-shadow: -5px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
@@ -43,7 +41,6 @@
         .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); }
         .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
         .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
-        
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
         .cart-row { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 5px; }
         .cart-row.total { font-size: 18px; font-weight: bold; color: var(--dark); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
@@ -51,8 +48,7 @@
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
         .country-select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-weight: bold; color: var(--dark); margin-top: 5px; }
-
-        /* OUTROS ESTILOS */
+        .country-group-label { color: var(--gold); font-weight: bold; background: #1e293b; }
         .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         @media(min-width: 900px) { .controls-container { flex-direction: row; justify-content: space-between; } }
         .search-wrapper { position: relative; width: 100%; max-width: 300px; }
@@ -88,7 +84,7 @@
         .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
         .btn-comprar:hover { background: var(--gold); color: var(--dark); }
         .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
-        .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; align-items: flex-end; }
+        .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; align-items: flex-end; transition: opacity 0.3s; }
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; display: none; }
         .btn-share { width: 50px; height: 50px; border-radius: 50%; background: #25D366; color: white; border: none; cursor: pointer; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.3s; }
         .btn-share:hover { transform: scale(1.1); }
@@ -121,11 +117,15 @@
                 <select id="pais-destino" class="country-select" onchange="atualizarCarrinhoUI()">
                     <option value="PT" selected>🇵🇹 Portugal</option>
                     <option value="ES">🇪🇸 Espanha</option>
-                    <optgroup label="🇪🇺 Outros (Europa)">
+                    <optgroup label="🇪🇺 Outros (Europa)" class="country-group-label">
                         <option value="FR">🇫🇷 França</option>
                         <option value="DE">🇩🇪 Alemanha</option>
                         <option value="IT">🇮🇹 Itália</option>
                         <option value="NL">🇳🇱 Holanda</option>
+                        <option value="BE">🇧🇪 Bélgica</option>
+                        <option value="LU">🇱🇺 Luxemburgo</option>
+                        <option value="IE">🇮🇪 Irlanda</option>
+                        <option value="AT">🇦🇹 Áustria</option>
                     </optgroup>
                 </select>
             </div>
@@ -154,6 +154,8 @@
                 <option value="padrao">✨ Destaques</option>
                 <option value="preco-menor">€ Preço: Menor</option>
                 <option value="preco-maior">€ Preço: Maior</option>
+                <option value="a-z">Aa Nome: A - Z</option>
+                <option value="z-a">Aa Nome: Z - A</option>
             </select>
         </div>
     </div>
@@ -181,13 +183,16 @@
                 if(!taxasPorPais.length) {
                     taxasPorPais = [
                         {pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20},
-                        {pais_iso: 'DE', taxa_percentual: 19}, {pais_iso: 'IT', taxa_percentual: 22}, {pais_iso: 'NL', taxa_percentual: 21}
+                        {pais_iso: 'DE', taxa_percentual: 19}, {pais_iso: 'IT', taxa_percentual: 22}, {pais_iso: 'NL', taxa_percentual: 21},
+                        {pais_iso: 'BE', taxa_percentual: 21}, {pais_iso: 'LU', taxa_percentual: 17}, {pais_iso: 'IE', taxa_percentual: 23}, {pais_iso: 'AT', taxa_percentual: 20}
                     ];
                 }
                 if(config) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${config.pt_free} | ES > €${config.es_free} | EUROPA > €${config.eu_free}`;
                 aplicarRegras(); 
             } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; }
         }
+
+        function mudarCategoria(cat, btn) { catAtual = cat; document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); btn.classList.add('ativo'); aplicarRegras(); }
 
         function aplicarRegras() {
             let lista = [...todosProdutos];
@@ -197,6 +202,8 @@
             const ordem = document.getElementById('sort-select').value;
             if (ordem === 'preco-menor') lista.sort((a,b) => a.preco - b.preco);
             else if (ordem === 'preco-maior') lista.sort((a,b) => b.preco - a.preco);
+            else if (ordem === 'a-z') lista.sort((a,b) => a.nome.localeCompare(b.nome));
+            else if (ordem === 'z-a') lista.sort((a,b) => b.nome.localeCompare(a.nome));
             renderizarProdutos(lista);
         }
 
@@ -208,7 +215,6 @@
                 const stock = parseInt(p.estoque) || 0; 
                 let esgotado = stock <= 0;
                 if (p.validade && new Date(p.validade) < hoje) esgotado = true;
-                
                 let alertaHTML = "";
                 if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
                 else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
@@ -231,8 +237,24 @@
             });
         }
 
-        function mudarCategoria(cat, btn) { catAtual = cat; document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); btn.classList.add('ativo'); aplicarRegras(); }
-        function toggleCart() { document.getElementById('side-cart').classList.toggle('open'); document.getElementById('cart-overlay').classList.toggle('open'); }
+        // --- CORREÇÃO 1: ESCONDER BOTÕES FLUTUANTES ---
+        function toggleCart() { 
+            const sideCart = document.getElementById('side-cart');
+            const overlay = document.getElementById('cart-overlay');
+            const floating = document.querySelector('.floating-container');
+            
+            sideCart.classList.toggle('open'); 
+            overlay.classList.toggle('open');
+            
+            // Se o carrinho abrir, esconde os botões flutuantes. Se fechar, mostra-os.
+            if (sideCart.classList.contains('open')) {
+                floating.style.display = 'none';
+            } else {
+                // Só mostra se houver itens, ou podes deixar sempre 'flex'
+                floating.style.display = 'flex'; 
+            }
+        }
+
         function mudarQtdVitrine(id, delta, max) { let el = document.getElementById(`qtd-card-${id}`); let novo = parseInt(el.innerText) + delta; if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; }
         
         function addCarrinho(id, nome, preco, sku, img, stockMax) { 
@@ -262,22 +284,26 @@
             
             container.innerHTML = ''; let totalBase = 0; let count = 0;
 
+            // Se o carrinho estiver fechado, mostra os botões flutuantes (se houver itens)
+            const sideCart = document.getElementById('side-cart');
+            const floating = document.querySelector('.floating-container');
+
             if (carrinho.length === 0) {
                 container.innerHTML = '<p class="empty-msg">O seu carrinho está vazio.</p>';
                 document.getElementById('btn-checkout').disabled = true;
-                floatBtn.style.display = 'none';
+                if(!sideCart.classList.contains('open')) floating.style.display = 'none';
             } else {
                 document.getElementById('btn-checkout').disabled = false;
-                floatBtn.style.display = 'block';
+                if(!sideCart.classList.contains('open')) floating.style.display = 'flex';
+                
                 carrinho.forEach(item => {
                     totalBase += item.preco * item.qtd;
                     count += item.qtd;
                     const imgUrl = (item.imagem && item.imagem.length > 10) ? item.imagem : 'https://placehold.co/60x60?text=Lust';
-                    container.innerHTML += `<div class="cart-item"><img src="${imgUrl}"><div class="item-details"><span class="item-name">${item.nome}</span><span class="item-sku">Cód: ${item.sku || '-'}</span><span class="item-price">€${item.preco.toFixed(2)} (Base)</span><div class="qty-controls"><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">−</div><span class="qty-val">${item.qtd}</span><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</div></div></div></div>`;
+                    container.innerHTML += `<div class="cart-item"><img src="${imgUrl}"><div class="item-details"><span class="item-name">${item.nome}</span><span class="item-sku">Cód: ${item.sku || '-'}</span><span class="item-price">€${item.preco.toFixed(2)}</span><div class="qty-controls"><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">−</div><span class="qty-val">${item.qtd}</span><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</div></div></div></div>`;
                 });
             }
             
-            // CÁLCULO DINÂMICO
             const taxaObj = taxasPorPais.find(t => t.pais_iso === paisSelect);
             const taxa = taxaObj ? taxaObj.taxa_percentual : 23;
             
