@@ -13,27 +13,36 @@
         .check { font-size: 50px; color: #cca43b; display: block; margin-bottom: 10px; }
         h1 { color: #0f172a; font-family: 'Playfair Display', serif; margin: 0; font-size: 24px; }
         .msg-nice { color: #64748b; margin-top: 5px; font-size: 14px; }
+        
         .prazo-box { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 15px; border-radius: 6px; margin: 20px 0; display: flex; align-items: center; gap: 10px; text-align: left; }
         .prazo-icon { font-size: 24px; }
+        
         .resumo-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 20px 0; text-align: left; border-radius: 4px; }
-        .linha { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px; }
-        .linha:last-child { border-bottom: none; }
+        
+        .linha-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 12px; }
         .item-info { display: flex; flex-direction: column; }
-        .item-meta { font-size: 10px; color: #94a3b8; margin-top: 2px; }
-        .linha-total { display: flex; justify-content: space-between; padding-top: 15px; margin-top: 5px; font-weight: bold; font-size: 16px; color: #0f172a; border-top: 2px solid #e2e8f0; }
-        .btn { display: inline-block; padding: 12px 25px; background: #0f172a; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; text-transform: uppercase; font-size: 12px; margin: 5px; cursor: pointer; border: none; width: 100%; box-sizing: border-box; transition: 0.3s; }
+        .item-meta { font-size: 10px; color: #94a3b8; }
+        .item-price-detail { font-size: 10px; color: #64748b; }
+        
+        .resumo-financeiro { margin-top: 15px; border-top: 2px solid #e2e8f0; padding-top: 10px; }
+        .linha-fin { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 4px; }
+        .linha-total { display: flex; justify-content: space-between; margin-top: 8px; font-weight: bold; font-size: 16px; color: #0f172a; padding-top: 8px; border-top: 1px dashed #cbd5e1; }
+        
+        .btn { display: inline-block; padding: 12px 25px; background: #0f172a; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; text-transform: uppercase; font-size: 12px; margin: 5px 0; cursor: pointer; border: none; width: 100%; box-sizing: border-box; transition: 0.3s; }
         .btn:hover { opacity: 0.9; }
         .btn-gold { background: #cca43b; color: #0f172a; }
         .btn-gold:hover { background: #eab308; }
+        .btn-outline { background: transparent; border: 1px solid #cbd5e1; color: #64748b; }
+        .btn-outline:hover { border-color: #0f172a; color: #0f172a; }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="check">✔</div>
         <h1>Pedido Confirmado!</h1>
-        <p class="msg-nice">Obrigado pela sua preferência. A sua encomenda foi registada com sucesso.</p>
+        <p class="msg-nice">Obrigado pela sua preferência.</p>
         
-        <div id="loading" style="padding: 20px; color: #64748b;">A carregar detalhes...</div>
+        <div id="loading" style="padding: 20px; color: #64748b;">A carregar recibo...</div>
         
         <div id="detalhes" style="display:none;">
             <div class="prazo-box">
@@ -48,13 +57,19 @@
                 <p style="margin-top:0; font-size:12px; color:#94a3b8; text-transform:uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
                     PEDIDO <strong id="id-pedido" style="color:#cca43b; float: right;"></strong>
                 </p>
+                
                 <div id="lista-itens"></div>
-                <div class="linha" style="color:#64748b"><span>Envio</span><span id="valor-frete"></span></div>
-                <div class="linha-total"><span>TOTAL</span><span id="valor-total" style="color:#cca43b"></span></div>
+
+                <div class="resumo-financeiro">
+                    <div class="linha-fin"><span>Subtotal (Líquido)</span><span id="txt-subtotal"></span></div>
+                    <div class="linha-fin"><span id="txt-iva-label">IVA</span><span id="txt-iva-val"></span></div>
+                    <div class="linha-fin"><span>Envio</span><span id="txt-frete"></span></div>
+                    <div class="linha-total"><span>TOTAL PAGO</span><span id="txt-total" style="color:#cca43b"></span></div>
+                </div>
             </div>
             
             <button onclick="baixarRecibo()" class="btn btn-gold">📄 Baixar Recibo (PDF)</button>
-            <a href="loja.html" class="btn">Voltar à Loja</a>
+            <a href="loja.html" class="btn btn-outline">Voltar à Loja</a>
         </div>
     </div>
 
@@ -70,43 +85,60 @@
                 .then(data => {
                     if(!data.erro) {
                         dadosVenda = data;
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('detalhes').style.display = 'block';
-                        document.getElementById('id-pedido').innerText = `#${codigo}`;
-                        
-                        const dias = data.total_frete > 7 ? "1 a 2 dias úteis" : "2 a 5 dias úteis";
-                        document.getElementById('prazo-texto').innerText = `${dias} após envio (${data.pais_destino || 'PT'}).`;
-                        
-                        document.getElementById('valor-frete').innerText = `€${parseFloat(data.total_frete).toFixed(2)}`;
-                        document.getElementById('valor-total').innerText = `€${parseFloat(data.total_venda).toFixed(2)}`;
-                        
-                        const divItens = document.getElementById('lista-itens');
-                        const taxa = data.taxa_iva_aplicada || 23;
-
-                        data.itens.forEach(i => {
-                            // CÁLCULO VISUAL: Base + Taxa para mostrar o total da linha
-                            const base = parseFloat(i.preco);
-                            const totalItem = base * (1 + taxa/100);
-
-                            divItens.innerHTML += `
-                                <div class="linha">
-                                    <div class="item-info">
-                                        <strong>[${i.sku || '?'}] ${i.nome}</strong>
-                                        <span class="item-meta">${i.marca || 'Lust'}</span>
-                                    </div>
-                                    <span style="font-weight:600">€${totalItem.toFixed(2)}</span>
-                                </div>`;
-                        });
+                        renderizarPagina(data);
                     } else { document.getElementById('loading').innerText = "Pedido não encontrado."; }
                 })
                 .catch(err => { console.error(err); document.getElementById('loading').innerText = "Erro ao carregar recibo."; });
         } else { document.getElementById('loading').innerText = "Código de pedido inválido."; }
 
+        function renderizarPagina(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('detalhes').style.display = 'block';
+            document.getElementById('id-pedido').innerText = `#${data.codigo_pedido}`;
+            
+            // Prazo
+            const dias = data.total_frete > 7 ? "1 a 2 dias úteis" : "2 a 5 dias úteis";
+            document.getElementById('prazo-texto').innerText = `${dias} após envio (${data.pais_destino || 'PT'}).`;
+            
+            // Cálculos
+            const taxa = data.taxa_iva_aplicada || 23;
+            const totalPago = parseFloat(data.total_venda);
+            
+            // Reverter para Base (Total / 1.XX)
+            const baseImputavel = totalPago / (1 + taxa/100);
+            const valorTotalIVA = totalPago - baseImputavel;
+            const frete = parseFloat(data.total_frete);
+
+            // Preencher Totais
+            document.getElementById('txt-subtotal').innerText = `€${baseImputavel.toFixed(2)}`;
+            document.getElementById('txt-iva-label').innerText = `IVA (${taxa}%)`;
+            document.getElementById('txt-iva-val').innerText = `€${valorTotalIVA.toFixed(2)}`;
+            document.getElementById('txt-frete').innerText = `€${frete.toFixed(2)}`;
+            document.getElementById('txt-total').innerText = `€${totalPago.toFixed(2)}`;
+
+            // Listar Itens
+            const divItens = document.getElementById('lista-itens');
+            data.itens.forEach(i => {
+                const baseItem = parseFloat(i.preco);
+                const totalItem = baseItem * (1 + taxa/100);
+                
+                divItens.innerHTML += `
+                    <div class="linha-item">
+                        <div class="item-info">
+                            <strong>[${i.sku || '?'}] ${i.nome}</strong>
+                            <span class="item-price-detail">Base: €${baseItem.toFixed(2)} + IVA</span>
+                        </div>
+                        <span style="font-weight:600">€${totalItem.toFixed(2)}</span>
+                    </div>`;
+            });
+        }
+
         function baixarRecibo() {
             if(!dadosVenda) return;
             const { jsPDF } = window.jspdf; 
             const doc = new jsPDF();
-            const taxa = dadosVenda.taxa_iva_aplicada || 23;
+            const v = dadosVenda;
+            const taxa = v.taxa_iva_aplicada || 23;
 
             // HEADER
             doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
@@ -116,11 +148,11 @@
             // INFO
             doc.setTextColor(0, 0, 0); doc.setFontSize(11);
             doc.text(`Pedido: #${codigo}`, 14, 55); 
-            doc.text(`Cliente: ${dadosVenda.cliente_nome} (${dadosVenda.pais_destino || 'PT'})`, 14, 62); 
+            doc.text(`Cliente: ${v.cliente_nome} (${v.pais_destino || 'PT'})`, 14, 62); 
             doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 69);
             
-            // TABELA COM DESGLOSE DE TAXAS
-            const body = dadosVenda.itens.map(i => {
+            // TABELA
+            const body = v.itens.map(i => {
                 const base = parseFloat(i.preco);
                 const total = base * (1 + taxa/100);
                 return [
@@ -131,22 +163,24 @@
                 ];
             });
 
-            // Adicionar Frete
-            body.push(['Envio', `€${parseFloat(dadosVenda.total_frete).toFixed(2)}`, `${taxa}%`, `€${parseFloat(dadosVenda.total_frete).toFixed(2)}`]);
+            // Frete na Tabela
+            const frete = parseFloat(v.total_frete);
+            const freteBase = frete / (1 + taxa/100);
+            body.push(['Envio', `€${freteBase.toFixed(2)}`, `${taxa}%`, `€${frete.toFixed(2)}`]);
             
-            // Total Final
-            body.push([{content: 'TOTAL PAGO', colSpan: 3, styles: {fontStyle: 'bold', halign: 'right'}}, `€${parseFloat(dadosVenda.total_venda).toFixed(2)}`]);
+            // Total
+            body.push([{content: 'TOTAL PAGO', colSpan: 3, styles: {fontStyle: 'bold', halign: 'right'}}, `€${parseFloat(v.total_venda).toFixed(2)}`]);
 
             doc.autoTable({ 
                 startY: 80, 
-                head: [['Descrição', 'Preço Base', 'IVA', 'Total']], 
+                head: [['Descrição', 'Base Líquida', 'Taxa', 'Total']], 
                 body: body, 
                 headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, 
                 theme: 'grid', 
                 styles: { cellPadding: 4 } 
             });
 
-            // RODAPÉ LEGAL
+            // RODAPÉ
             const finalY = doc.lastAutoTable.finalY + 20;
             doc.setFontSize(8); doc.setTextColor(100);
             doc.text("Este documento serve como comprovativo de encomenda.", 105, finalY, {align: 'center'});
