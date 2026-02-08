@@ -5,17 +5,12 @@
     <title>Lust Store | Gestão</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
-    <script>
-        let t; window.onload = reset; document.onmousemove = reset; document.onkeypress = reset;
-        function reset() { clearTimeout(t); t = setTimeout(() => { alert("Sessão expirada."); localStorage.removeItem('token_gerente'); location.href='login-adm.html'; }, 600000); }
-        function sair() { localStorage.removeItem('token_gerente'); location.href='login-adm.html'; }
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-    
     <style>
+        /* ESTILOS IGUAIS AO ANTERIOR */
         :root { --dark: #0f172a; --card: #1e293b; --gold: #cca43b; --texto: #f8fafc; --borda: #334155; --verde: #10b981; --erro: #ef4444; --alerta: #f59e0b; --campo-edit: #e2e8f0; --texto-input: #0f172a; }
         body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--texto); margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; padding-bottom: 60px; }
@@ -24,44 +19,36 @@
         h1 { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; color: white; text-transform: uppercase; }
         h1 span { color: var(--gold); }
         .btn-sair-topo { position: absolute; top: 0; right: 0; background: transparent; border: 1px solid var(--erro); color: var(--erro); padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        
         .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--borda); }
         .tab-btn { background: none; border: none; color: #94a3b8; padding: 15px 35px; cursor: pointer; text-transform: uppercase; font-size: 13px; font-weight: bold; transition: 0.3s; }
         .tab-btn.active { color: var(--gold); border-bottom: 4px solid var(--gold); }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s; }
-        
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card-dash { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--borda); text-align: center; border-bottom: 4px solid var(--gold); }
         .card-dash h3 { margin: 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; }
         .card-dash p { margin: 10px 0 0; font-size: 20px; font-weight: 700; color: white; }
-        
         .tabela-container { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 30px; min-height: 200px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1200px; }
         th { text-align: left; padding: 15px; color: var(--gold); border-bottom: 1px solid var(--borda); text-transform: uppercase; font-size: 10px; vertical-align: top; }
         td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
-        
         .filtro-row th { padding: 5px 12px 15px 12px; border-bottom: 2px solid var(--borda); background: #162032; }
         .filtro-wrapper { display: flex; gap: 5px; }
         .sel-op { width: 40px; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; font-size: 11px; text-align: center; cursor: pointer; }
         .inp-filtro { width: 100%; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; padding: 6px; font-size: 11px; }
-        
         .input-live { background-color: var(--campo-edit) !important; border: 1px solid #94a3b8 !important; padding: 0 8px !important; color: var(--texto-input) !important; width: 100%; font-size: 13px !important; font-weight: bold !important; border-radius: 4px; text-align: center; appearance: none; -moz-appearance: textfield; transition: 0.3s; height: 36px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .input-live:focus { border-color: var(--gold) !important; outline: none; background: #fff !important; }
         select.input-live { text-align-last: center; background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 5px center; background-size: 16px; padding-right: 20px !important; margin-bottom: 4px; }
-        
         .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); }
         .cod-tag { font-family: monospace; color: var(--gold); font-size: 10px; display: block; margin-top: 2px; }
         .aviso-validade { font-size: 9px; font-weight: bold; text-align: center; display: block; padding-top: 4px; }
         .texto-critico { color: var(--erro); }
         .texto-atencao { color: var(--alerta); }
-        
         .btn-novo-prod { background: var(--gold); color: #0f172a; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-acao { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-right: 8px; }
         .btn-verde { background: var(--verde) !important; }
         .btn-gold { background: var(--gold) !important; color: #0f172a !important; }
         .btn-fatura { background: #fff !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
-        
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid var(--gold); width: 95%; max-width: 900px; position: relative; animation: slideDown 0.3s; }
         .modal-content.large { max-width: 1200px; }
@@ -75,14 +62,12 @@
         .campos-grid label { font-size: 10px; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; display: block; font-weight: bold; }
         .btn-salvar { background: var(--gold); color: #0f172a; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 10px; grid-column: span 2; }
         .grafico-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--borda); height: 320px; margin-top: 20px; }
-        
         .frete-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .frete-card { background: #162032; padding: 20px; border-radius: 8px; border: 1px solid var(--borda); }
         .frete-card h3 { color: var(--gold); margin-top: 0; text-align: center; border-bottom: 1px solid var(--borda); padding-bottom: 10px; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
         .form-group input { width: 100%; padding: 10px; background: var(--dark); border: 1px solid var(--borda); color: white; border-radius: 4px; box-sizing: border-box; }
-        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
@@ -209,224 +194,104 @@
     let produtos = [], vendas = [], vendasFiltradas = [], configFrete = {}, itemEditTabela = null, fotoBase64 = "";
 
     async function iniciar() { 
-        try {
-            const resP = await fetch(`${API}/produtos`); if(resP.ok) produtos = await resP.json();
-        } catch(e) { console.error("Erro Produtos:", e); }
-
-        try {
-            const resV = await fetch(`${API}/vendas`); if(resV.ok) vendas = (await resV.json()).sort((a,b) => new Date(b.data_venda) - new Date(a.data_venda));
-        } catch(e) { console.error("Erro Vendas:", e); }
-
-        try {
-            const resC = await fetch(`${API}/config`); if(resC.ok) configFrete = await resC.json();
-        } catch(e) { console.warn("Sem config frete ainda."); }
-
-        carregarConfigNoForm();
-        atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico(); 
+        try { const resP = await fetch(`${API}/produtos`); if(resP.ok) produtos = await resP.json(); } catch(e) { console.error(e); }
+        try { const resV = await fetch(`${API}/vendas`); if(resV.ok) vendas = (await resV.json()).sort((a,b) => new Date(b.data_venda) - new Date(a.data_venda)); } catch(e) { console.error(e); }
+        try { const resC = await fetch(`${API}/config`); if(resC.ok) configFrete = await resC.json(); } catch(e) {}
+        carregarConfigNoForm(); atualizarDash(); renderizarVendas(); renderizarInventario(); renderizarGrafico(); 
     }
 
     function openTab(id) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); }
 
-    // --- ETIQUETAS DO DIA CORRIGIDO ---
-    function gerarEtiquetasDia() {
-        const hoje = new Date().toISOString().split('T')[0];
-        const vendasHoje = vendas.filter(v => v.data_venda.startsWith(hoje));
-        
-        if (vendasHoje.length === 0) return alert("Nenhuma venda hoje.");
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({format:[100,150],unit:'mm'});
-        
-        vendasHoje.forEach((v, index) => {
-            if (index > 0) doc.addPage();
-            doc.setFontSize(8); doc.text("LUST STORE",5,10);
-            doc.line(2,30,98,30);
-            doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40);
-            doc.setFontSize(13); doc.setFont("helvetica","bold");
-            doc.text(v.cliente_nome,5,48);
-            doc.setFont("helvetica","normal");
-            doc.text(doc.splitTextToSize(v.cliente_morada || '', 90),5,56);
-            
-            doc.rect(5,120,90,15);
-            doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'});
-            
-            doc.addPage();
-            doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'});
-            doc.setFontSize(10);
-            let y=40; 
-            (v.itens || []).forEach(x => { 
-                doc.text(`[ ] [${x.sku||'?'}] ${x.nome}`,5,y); y+=8; 
-            });
-        });
-        doc.save(`Etiquetas_${hoje}.pdf`);
-    }
-
-    // --- RELATÓRIO DETALHADO (MODAL E PDF) ---
+    // --- RELATÓRIO DETALHADO ---
     function abrirRelatorio() { document.getElementById('modal-relatorio').style.display='flex'; const h=new Date(); document.getElementById('r-data-ini').value=new Date(h.getFullYear(),h.getMonth(),1).toISOString().split('T')[0]; document.getElementById('r-data-fim').value=new Date(h.getFullYear(),h.getMonth()+1,0).toISOString().split('T')[0]; filtrarRelatorio(); }
     function fecharRelatorio() { document.getElementById('modal-relatorio').style.display='none'; }
     
     function filtrarRelatorio() {
-        const di = new Date(document.getElementById('r-data-ini').value);
-        const df = new Date(document.getElementById('r-data-fim').value); df.setHours(23,59,59);
-        const cli = document.getElementById('r-cliente').value.toLowerCase();
-        const ped = document.getElementById('r-pedido').value.toLowerCase();
-        
-        vendasFiltradas = vendas.filter(v => {
-            const d = new Date(v.data_venda);
-            return d >= di && d <= df && v.cliente_nome.toLowerCase().includes(cli) && v.codigo_pedido.toLowerCase().includes(ped);
-        });
-
-        const tb = document.getElementById('tabela-relatorio'); tb.innerHTML = '';
-        let totalFinal = 0;
-
+        const di = new Date(document.getElementById('r-data-ini').value); const df = new Date(document.getElementById('r-data-fim').value); df.setHours(23,59,59);
+        const cli = document.getElementById('r-cliente').value.toLowerCase(); const ped = document.getElementById('r-pedido').value.toLowerCase();
+        vendasFiltradas = vendas.filter(v => { const d = new Date(v.data_venda); return d >= di && d <= df && v.cliente_nome.toLowerCase().includes(cli) && v.codigo_pedido.toLowerCase().includes(ped); });
+        const tb = document.getElementById('tabela-relatorio'); tb.innerHTML = ''; let totalFinal = 0;
         vendasFiltradas.forEach(v => {
             totalFinal += parseFloat(v.total_venda);
-            
-            // Cálculos Fiscais
             const taxa = v.taxa_iva_aplicada || 23;
             const total = parseFloat(v.total_venda);
             const base = total / (1 + (taxa/100));
             const iva = total - base;
             const frete = parseFloat(v.total_frete);
-
             const listaItens = (v.itens||[]).map(i => `[${i.sku || '?'}] ${i.nome}`).join(', ');
-            
-            tb.innerHTML += `
-                <tr>
-                    <td style="color:#cbd5e1;padding:8px;">${new Date(v.data_venda).toLocaleDateString()}</td>
-                    <td style="color:var(--gold);padding:8px;">#${v.codigo_pedido}</td>
-                    <td style="color:white;padding:8px;font-size:11px;">${listaItens}</td>
-                    <td style="color:white;padding:8px;">${v.cliente_nome}</td>
-                    <td style="color:var(--gold);padding:8px;">${fmtEur(base)}</td>
-                    <td style="color:var(--gold);padding:8px;">${fmtEur(iva)} <small>(${taxa}%)</small></td>
-                    <td style="color:var(--gold);padding:8px;">${fmtEur(frete)}</td>
-                    <td style="color:white;padding:8px;">${fmtEur(total)}</td>
-                </tr>`;
+            tb.innerHTML += `<tr><td style="color:#cbd5e1;padding:8px;">${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold);padding:8px;">#${v.codigo_pedido}</td><td style="color:white;padding:8px;font-size:11px;">${listaItens}</td><td style="color:white;padding:8px;">${v.cliente_nome}</td><td style="color:var(--gold);padding:8px;">${fmtEur(base)}</td><td style="color:var(--gold);padding:8px;">${fmtEur(iva)} <small>(${taxa}%)</small></td><td style="color:var(--gold);padding:8px;">${fmtEur(frete)}</td><td style="color:white;padding:8px;">${fmtEur(total)}</td></tr>`;
         });
         document.getElementById('total-relatorio').innerText = fmtEur(totalFinal);
     }
 
     function baixarPDFRelatorio() {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); // Landscape para caber tudo
-        doc.setFillColor(15,23,42); doc.rect(0,0,297,35,'F');
-        doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18);
-        doc.setTextColor(255); doc.setFontSize(10); doc.text("RELATÓRIO FISCAL DETALHADO", 14, 26);
-        
-        // Dados formatados para o PDF
+        const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); 
+        doc.setFillColor(15,23,42); doc.rect(0,0,297,35,'F'); doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18); doc.setTextColor(255); doc.setFontSize(10); doc.text("RELATÓRIO FISCAL DETALHADO", 14, 26);
         const body = vendasFiltradas.map(v => {
-            const taxa = v.taxa_iva_aplicada || 23;
-            const total = parseFloat(v.total_venda);
-            const base = total / (1 + (taxa/100));
-            const iva = total - base;
-            return [
-                new Date(v.data_venda).toLocaleDateString(),
-                v.codigo_pedido,
-                v.cliente_nome,
-                fmtEur(base),
-                fmtEur(iva) + ` (${taxa}%)`,
-                fmtEur(v.total_frete),
-                fmtEur(total)
-            ];
+            const taxa = v.taxa_iva_aplicada || 23; const total = parseFloat(v.total_venda); const base = total / (1 + (taxa/100)); const iva = total - base;
+            return [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, v.cliente_nome, fmtEur(base), fmtEur(iva) + ` (${taxa}%)`, fmtEur(v.total_frete), fmtEur(total)];
         });
-
-        doc.autoTable({
-            startY: 40,
-            head: [['Data', 'Pedido', 'Cliente', 'Base Líquida', 'IVA', 'Frete', 'Total']],
-            body: body,
-            headStyles: {fillColor:[15,23,42], textColor:[204,164,59]},
-            foot: [['TOTAL', '', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+parseFloat(b.total_venda),0))]]
-        });
+        doc.autoTable({ startY: 40, head: [['Data', 'Pedido', 'Cliente', 'Base Líquida', 'IVA', 'Frete', 'Total']], body: body, headStyles: {fillColor:[15,23,42], textColor:[204,164,59]}, foot: [['TOTAL', '', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+parseFloat(b.total_venda),0))]] });
         doc.save('Relatorio_Fiscal_Lust.pdf');
     }
 
-    // --- FATURA DUMMY ---
+    // --- ETIQUETAS DO DIA ---
+    function gerarEtiquetasDia() {
+        const hoje = new Date().toISOString().split('T')[0];
+        const vendasHoje = vendas.filter(v => v.data_venda.startsWith(hoje));
+        if (vendasHoje.length === 0) return alert("Nenhuma venda hoje.");
+        const { jsPDF } = window.jspdf; const doc = new jsPDF({format:[100,150],unit:'mm'});
+        vendasHoje.forEach((v, index) => {
+            if (index > 0) doc.addPage();
+            doc.setFontSize(8); doc.text("LUST STORE",5,10); doc.line(2,30,98,30); doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40);
+            doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome,5,48);
+            doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada || '', 90),5,56);
+            if(v.telefone_contato) { doc.setFontSize(9); doc.text(`Tel: ${v.telefone_contato}`, 5, 80); }
+            doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage();
+            doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; 
+            (v.itens || []).forEach(x => { doc.text(`[ ] [${x.sku||'?'}] ${x.nome}`,5,y); y+=8; });
+        });
+        doc.save(`Etiquetas_${hoje}.pdf`);
+    }
+
+    // --- FATURA ---
     function gerarFaturaDummy(cod) {
         const v = vendas.find(x => x.codigo_pedido === cod);
-        if (!v) return alert("Erro: Venda não encontrada.");
-        const taxa = v.taxa_iva_aplicada || 23; 
-        const divisor = 1 + (taxa/100);
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F');
-        doc.setTextColor(204, 164, 59); doc.setFontSize(20); doc.text("LUST STORE", 14, 15);
+        if (!v) return alert("Venda off.");
+        const taxa = v.taxa_iva_aplicada || 23; const divisor = 1 + (taxa/100);
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F'); doc.setTextColor(204, 164, 59); doc.setFontSize(20); doc.text("LUST STORE", 14, 15);
         doc.setTextColor(255); doc.setFontSize(9); doc.text("NIF: 999999990", 14, 22); doc.text("Sede: Lisboa, PT", 14, 27);
-        doc.setTextColor(204, 164, 59); doc.text(`FATURA PRO-FORMA Nº ${cod}`, 195, 15, {align: 'right'});
-        doc.setTextColor(255); doc.text(`Data: ${new Date(v.data_venda).toLocaleDateString()}`, 195, 22, {align: 'right'});
-        doc.setTextColor(0); doc.setFontSize(10);
-        doc.text("CLIENTE:", 14, 45); doc.setFont("helvetica", "normal");
-        doc.text(`${v.cliente_nome} (${v.pais_destino || 'PT'})`, 14, 50);
-        doc.text(doc.splitTextToSize(v.cliente_morada || '', 80), 14, 55);
-
+        doc.setTextColor(204, 164, 59); doc.text(`FATURA PRO-FORMA Nº ${cod}`, 195, 15, {align: 'right'}); doc.setTextColor(255); doc.text(`Data: ${new Date(v.data_venda).toLocaleDateString()}`, 195, 22, {align: 'right'});
+        doc.setTextColor(0); doc.setFontSize(10); doc.text("CLIENTE:", 14, 45); doc.setFont("helvetica", "normal"); doc.text(`${v.cliente_nome}`, 14, 50); doc.text(doc.splitTextToSize(v.cliente_morada || '', 80), 14, 55);
+        if(v.nif_cliente) doc.text(`NIF: ${v.nif_cliente}`, 14, 70);
         const linhas = (v.itens || []).map(i => {
-            const precoComIva = parseFloat(i.preco); // Na nova lógica, o preço já tem imposto
-            const base = precoComIva / divisor;
+            const precoComIva = parseFloat(i.preco); const base = precoComIva / divisor;
             return [`[${i.sku || 'N/A'}] ${i.nome}`, `${taxa}%`, `€${base.toFixed(2)}`, `€${(precoComIva - base).toFixed(2)}`, `€${precoComIva.toFixed(2)}`];
         });
-        const freteComIva = parseFloat(v.total_frete || 0);
-        const baseFrete = freteComIva / divisor;
+        const freteComIva = parseFloat(v.total_frete || 0); const baseFrete = freteComIva / divisor;
         linhas.push(['Portes de Envio', `${taxa}%`, `€${baseFrete.toFixed(2)}`, `€${(freteComIva - baseFrete).toFixed(2)}`, `€${freteComIva.toFixed(2)}`]);
-
-        doc.autoTable({ startY: 75, head: [['Descrição', 'Taxa', 'Base', 'IVA', 'Total']], body: linhas, foot: [['TOTAIS', '', '', '', `€${parseFloat(v.total_venda).toFixed(2)}`]], theme: 'grid', headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } });
-        
-        const finalY = doc.lastAutoTable.finalY + 20;
-        doc.setFontSize(8); doc.setTextColor(100);
-        doc.text("Este documento serve como comprovativo de encomenda.", 105, finalY, {align: 'center'});
+        doc.autoTable({ startY: 80, head: [['Descrição', 'Taxa', 'Base', 'IVA', 'Total']], body: linhas, foot: [['TOTAIS', '', '', '', `€${parseFloat(v.total_venda).toFixed(2)}`]], theme: 'grid', headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] } });
         doc.save(`Fatura_ProForma_${cod}.pdf`);
     }
 
-    // --- FUNÇÕES DE FRETE E OUTRAS (Mantidas) ---
-    function carregarConfigNoForm() {
-        if (!configFrete || Object.keys(configFrete).length === 0) return;
-        if(document.getElementById('pt_std')) {
-            document.getElementById('pt_std').value = configFrete.pt_std || 0; document.getElementById('pt_exp').value = configFrete.pt_exp || 0; document.getElementById('pt_free').value = configFrete.pt_free || 0;
-            document.getElementById('es_std').value = configFrete.es_std || 0; document.getElementById('es_exp').value = configFrete.es_exp || 0; document.getElementById('es_free').value = configFrete.es_free || 0;
-            document.getElementById('eu_std').value = configFrete.eu_std || 0; document.getElementById('eu_exp').value = configFrete.eu_exp || 0; document.getElementById('eu_free').value = configFrete.eu_free || 0;
-        }
-    }
-    async function salvarConfigFrete() {
-        const novaConfig = { pt_std: parseFloat(document.getElementById('pt_std').value), pt_exp: parseFloat(document.getElementById('pt_exp').value), pt_free: parseFloat(document.getElementById('pt_free').value), es_std: parseFloat(document.getElementById('es_std').value), es_exp: parseFloat(document.getElementById('es_exp').value), es_free: parseFloat(document.getElementById('es_free').value), eu_std: parseFloat(document.getElementById('eu_std').value), eu_exp: parseFloat(document.getElementById('eu_exp').value), eu_free: parseFloat(document.getElementById('eu_free').value) };
-        await fetch(`${API}/config`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(novaConfig) });
-        alert("Configurações atualizadas!"); iniciar();
-    }
+    // --- GERAIS ---
+    function carregarConfigNoForm() { if (configFrete) { if(document.getElementById('pt_std')) { document.getElementById('pt_std').value = configFrete.pt_std||0; document.getElementById('pt_exp').value = configFrete.pt_exp||0; document.getElementById('pt_free').value = configFrete.pt_free||0; document.getElementById('es_std').value = configFrete.es_std||0; document.getElementById('es_exp').value = configFrete.es_exp||0; document.getElementById('es_free').value = configFrete.es_free||0; document.getElementById('eu_std').value = configFrete.eu_std||0; document.getElementById('eu_exp').value = configFrete.eu_exp||0; document.getElementById('eu_free').value = configFrete.eu_free||0; } } }
+    async function salvarConfigFrete() { const novaConfig = { pt_std: parseFloat(document.getElementById('pt_std').value), pt_exp: parseFloat(document.getElementById('pt_exp').value), pt_free: parseFloat(document.getElementById('pt_free').value), es_std: parseFloat(document.getElementById('es_std').value), es_exp: parseFloat(document.getElementById('es_exp').value), es_free: parseFloat(document.getElementById('es_free').value), eu_std: parseFloat(document.getElementById('eu_std').value), eu_exp: parseFloat(document.getElementById('eu_exp').value), eu_free: parseFloat(document.getElementById('eu_free').value) }; await fetch(`${API}/config`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(novaConfig) }); alert("Configurações atualizadas!"); iniciar(); }
     
-    function renderizarInventario(lista = produtos) {
-        const tbody = document.getElementById('lista-inventario-tabela'); 
-        if(!tbody) return;
-        tbody.innerHTML = ''; 
-        if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">Nenhum produto. Adicione um!</td></tr>'; return; }
-        const hoje = new Date();
-        lista.forEach(p => {
-            let aviso = ""; if (p.validade) { const diffDays = Math.ceil((new Date(p.validade) - hoje) / (86400000)); if (diffDays < 0) aviso = `<span class="aviso-validade texto-critico">VENCIDO</span>`; else if (diffDays <= 180) aviso = `<span class="aviso-validade texto-atencao">Vence em ${diffDays} dias</span>`; }
-            tbody.innerHTML += `<tr><td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td><td><input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"><select class="input-live" style="font-size:10px;" onchange="updateItem(${p.id}, 'categoria', this.value)"><option value="Pele" ${p.categoria==='Pele'?'selected':''}>Pele</option><option value="Cabelo" ${p.categoria==='Cabelo'?'selected':''}>Cabelo</option><option value="Olhos" ${p.categoria==='Olhos'?'selected':''}>Olhos</option><option value="Labios" ${p.categoria==='Labios'?'selected':''}>Lábios</option><option value="Unhas" ${p.categoria==='Unhas'?'selected':''}>Unhas</option></select><span class="cod-tag">Cód: ${p.sku || '-'}</span></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td><td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td><td><div style="display:flex; flex-direction:column; gap:2px;"><input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)">${aviso}</div></td><td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td></tr>`;
-        });
-    }
-    
-    function renderizarVendas() { 
-        const tb = document.getElementById('lista-vendas'); 
-        if(!tb) return;
-        tb.innerHTML = ''; 
-        if (vendas.length === 0) { tb.innerHTML = '<tr><td colspan="5" align="center" style="padding:20px; color:#94a3b8">Sem vendas.</td></tr>'; return; }
-        vendas.slice(0, 10).forEach(v => { 
-            const itensResumo = (v.itens || []).map(i => `[${i.sku||'?'}] ${i.nome}`).join('<br>'); 
-            tb.innerHTML += `<tr><td>${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td><td>${v.cliente_nome} <span style="font-size:10px; background:#e2e8f0; color:#333; padding:1px 4px; border-radius:3px;">${v.pais_destino || 'PT'}</span><div style="font-size:10px; color:#64748b; margin-top:2px;">${itensResumo}</div></td><td>${fmtEur(v.total_venda)}</td><td><button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta">📦</button><button onclick="gerarFaturaDummy('${v.codigo_pedido}')" class="btn-acao btn-fatura" title="Fatura Pro-Forma">📄</button><button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Reenviar Email">📧</button></td></tr>`; 
-        }); 
-    }
-
+    // --- RENDERIZAÇÃO ---
+    function renderizarInventario(lista = produtos) { const tbody = document.getElementById('lista-inventario-tabela'); if(!tbody) return; tbody.innerHTML = ''; if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">Nenhum produto.</td></tr>'; return; } lista.forEach(p => { let aviso = ""; if (p.validade) { const diffDays = Math.ceil((new Date(p.validade) - new Date()) / (86400000)); if (diffDays < 0) aviso = `<span class="aviso-validade texto-critico">VENCIDO</span>`; else if (diffDays <= 180) aviso = `<span class="aviso-validade texto-atencao">Vence em ${diffDays} dias</span>`; } tbody.innerHTML += `<tr><td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td><td><input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"><select class="input-live" style="font-size:10px;" onchange="updateItem(${p.id}, 'categoria', this.value)"><option value="Pele" ${p.categoria==='Pele'?'selected':''}>Pele</option><option value="Cabelo" ${p.categoria==='Cabelo'?'selected':''}>Cabelo</option><option value="Olhos" ${p.categoria==='Olhos'?'selected':''}>Olhos</option><option value="Labios" ${p.categoria==='Labios'?'selected':''}>Lábios</option><option value="Unhas" ${p.categoria==='Unhas'?'selected':''}>Unhas</option></select><span class="cod-tag">Cód: ${p.sku || '-'}</span></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td><td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td><td><div style="display:flex; flex-direction:column; gap:2px;"><input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)">${aviso}</div></td><td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td></tr>`; }); }
+    function renderizarVendas() { const tb = document.getElementById('lista-vendas'); if(!tb) return; tb.innerHTML = ''; if (vendas.length === 0) { tb.innerHTML = '<tr><td colspan="5" align="center" style="padding:20px; color:#94a3b8">Sem vendas.</td></tr>'; return; } vendas.slice(0, 10).forEach(v => { const itensResumo = (v.itens || []).map(i => `[${i.sku||'?'}] ${i.nome}`).join('<br>'); tb.innerHTML += `<tr><td>${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td><td>${v.cliente_nome} <span style="font-size:10px; background:#e2e8f0; color:#333; padding:1px 4px; border-radius:3px;">${v.pais_destino || 'PT'}</span><div style="font-size:10px; color:#64748b; margin-top:2px;">${itensResumo}</div></td><td>${fmtEur(v.total_venda)}</td><td><button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta">📦</button><button onclick="gerarFaturaDummy('${v.codigo_pedido}')" class="btn-acao btn-fatura" title="Fatura Pro-Forma">📄</button><button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Reenviar Email">📧</button></td></tr>`; }); }
     async function updateItem(id, campo, valor) { const p = produtos.find(x => x.id === id); p[campo] = valor; await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); atualizarDash(); if(campo === 'validade') renderizarInventario(); }
     function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
     function processarFotoTabela(input) { if(input.files[0]) { const r = new FileReader(); r.onload = async (e) => { const p = produtos.find(x => x.id === itemEditTabela); p.imagem = e.target.result; await fetch(`${API}/produtos/${itemEditTabela}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); iniciar(); }; r.readAsDataURL(input.files[0]); } }
     function processarFoto(input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
     async function salvarProduto() { const p = { nome: document.getElementById('p-nome').value, marca: document.getElementById('p-marca').value, categoria: document.getElementById('p-categoria').value, sku: document.getElementById('p-sku').value, validade: document.getElementById('p-validade').value, preco_entrada: parseFloat(document.getElementById('p-custo').value)||0, preco: parseFloat(document.getElementById('p-venda').value)||0, estoque: parseInt(document.getElementById('p-stock').value)||0, imagem: fotoBase64 || 'https://placehold.co/300x300?text=Ls' }; await fetch(`${API}/produtos`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(p) }); fecharModalProd(); iniciar(); }
-    
     function atualizarDash() { let cE=0, vE=0; produtos.forEach(p => { cE += (parseFloat(p.preco_entrada)||0)*p.estoque; vE += p.preco*p.estoque; }); const hoje=new Date(); let vMes=0, lMes=0; vendas.forEach(v => { const dv=new Date(v.data_venda); if(dv.getMonth()===hoje.getMonth() && dv.getFullYear()===hoje.getFullYear()) { vMes+=v.total_venda; lMes+=v.lucro; } }); document.getElementById('dash-custo').innerText=fmtEur(cE); document.getElementById('dash-valor').innerText=fmtEur(vE); document.getElementById('dash-lucro-est').innerText=fmtEur(vE-cE); document.getElementById('dash-vendas-mes').innerText=fmtEur(vMes); document.getElementById('dash-lucro-mes').innerText=fmtEur(lMes); }
-    const fmt = (v) => parseFloat(v || 0).toFixed(2);
-    const fmtEur = (v) => `€${fmt(v)}`;
+    const fmt = (v) => parseFloat(v || 0).toFixed(2); const fmtEur = (v) => `€${fmt(v)}`;
     function checkNum(val, filter, op) { if(!filter) return true; const n = parseFloat(filter); if(op === '>') return val > n; if(op === '<') return val < n; return val == n; }
     function filtrarInv() { const fProd = document.getElementById('f-prod').value.toLowerCase(); const fCusto = document.getElementById('f-custo').value; const opCusto = document.getElementById('op-custo').value; const fVenda = document.getElementById('f-venda').value; const opVenda = document.getElementById('op-venda').value; const fEstoque = document.getElementById('f-estoque').value; const opEstoque = document.getElementById('op-estoque').value; const listaFiltrada = produtos.filter(p => { return (p.nome.toLowerCase().includes(fProd)) && checkNum(parseFloat(p.preco_entrada||0), fCusto, opCusto) && checkNum(parseFloat(p.preco||0), fVenda, opVenda) && checkNum(p.estoque, fEstoque, opEstoque); }); renderizarInventario(listaFiltrada); }
     function renderizarGrafico() { const ctx = document.getElementById('graficoVendas'); if(!ctx) return; const hoje=new Date(); const dias=new Array(new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate()).fill(0); vendas.forEach(v => { const d=new Date(v.data_venda); if(d.getMonth()===hoje.getMonth()) dias[d.getDate()-1]+=v.total_venda; }); new Chart(ctx.getContext('2d'), { type:'bar', data:{labels:Array.from({length:dias.length},(_,i)=>i+1), datasets:[{label:'Vendas €',data:dias,backgroundColor:'#cca43b'}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#334155'},ticks:{color:'#94a3b8'}},x:{ticks:{color:'#94a3b8'}}}} }); }
-    
-    function gerarEtiqueta(cod) { const v=vendas.find(x=>x.codigo_pedido===cod); const {jsPDF}=window.jspdf; const doc=new jsPDF({format:[100,150],unit:'mm'}); doc.setFontSize(8); doc.text("LUST STORE",5,10); doc.line(2,30,98,30); doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40); doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome,5,48); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada||'',90),5,56); doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; (v.itens||[]).forEach(x=>{ doc.text(`[ ] [${x.sku||'?'}] ${x.nome}`,5,y); y+=8; }); doc.save('Etiquetas.pdf'); }
     async function reenviar(id) { if(confirm("Reenviar?")) await fetch(`${API}/reenviar-email/${id}`, {method:'POST'}); }
     async function apagarProduto(id) { if(confirm("Apagar?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
     
