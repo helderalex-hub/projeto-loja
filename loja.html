@@ -4,199 +4,106 @@
     <meta charset="UTF-8">
     <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
-    <meta property="og:description" content="Descubra a coleção exclusiva de cosmética premium.">
-    <meta property="og:image" content="https://helderalex-hub.github.io/projeto-loja/social-share.jpg">
-    <meta property="og:url" content="https://projeto-loja-dzqv.onrender.com">
-    <meta property="og:type" content="website">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; }
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
-        
-        header { background: var(--dark); padding: 20px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .header-content { display: flex; align-items: center; gap: 10px; }
-        .logo-img { height: 40px; }
-        header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; font-weight: 400; }
-        
-        .cart-trigger { position: relative; cursor: pointer; color: white; transition: 0.3s; }
-        .cart-trigger:hover { color: var(--gold); }
-        .cart-trigger svg { width: 28px; height: 28px; }
+        header { background: var(--dark); padding: 20px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; }
+        .cart-trigger { position: relative; cursor: pointer; color: white; }
         .cart-badge { position: absolute; top: -5px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-
+        
         /* SIDE CART */
-        .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(2px); }
+        .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; }
         .cart-overlay.open { opacity: 1; visibility: visible; }
-        .side-cart { position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100vh; background: white; z-index: 999; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.77, 0, 0.175, 1); box-shadow: -5px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+        .side-cart { position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100vh; background: white; z-index: 999; transform: translateX(100%); transition: 0.3s; display: flex; flex-direction: column; }
         .side-cart.open { transform: translateX(0); }
         .cart-header { background: var(--dark); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--gold); }
-        .cart-header h2 { margin: 0; font-family: 'Playfair Display', serif; font-size: 18px; }
-        .close-cart { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
         .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
-        .empty-msg { text-align: center; color: #94a3b8; margin-top: 50px; }
-        
-        .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
-        .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
-        .item-details { flex: 1; }
-        .item-name { font-size: 13px; font-weight: bold; color: var(--dark); display: block; }
-        .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; }
-        .item-price { font-size: 13px; color: var(--gold); font-weight: bold; margin-top: 4px; display: block; }
-        
-        .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-        .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); }
-        .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
-        .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
-        
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        
+        .input-end { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; margin-top: 5px; box-sizing: border-box; }
+        .country-select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-weight: bold; color: var(--dark); }
+        
         .cart-row { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 5px; }
         .cart-row.total { font-size: 18px; font-weight: bold; color: var(--dark); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
-        
-        .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; margin-top: 15px; }
-        .btn-checkout:hover { background: var(--gold); color: var(--dark); }
+        .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
-        
-        .country-select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-weight: bold; color: var(--dark); margin-top: 5px; }
-        .country-group-label { color: var(--gold); font-weight: bold; background: #1e293b; }
 
-        /* OUTROS ESTILOS */
-        .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        @media(min-width: 900px) { .controls-container { flex-direction: row; justify-content: space-between; } }
-        .search-wrapper { position: relative; width: 100%; max-width: 300px; }
-        .search-input { width: 100%; padding: 8px 35px 8px 15px; border-radius: 50px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .search-input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.1); }
-        .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
-        .filtros-lista { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .btn-filtro { background: transparent; border: 1px solid #cbd5e1; color: var(--dark); padding: 6px 16px; border-radius: 50px; cursor: pointer; font-size: 12px; text-transform: uppercase; font-weight: bold; transition: 0.3s; }
-        .btn-filtro:hover { border-color: var(--gold); color: var(--gold); }
-        .btn-filtro.ativo { background: var(--gold); color: #0f172a; border-color: var(--gold); box-shadow: 0 4px 10px rgba(204, 164, 59, 0.3); }
-        .sort-wrapper select { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: var(--dark); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: bold; cursor: pointer; outline: none; }
+        /* PRODUTOS */
         .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
         .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
-        .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; display: flex; flex-direction: column; border: 1px solid transparent; position: relative; }
-        .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .img-container { width: 100%; height: 280px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .img-container img { width: 90%; height: 90%; object-fit: contain; transition: transform 0.5s ease; mix-blend-mode: multiply; }
-        .produto-card:hover img { transform: scale(1.08); }
-        .produto-card.esgotado { opacity: 0.7; pointer-events: none; }
-        .produto-card.esgotado img { filter: grayscale(100%); }
-        .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; font-weight: bold; font-size: 12px; border: 1px solid var(--gold); display: none; text-transform: uppercase; letter-spacing: 1px; }
-        .produto-card.esgotado .overlay-esgotado { display: block; }
-        .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-        .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
-        .marca { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; font-weight: bold; }
-        .sku { font-size: 10px; color: #cbd5e1; margin-bottom: 5px; font-family: monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; width: fit-content; }
-        .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
-        .alerta-estoque { color: #ef4444; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; min-height: 15px; }
-        .compra-row { display: flex; gap: 10px; margin-top: auto; }
-        .qtd-seletor { display: flex; align-items: center; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
-        .qtd-btn { background: transparent; color: var(--dark); border: none; padding: 5px 12px; cursor: pointer; font-weight: bold; height: 100%; }
-        .qtd-btn:hover { color: var(--gold); background: var(--dark); }
-        .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
-        .btn-comprar:hover { background: var(--gold); color: var(--dark); }
-        .btn-comprar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
-        .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; align-items: flex-end; transition: opacity 0.3s; }
-        #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; display: none; }
-        .btn-share { width: 50px; height: 50px; border-radius: 50%; background: #25D366; color: white; border: none; cursor: pointer; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.3s; }
-        .btn-share:hover { transform: scale(1.1); }
-        .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
-        .sem-result { text-align: center; width: 100%; grid-column: span 3; color: #94a3b8; padding: 40px; font-size: 14px; text-transform: uppercase; }
+        .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; border: 1px solid transparent; }
+        .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); }
+        .img-container { width: 100%; height: 280px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+        .img-container img { width: 90%; height: 90%; object-fit: contain; mix-blend-mode: multiply; }
+        .info { padding: 20px; }
+        .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; align-items: flex-end; }
+        #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); }
     </style>
 </head>
 <body>
     <div id="frete-bar" class="frete-bar">A CARREGAR OFERTAS...</div>
     <header>
-        <div class="header-content">
-            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
-            <h1>Lust Store - <span>Vitrine</span></h1>
-        </div>
+        <div class="header-content"><h1>Lust Store</h1></div>
         <div class="cart-trigger" onclick="toggleCart()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-            <div class="cart-badge" id="header-cart-count">0</div>
+            🛒 <div class="cart-badge" id="header-cart-count">0</div>
         </div>
     </header>
 
     <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
     <div class="side-cart" id="side-cart">
         <div class="cart-header"><h2>Seu Carrinho</h2><button class="close-cart" onclick="toggleCart()">×</button></div>
-        <div class="cart-body" id="cart-items"><p class="empty-msg">O seu carrinho está vazio.</p></div>
+        <div class="cart-body" id="cart-items"><p class="empty-msg" style="text-align:center; margin-top:50px; color:#999;">O seu carrinho está vazio.</p></div>
         <div class="cart-footer">
             <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #e2e8f0;">
-                <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">1. Destino</label>
+                <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">📍 Dados de Envio</label>
+                
                 <div style="display: flex; gap: 5px; margin-top: 5px;">
                     <select id="pais-destino" class="country-select" style="margin:0; flex: 1;" onchange="validarEAtualizarFrete()">
                         <option value="PT">🇵🇹 Portugal</option>
                         <option value="ES">🇪🇸 Espanha</option>
-                        <optgroup label="🇪🇺 Outros (Europa)">
+                        <optgroup label="🇪🇺 Europa">
                             <option value="FR">🇫🇷 França</option>
                             <option value="DE">🇩🇪 Alemanha</option>
                             <option value="IT">🇮🇹 Itália</option>
                             <option value="NL">🇳🇱 Holanda</option>
-                            <option value="BE">🇧🇪 Bélgica</option>
-                            <option value="LU">🇱🇺 Luxemburgo</option>
-                            <option value="IE">🇮🇪 Irlanda</option>
-                            <option value="AT">🇦🇹 Áustria</option>
                         </optgroup>
                     </select>
-                    <input type="text" id="cp-destino" placeholder="CP (ex: 1000)" 
-                           style="width: 80px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;"
-                           onkeyup="validarEAtualizarFrete()">
+                    <input type="text" id="cp-destino" placeholder="CP (ex: 1000)" class="input-end" style="width: 80px; margin:0;" onkeyup="validarEAtualizarFrete()">
                 </div>
+                
+                <input type="text" id="cidade-destino" placeholder="Cidade" class="input-end" onkeyup="validarEAtualizarFrete()">
+                <input type="text" id="rua-destino" placeholder="Morada (Rua, Nº, Andar)" class="input-end" onkeyup="validarEAtualizarFrete()">
+                <input type="tel" id="tel-destino" placeholder="Telefone (Obrigatório)" class="input-end" onkeyup="validarEAtualizarFrete()">
+                <input type="text" id="nif-destino" placeholder="NIF (Opcional)" class="input-end">
             </div>
 
             <div id="opcoes-frete-container" style="display:none; margin-bottom: 15px;">
-                <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">2. Método de Envio</label>
-                <div id="lista-radios-frete" style="margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">
-                    </div>
+                <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">🚚 Método de Envio</label>
+                <div id="lista-radios-frete" style="margin-top: 5px; display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
 
             <div class="cart-row"><span>Subtotal (Base)</span><span id="cart-subtotal">€0.00</span></div>
             <div class="cart-row"><span id="cart-tax-label">IVA (23%)</span><span id="cart-tax-val">€0.00</span></div>
             <div class="cart-row"><span style="color:#cca43b">Frete</span><span id="cart-shipping-val" style="color:#cca43b">Calculando...</span></div>
-            <div class="cart-row total"><span>Total</span><span id="cart-total-val">€0.00</span></div>
-            <button class="btn-checkout" onclick="finalizarCompra()" id="btn-checkout" disabled>Preencha o Destino</button>
+            <div class="cart-row total"><span>Total Final</span><span id="cart-total-val">€0.00</span></div>
+            <button class="btn-checkout" onclick="finalizarCompra()" id="btn-checkout" disabled>Preencha os Dados</button>
         </div>
     </div>
 
-    <div class="controls-container">
-        <div class="search-wrapper">
-            <input type="text" id="search-input" class="search-input" placeholder="Buscar produto..." onkeyup="aplicarRegras()">
-            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-        </div>
-        <div class="filtros-lista">
-            <button class="btn-filtro ativo" onclick="mudarCategoria('todos', this)">Todos</button>
-            <button class="btn-filtro" onclick="mudarCategoria('Pele', this)">Pele</button>
-            <button class="btn-filtro" onclick="mudarCategoria('Cabelo', this)">Cabelo</button>
-            <button class="btn-filtro" onclick="mudarCategoria('Olhos', this)">Olhos</button>
-            <button class="btn-filtro" onclick="mudarCategoria('Labios', this)">Lábios</button>
-            <button class="btn-filtro" onclick="mudarCategoria('Unhas', this)">Unhas</button>
-        </div>
-        <div class="sort-wrapper">
-            <select id="sort-select" onchange="aplicarRegras()">
-                <option value="padrao">✨ Destaques</option>
-                <option value="preco-menor">€ Preço: Menor</option>
-                <option value="preco-maior">€ Preço: Maior</option>
-                <option value="a-z">Aa Nome: A - Z</option>
-                <option value="z-a">Aa Nome: Z - A</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="container"><div id="vitrine" class="vitrine"><div class="loading">A CARREGAR COLEÇÃO EXCLUSIVA...</div></div></div>
+    <div class="container"><div id="vitrine" class="vitrine"><div class="loading">A CARREGAR...</div></div></div>
     
     <div class="floating-container">
-        <button class="btn-share" onclick="partilharLoja()" title="Partilhar no WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.017-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg></button>
-        <button id="btn-carrinho-float" onclick="toggleCart()">
-            🛒 Ver Carrinho <span id="cart-count">0</span>
-        </button>
+        <button id="btn-carrinho-float" onclick="toggleCart()">🛒 Ver Carrinho <span id="cart-count">0</span></button>
     </div>
     
     <script>
         const API = 'https://projeto-loja-dzqv.onrender.com';
-        let todosProdutos = [], carrinho = [], catAtual = 'todos';
-        let taxasPorPais = [], configFrete = {};
+        let todosProdutos = [], carrinho = [], taxasPorPais = [], configFrete = {};
         let freteSelecionado = { valor: 0, tier: 'std' };
 
         async function carregarProdutos() {
@@ -205,115 +112,71 @@
                 todosProdutos = await resP.json();
                 configFrete = await resC.json();
                 taxasPorPais = await resT.json();
-                if(!taxasPorPais.length) {
-                    taxasPorPais = [
-                        {pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20},
-                        {pais_iso: 'DE', taxa_percentual: 19}, {pais_iso: 'IT', taxa_percentual: 22}, {pais_iso: 'NL', taxa_percentual: 21},
-                        {pais_iso: 'BE', taxa_percentual: 21}, {pais_iso: 'LU', taxa_percentual: 17}, {pais_iso: 'IE', taxa_percentual: 23}, {pais_iso: 'AT', taxa_percentual: 20}
-                    ];
-                }
+                if(!taxasPorPais.length) taxasPorPais = [{pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20}];
                 if(configFrete.pt_free) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${configFrete.pt_free} | ES > €${configFrete.es_free} | EUROPA > €${configFrete.eu_free}`;
-                aplicarRegras(); 
-            } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; }
-        }
-
-        function mudarCategoria(cat, btn) { catAtual = cat; document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); btn.classList.add('ativo'); aplicarRegras(); }
-
-        function aplicarRegras() {
-            let lista = [...todosProdutos];
-            if (catAtual !== 'todos') lista = lista.filter(p => p.categoria === catAtual);
-            const termo = document.getElementById('search-input').value.toLowerCase();
-            if (termo) lista = lista.filter(p => p.nome.toLowerCase().includes(termo) || (p.marca && p.marca.toLowerCase().includes(termo)));
-            const ordem = document.getElementById('sort-select').value;
-            if (ordem === 'preco-menor') lista.sort((a,b) => a.preco - b.preco);
-            else if (ordem === 'preco-maior') lista.sort((a,b) => b.preco - a.preco);
-            else if (ordem === 'a-z') lista.sort((a,b) => a.nome.localeCompare(b.nome));
-            else if (ordem === 'z-a') lista.sort((a,b) => b.nome.localeCompare(a.nome));
-            renderizarProdutos(lista);
+                renderizarProdutos(todosProdutos); 
+            } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro API.</p>"; }
         }
 
         function renderizarProdutos(lista) {
             const vitrine = document.getElementById('vitrine'); vitrine.innerHTML = '';
-            const hoje = new Date();
-            if (lista.length === 0) { vitrine.innerHTML = "<div class='sem-result'>Nenhum produto encontrado.</div>"; return; }
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0; 
-                let esgotado = stock <= 0;
-                if (p.validade && new Date(p.validade) < hoje) esgotado = true;
-                let alertaHTML = "";
-                if (esgotado) alertaHTML = '<span style="color:#94a3b8">Indisponível</span>';
-                else if (stock < 5) alertaHTML = `⚠️ Restam apenas ${stock} un!`;
-                
+                if (stock <= 0) return; // Não mostra esgotados
                 vitrine.innerHTML += `
-                    <div class="produto-card ${esgotado ? 'esgotado' : ''}">
-                        <div class="img-container"><img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'"><div class="overlay-esgotado">ESGOTADO</div></div>
+                    <div class="produto-card">
+                        <div class="img-container"><img src="${p.imagem || 'https://placehold.co/300x300'}" onerror="this.src='https://placehold.co/300x300'"></div>
                         <div class="info">
-                            <span class="marca">${p.marca || 'Lust'}</span>
+                            <span style="font-size:10px; color:#999">${p.marca || 'Lust'}</span>
                             <h3>${p.nome}</h3>
-                            <div class="sku">${p.sku ? `Cód: ${p.sku}` : ''}</div>
                             <div class="preco">€${parseFloat(p.preco).toFixed(2)} <span style="font-size:10px; color:#999;">+ IVA</span></div>
-                            <div class="alerta-estoque">${alertaHTML}</div>
-                            <div class="compra-row">
-                                <div class="qtd-seletor"><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', -1)">−</button><span id="qtd-card-${p.id}" style="width:20px; text-align:center; font-size:12px;">1</span><button class="qtd-btn" onclick="mudarQtdVitrine('${p.id}', 1, ${stock})">+</button></div>
-                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">${esgotado ? 'Esgotado' : 'Comprar'}</button>
-                            </div>
+                            <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">Comprar</button>
                         </div>
                     </div>`;
             });
         }
 
-        // --- FUNÇÕES CARRINHO ---
         function toggleCart() { 
             const s = document.getElementById('side-cart'); 
             const o = document.getElementById('cart-overlay'); 
             const f = document.querySelector('.floating-container');
-            s.classList.toggle('open'); 
-            o.classList.toggle('open');
-            // Esconde botões flutuantes quando abre
-            f.style.display = s.classList.contains('open') ? 'none' : 'flex';
+            s.classList.toggle('open'); o.classList.toggle('open');
+            f.style.display = s.classList.contains('open') ? 'none' : 'flex'; // Esconde botão flutuante
         }
 
-        function mudarQtdVitrine(id, delta, max) { let el = document.getElementById(`qtd-card-${id}`); let novo = parseInt(el.innerText) + delta; if (novo >= 1 && (max === undefined || novo <= max)) el.innerText = novo; }
-        
         function addCarrinho(id, nome, preco, sku, img, stockMax) { 
-            const qtdSpan = document.getElementById(`qtd-card-${id}`);
-            const qtdAdicionar = qtdSpan ? parseInt(qtdSpan.innerText) : 1;
             const item = carrinho.find(i => i.id == id);
-            const qtdAtual = item ? item.qtd : 0;
-            if ((qtdAtual + qtdAdicionar) > stockMax) { alert(`Apenas ${stockMax} unidades disponíveis.`); return; }
-            if (item) item.qtd += qtdAdicionar; else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdAdicionar, max: stockMax});
-            if (qtdSpan) qtdSpan.innerText = "1";
-            validarEAtualizarFrete(); // Recalcula
-            toggleCart();
+            if (item) { if(item.qtd < stockMax) item.qtd++; else alert("Stock Max."); } 
+            else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: 1, max: stockMax});
+            validarEAtualizarFrete(); toggleCart();
         }
 
-        function removeDoCarrinho(id) { carrinho = carrinho.filter(i => i.id != id); validarEAtualizarFrete(); }
-        function mudarQtdCarrinho(id, delta) { const item = carrinho.find(i => i.id == id); if (item) { const novaQtd = item.qtd + delta; if (novaQtd > item.max) { alert("Limite de estoque atingido."); return; } item.qtd = novaQtd; if (item.qtd <= 0) removeDoCarrinho(id); else validarEAtualizarFrete(); } }
-
-        // --- LÓGICA DE FRETE ---
         function validarEAtualizarFrete() {
             if (carrinho.length === 0) { atualizarCarrinhoUI(); return; }
 
             const pais = document.getElementById('pais-destino').value;
             const cp = document.getElementById('cp-destino').value.trim();
+            const cidade = document.getElementById('cidade-destino').value.trim();
+            const rua = document.getElementById('rua-destino').value.trim();
+            const tel = document.getElementById('tel-destino').value.trim();
+            
             const containerOpcoes = document.getElementById('opcoes-frete-container');
             const listaRadios = document.getElementById('lista-radios-frete');
             const btn = document.getElementById('btn-checkout');
 
-            // Validação de CP
-            let cpValido = false;
-            if (pais === 'PT') cpValido = /^\d{4}/.test(cp); 
-            else cpValido = cp.length >= 3;
+            // Validação Completa
+            let cpValido = (pais === 'PT') ? /^\d{4}/.test(cp) : cp.length >= 3;
+            const tudoPreenchido = cpValido && cidade.length > 2 && rua.length > 5 && tel.length > 6;
 
-            if (!cpValido) {
+            if (!tudoPreenchido) {
                 containerOpcoes.style.display = 'none';
                 btn.disabled = true;
-                btn.innerText = "Indique o Código Postal";
+                btn.innerText = "Preencha Dados + Tel";
                 atualizarCarrinhoUI();
                 return;
             }
 
-            // Calcular Total Produtos (Com IVA) para isenção
+            // Calcular Total Produtos (Com IVA)
             const taxaObj = taxasPorPais.find(t => t.pais_iso === pais);
             const taxa = taxaObj ? taxaObj.taxa_percentual : 23;
             let totalProdComImposto = 0;
@@ -326,20 +189,16 @@
             if (pais === 'PT') {
                 limitFree = configFrete.pt_free || 60;
                 if (cp.startsWith('9')) { // Ilhas
-                    custoStd = (configFrete.pt_std || 4.5) + 2;
-                    custoExp = (configFrete.pt_exp || 8) + 4;
+                    custoStd = (configFrete.pt_std || 4.5) + 2; custoExp = (configFrete.pt_exp || 8) + 4;
                     labelStd = "Ilhas (Marítimo)"; labelExp = "Ilhas (Aéreo)";
                 } else { // Continente
-                    custoStd = configFrete.pt_std || 4.5;
-                    custoExp = configFrete.pt_exp || 8;
+                    custoStd = configFrete.pt_std || 4.5; custoExp = configFrete.pt_exp || 8;
                     labelStd = "Continente (CTT)"; labelExp = "Urgente (24h)";
                 }
             } else if (pais === 'ES') {
-                limitFree = configFrete.es_free || 85;
-                custoStd = configFrete.es_std || 6; custoExp = configFrete.es_exp || 10;
+                limitFree = configFrete.es_free || 85; custoStd = configFrete.es_std || 6; custoExp = configFrete.es_exp || 10;
             } else {
-                limitFree = configFrete.eu_free || 125;
-                custoStd = configFrete.eu_std || 12; custoExp = configFrete.eu_exp || 25;
+                limitFree = configFrete.eu_free || 125; custoStd = configFrete.eu_std || 12; custoExp = configFrete.eu_exp || 25;
             }
 
             if (totalProdComImposto >= limitFree) custoStd = 0;
@@ -351,19 +210,13 @@
             for(let r of radios) if(r.checked) selectedTier = r.value;
 
             listaRadios.innerHTML = `
-                <label style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; border:1px solid ${selectedTier==='std'?'#cca43b':'#e2e8f0'}; border-radius:4px; cursor:pointer;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <input type="radio" name="frete_option" value="std" ${selectedTier==='std'?'checked':''} onchange="validarEAtualizarFrete()">
-                        <span style="font-size:12px; font-weight:bold; color:#0f172a">${labelStd}</span>
-                    </div>
-                    <span style="font-size:12px; font-weight:bold; color:${custoStd===0 ? '#166534' : '#0f172a'}">${custoStd===0 ? 'GRÁTIS' : '€'+custoStd.toFixed(2)}</span>
+                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px; margin-bottom:5px;">
+                    <div><input type="radio" name="frete_option" value="std" ${selectedTier==='std'?'checked':''} onchange="validarEAtualizarFrete()"> <b>${labelStd}</b></div>
+                    <span style="color:${custoStd===0 ? '#166534' : '#0f172a'}">${custoStd===0 ? 'GRÁTIS' : '€'+custoStd.toFixed(2)}</span>
                 </label>
-                <label style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; border:1px solid ${selectedTier==='exp'?'#cca43b':'#e2e8f0'}; border-radius:4px; cursor:pointer;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()">
-                        <span style="font-size:12px; font-weight:bold; color:#0f172a">${labelExp}</span>
-                    </div>
-                    <span style="font-size:12px; font-weight:bold; color:#0f172a">€${custoExp.toFixed(2)}</span>
+                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px;">
+                    <div><input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()"> <b>${labelExp}</b></div>
+                    <span>€${custoExp.toFixed(2)}</span>
                 </label>`;
 
             freteSelecionado = { tier: selectedTier, valor: selectedTier === 'std' ? custoStd : custoExp };
@@ -376,10 +229,10 @@
         function atualizarCarrinhoUI(taxa, totalComImposto, valorFrete) {
             const container = document.getElementById('cart-items');
             const badge = document.getElementById('header-cart-count');
-            const floatCount = document.getElementById('cart-count');
+            const floatCount = document.getElementById('cart-count'); // Corrigido erro de referencia
             
             if (!carrinho.length) {
-                container.innerHTML = '<p class="empty-msg">O seu carrinho está vazio.</p>';
+                container.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:50px;">Vazio</p>';
                 document.getElementById('opcoes-frete-container').style.display='none';
                 document.getElementById('cart-total-val').innerText = '€0.00';
                 return;
@@ -389,11 +242,11 @@
             let totalCount = 0;
             carrinho.forEach(item => {
                 totalCount += item.qtd;
-                container.innerHTML += `<div class="cart-item"><img src="${item.imagem}"><div class="item-details"><span class="item-name">${item.nome}</span><span class="item-price">€${item.preco.toFixed(2)} (Base)</span><div class="qty-controls"><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">−</div><span class="qty-val">${item.qtd}</span><div class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</div></div></div></div>`;
+                container.innerHTML += `<div class="cart-item" style="display:flex; gap:10px; margin-bottom:10px;"><img src="${item.imagem}" style="width:50px;"><div class="item-details"><span class="item-name" style="font-weight:bold">${item.nome}</span><br><span class="item-price">€${item.preco.toFixed(2)}</span> x ${item.qtd}</div></div>`;
             });
             
             badge.innerText = totalCount;
-            floatCount.innerText = totalCount;
+            if(floatCount) floatCount.innerText = totalCount;
 
             if (taxa === undefined) return;
 
@@ -412,6 +265,12 @@
             const btn = document.getElementById('btn-checkout'); 
             const pais = document.getElementById('pais-destino').value;
             const cp = document.getElementById('cp-destino').value;
+            const cidade = document.getElementById('cidade-destino').value;
+            const rua = document.getElementById('rua-destino').value;
+            const tel = document.getElementById('tel-destino').value;
+            const nif = document.getElementById('nif-destino').value;
+            const moradaCompleta = `${rua}, ${cidade}`;
+
             btn.disabled = true; btn.innerText = "A PROCESSAR...";
             
             let itensParaBackend = [];
@@ -421,14 +280,22 @@
                 const res = await fetch(`${API}/checkout`, { 
                     method: 'POST', 
                     headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify({ itens: itensParaBackend, pais: pais, zip: cp, tier: freteSelecionado.tier }) 
+                    body: JSON.stringify({ 
+                        itens: itensParaBackend, 
+                        pais: pais, 
+                        zip: cp, 
+                        tier: freteSelecionado.tier,
+                        address: moradaCompleta,
+                        city: cidade,
+                        phone: tel,
+                        nif: nif 
+                    }) 
                 }); 
                 const d = await res.json(); 
                 if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); 
             } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerText = "FINALIZAR COMPRA"; } 
         }
 
-        function partilharLoja() { const texto = "Confira as novidades exclusivas da Lust Store! 💎"; const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=${texto} ${url}`, '_blank'); }
         window.onload = carregarProdutos;
     </script>
 </body>
