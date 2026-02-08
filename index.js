@@ -25,7 +25,6 @@ function gerarIdLust() {
 async function processarEmailsVenda(venda) {
     const taxa = venda.taxa_iva_aplicada || 23;
     
-    // FORMATO DE RECIBO NO EMAIL
     const itensLista = venda.itens.map(i => {
         const precoBase = parseFloat(i.preco);
         const valorIvaItem = precoBase * (taxa / 100);
@@ -45,67 +44,26 @@ async function processarEmailsVenda(venda) {
                 <h1 style="color: #fff; margin: 0; font-family: 'Times New Roman', serif; letter-spacing: 2px;">LUST STORE</h1>
                 <p style="color: #cca43b; font-size: 10px; text-transform: uppercase;">Premium Beauty & Care</p>
             </div>
-            
             <div style="padding: 30px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-                    <div>
-                        <p style="font-size: 12px; color: #94a3b8; margin: 0;">CLIENTE</p>
-                        <p style="margin: 5px 0; color: #0f172a; font-weight: bold;">${venda.cliente_nome}</p>
-                        <p style="margin: 0; color: #64748b; font-size: 12px;">${venda.pais_destino}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="font-size: 12px; color: #94a3b8; margin: 0;">RECIBO PROVISÓRIO</p>
-                        <p style="margin: 5px 0; color: #cca43b; font-weight: bold;">#${venda.codigo_pedido}</p>
-                        <p style="margin: 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
-                    </div>
+                    <div><p style="font-size: 12px; color: #94a3b8; margin: 0;">CLIENTE</p><p style="margin: 5px 0; color: #0f172a; font-weight: bold;">${venda.cliente_nome}</p><p style="margin: 0; color: #64748b; font-size: 12px;">${venda.pais_destino}</p></div>
+                    <div style="text-align: right;"><p style="font-size: 12px; color: #94a3b8; margin: 0;">RECIBO PROVISÓRIO</p><p style="margin: 5px 0; color: #cca43b; font-weight: bold;">#${venda.codigo_pedido}</p><p style="margin: 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p></div>
                 </div>
-
-                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                    <thead>
-                        <tr style="background: #f8fafc; color: #94a3b8; font-size: 10px; text-transform: uppercase;">
-                            <th style="padding: 10px; text-align: left;">Descrição</th>
-                            <th style="padding: 10px; text-align: right;">Base</th>
-                            <th style="padding: 10px; text-align: right;">IVA</th>
-                            <th style="padding: 10px; text-align: right;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>${itensLista}</tbody>
-                </table>
-
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;"><thead><tr style="background: #f8fafc; color: #94a3b8; font-size: 10px; text-transform: uppercase;"><th style="padding: 10px; text-align: left;">Descrição</th><th style="padding: 10px; text-align: right;">Base</th><th style="padding: 10px; text-align: right;">IVA</th><th style="padding: 10px; text-align: right;">Total</th></tr></thead><tbody>${itensLista}</tbody></table>
                 <div style="margin-top: 20px; border-top: 2px solid #0f172a; padding-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="color: #64748b;">Total Base (Líquido)</span>
-                        <span style="color: #0f172a;">€${(venda.total_venda / (1 + taxa/100)).toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="color: #64748b;">Total IVA (${taxa}%)</span>
-                        <span style="color: #0f172a;">€${(venda.total_venda - (venda.total_venda / (1 + taxa/100))).toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="color: #64748b;">Frete</span>
-                        <span style="color: #0f172a;">€${venda.total_frete.toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 18px; font-weight: bold;">
-                        <span style="color: #0f172a;">TOTAL PAGO</span>
-                        <span style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</span>
-                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total Base (Líquido)</span><span style="color: #0f172a;">€${(venda.total_venda / (1 + taxa/100)).toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total IVA (${taxa}%)</span><span style="color: #0f172a;">€${(venda.total_venda - (venda.total_venda / (1 + taxa/100))).toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Frete</span><span style="color: #0f172a;">€${venda.total_frete.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 18px; font-weight: bold;"><span style="color: #0f172a;">TOTAL PAGO</span><span style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</span></div>
                 </div>
-
-                <div style="margin-top: 30px; text-align: center;">
-                    <a href="https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${venda.codigo_pedido}" style="background: #0f172a; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold;">BAIXAR RECIBO EM PDF</a>
-                </div>
-            </div>
-            <div style="background: #f1f5f9; padding: 15px; text-align: center; font-size: 10px; color: #94a3b8;">
-                <p>Este documento serve como comprovativo de encomenda. A fatura fiscal oficial será emitida em breve.</p>
+                <div style="margin-top: 30px; text-align: center;"><a href="https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${venda.codigo_pedido}" style="background: #0f172a; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold;">BAIXAR RECIBO EM PDF</a></div>
             </div>
         </div>
     `;
-
     await enviarEmailViaBrevo(venda.cliente_email, `Recibo Lust Store: #${venda.codigo_pedido}`, htmlRecibo);
     await enviarEmailViaBrevo(process.env.EMAIL_USER, `Venda: #${venda.codigo_pedido}`, `<h3>Venda #${venda.codigo_pedido}</h3><p>Total: €${venda.total_venda}</p>`);
 }
 
-// ... (MIDDLEWARE CORS e WEBHOOK mantêm-se iguais, apenas garantem que guardam a taxa) ...
 app.use((req, res, next) => { res.setHeader('Access-Control-Allow-Origin', '*'); res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); if (req.method === 'OPTIONS') return res.status(200).end(); next(); });
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -158,68 +116,63 @@ app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos'
 app.get('/vendas', async (req, res) => { const { data } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false }); res.json(data || []); });
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 
-// --- CHECKOUT COM PREÇO DINÂMICO ---
+// CHECKOUT DINÂMICO
 app.post('/checkout', async (req, res) => {
     try {
-        const { itens, pais } = req.body;
+        const { itens, pais, zip, tier } = req.body;
         const novoIdPedido = gerarIdLust(); 
         
-        // 1. Determinar Taxa
-        const { data: taxaData } = await supabase.from('taxas_iva').select('taxa_percentual').eq('pais_iso', pais).single();
-        const taxa = taxaData ? taxaData.taxa_percentual : 23; // Padrão 23% se não encontrar
-
-        // 2. Determinar Frete e Isenção
         const { data: config } = await supabase.from('config_loja').select('*').single();
         const cf = config || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60, es_std: 5.95, es_exp: 9.95, es_free: 85, eu_std: 12.50, eu_exp: 25.00, eu_free: 125 };
+        const { data: taxaData } = await supabase.from('taxas_iva').select('taxa_percentual').eq('pais_iso', pais).single();
+        const taxa = taxaData ? taxaData.taxa_percentual : 23;
 
-        // 3. Calcular Total para Frete (Baseado no preço COM imposto, geralmente isenção é sobre total)
-        let totalBase = 0;
         let totalComImposto = 0;
-
         const line_items = itens.map(i => { 
             const precoBase = parseFloat(i.preco);
-            const precoFinal = precoBase * (1 + (taxa / 100)); // PREÇO DINÂMICO: BASE + IMPOSTO
-            totalBase += precoBase;
+            const precoFinal = precoBase * (1 + (taxa / 100));
             totalComImposto += precoFinal;
-
-            return { 
-                price_data: { 
-                    currency: 'eur', 
-                    product_data: { name: `[${i.sku || '?'}] ${i.nome} (Taxa ${taxa}%)` }, 
-                    unit_amount: Math.round(precoFinal * 100) // Stripe aceita cêntimos
-                }, 
-                quantity: 1 
-            }; 
+            return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(precoFinal * 100) }, quantity: 1 }; 
         });
 
-        // 4. Configurar Frete Stripe
-        let s_options = [];
-        let allowed_countries = [];
+        // LÓGICA DE FRETE (TIER + ZONA)
+        let custoFinal = 0;
+        let nomeServico = "Envio";
+        let estimativa = { min: 2, max: 5 };
+        let custoStd = 0, custoExp = 0, limiteFree = 9999;
+        let nomeStd = "", nomeExp = "";
 
         if (pais === 'PT') {
-            allowed_countries = ['PT'];
-            s_options = [
-                { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: totalComImposto >= cf.pt_free ? 0 : Math.round(cf.pt_std * 100), currency: 'eur' }, display_name: 'Portugal: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 4 } } } },
-                { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(cf.pt_exp * 100), currency: 'eur' }, display_name: 'Portugal: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 1 }, maximum: { unit: 'business_day', value: 2 } } } }
-            ];
+            const isIlhas = zip && zip.startsWith('9');
+            limiteFree = cf.pt_free;
+            if (isIlhas) {
+                custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00;
+                nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)";
+                estimativa = tier === 'exp' ? {min: 2, max: 4} : {min: 5, max: 9};
+            } else {
+                custoStd = cf.pt_std; custoExp = cf.pt_exp;
+                nomeStd = "Portugal Continental (CTT)"; nomeExp = "Portugal Expresso (24h)";
+                estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4};
+            }
         } else if (pais === 'ES') {
-            allowed_countries = ['ES'];
-            s_options = [
-                { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: totalComImposto >= cf.es_free ? 0 : Math.round(cf.es_std * 100), currency: 'eur' }, display_name: 'Espanha: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 3 }, maximum: { unit: 'business_day', value: 5 } } } },
-                { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(cf.es_exp * 100), currency: 'eur' }, display_name: 'Espanha: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 1 }, maximum: { unit: 'business_day', value: 2 } } } }
-            ];
+            custoStd = cf.es_std; custoExp = cf.es_exp; limiteFree = cf.es_free;
+            nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente";
         } else {
-            allowed_countries = ['FR', 'DE', 'IT', 'NL', 'BE', 'LU', 'IE', 'AT'];
-            s_options = [
-                { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: totalComImposto >= cf.eu_free ? 0 : Math.round(cf.eu_std * 100), currency: 'eur' }, display_name: 'Europa: Normal', delivery_estimate: { minimum: { unit: 'business_day', value: 5 }, maximum: { unit: 'business_day', value: 10 } } } },
-                { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(cf.eu_exp * 100), currency: 'eur' }, display_name: 'Europa: Expresso', delivery_estimate: { minimum: { unit: 'business_day', value: 2 }, maximum: { unit: 'business_day', value: 3 } } } }
-            ];
+            custoStd = cf.eu_std; custoExp = cf.eu_exp; limiteFree = cf.eu_free;
+            nomeStd = "Europa Standard"; nomeExp = "Europa Express";
+        }
+
+        if (tier === 'exp') {
+            custoFinal = custoExp; nomeServico = nomeExp;
+        } else {
+            custoFinal = totalComImposto >= limiteFree ? 0 : custoStd;
+            nomeServico = totalComImposto >= limiteFree ? `${nomeStd} (Ofertado)` : nomeStd;
         }
 
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'], 
-            shipping_address_collection: { allowed_countries: allowed_countries }, 
-            shipping_options: s_options, 
+            shipping_address_collection: { allowed_countries: [pais] }, 
+            shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: estimativa.min }, maximum: { unit: 'business_day', value: estimativa.max } } } }],
             line_items: line_items, 
             mode: 'payment', 
             success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, 
