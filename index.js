@@ -4,8 +4,6 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
-
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
@@ -24,44 +22,28 @@ function gerarIdLust() {
 
 async function processarEmailsVenda(venda) {
     const taxa = venda.taxa_iva_aplicada || 23;
-    
     const itensLista = venda.itens.map(i => {
         const precoBase = parseFloat(i.preco);
         const valorIvaItem = precoBase * (taxa / 100);
         const totalItem = precoBase + valorIvaItem;
-        return `
-        <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 10px; color: #555;">[${i.sku || 'N/A'}] ${i.nome}</td>
-            <td style="padding: 10px; text-align: right; color: #555;">€${precoBase.toFixed(2)}</td>
-            <td style="padding: 10px; text-align: right; color: #555;">${taxa}%</td>
-            <td style="padding: 10px; text-align: right; font-weight: bold; color: #555;">€${totalItem.toFixed(2)}</td>
-        </tr>`;
+        return `<tr><td style="padding:10px;">${i.nome}</td><td style="text-align:right;">€${totalItem.toFixed(2)}</td></tr>`;
     }).join('');
 
-    const htmlRecibo = `
-        <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; background: #fff;">
-            <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid #cca43b;">
-                <h1 style="color: #fff; margin: 0; font-family: 'Times New Roman', serif; letter-spacing: 2px;">LUST STORE</h1>
-                <p style="color: #cca43b; font-size: 10px; text-transform: uppercase;">Premium Beauty & Care</p>
-            </div>
-            <div style="padding: 30px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-                    <div><p style="font-size: 12px; color: #94a3b8; margin: 0;">CLIENTE</p><p style="margin: 5px 0; color: #0f172a; font-weight: bold;">${venda.cliente_nome}</p><p style="margin: 0; color: #64748b; font-size: 12px;">${venda.pais_destino}</p></div>
-                    <div style="text-align: right;"><p style="font-size: 12px; color: #94a3b8; margin: 0;">RECIBO PROVISÓRIO</p><p style="margin: 5px 0; color: #cca43b; font-weight: bold;">#${venda.codigo_pedido}</p><p style="margin: 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p></div>
-                </div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 13px;"><thead><tr style="background: #f8fafc; color: #94a3b8; font-size: 10px; text-transform: uppercase;"><th style="padding: 10px; text-align: left;">Descrição</th><th style="padding: 10px; text-align: right;">Base</th><th style="padding: 10px; text-align: right;">IVA</th><th style="padding: 10px; text-align: right;">Total</th></tr></thead><tbody>${itensLista}</tbody></table>
-                <div style="margin-top: 20px; border-top: 2px solid #0f172a; padding-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total Base (Líquido)</span><span style="color: #0f172a;">€${(venda.total_venda / (1 + taxa/100)).toFixed(2)}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total IVA (${taxa}%)</span><span style="color: #0f172a;">€${(venda.total_venda - (venda.total_venda / (1 + taxa/100))).toFixed(2)}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Frete</span><span style="color: #0f172a;">€${venda.total_frete.toFixed(2)}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 18px; font-weight: bold;"><span style="color: #0f172a;">TOTAL PAGO</span><span style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</span></div>
-                </div>
-                <div style="margin-top: 30px; text-align: center;"><a href="https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${venda.codigo_pedido}" style="background: #0f172a; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold;">BAIXAR RECIBO EM PDF</a></div>
-            </div>
+    const htmlRecibo = `<div style="font-family:sans-serif; border:1px solid #ddd; padding:20px;">
+        <h2 style="color:#cca43b">Recibo #${venda.codigo_pedido}</h2>
+        <p>Olá ${venda.cliente_nome}, obrigado pela sua compra!</p>
+        <p><strong>Envio para:</strong><br>${venda.cliente_morada}<br>Tel: ${venda.telefone_contato || 'N/A'}</p>
+        <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+            <tr style="background:#f8f8f8; font-weight:bold;"><td>Item</td><td style="text-align:right;">Total</td></tr>
+            ${itensLista}
+        </table>
+        <p style="text-align:right; font-size:18px; margin-top:10px;"><strong>Total Pago: €${venda.total_venda.toFixed(2)}</strong></p>
+        <div style="text-align:center; margin-top:20px;">
+            <a href="https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${venda.codigo_pedido}" style="background:#0f172a; color:#fff; padding:10px 20px; text-decoration:none; border-radius:5px;">Baixar Recibo PDF</a>
         </div>
-    `;
+    </div>`;
+
     await enviarEmailViaBrevo(venda.cliente_email, `Recibo Lust Store: #${venda.codigo_pedido}`, htmlRecibo);
-    await enviarEmailViaBrevo(process.env.EMAIL_USER, `Venda: #${venda.codigo_pedido}`, `<h3>Venda #${venda.codigo_pedido}</h3><p>Total: €${venda.total_venda}</p>`);
 }
 
 app.use((req, res, next) => { res.setHeader('Access-Control-Allow-Origin', '*'); res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); if (req.method === 'OPTIONS') return res.status(200).end(); next(); });
@@ -70,30 +52,76 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     const sig = req.headers['stripe-signature'];
     let event;
     try { event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET); } catch (err) { return res.status(400).send(`Webhook Error: ${err.message}`); }
+    
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+        
         if (session.metadata && session.metadata.ids_produtos) {
-            const ids = session.metadata.ids_produtos.split(',');
-            const codigoPedido = session.metadata.codigo_pedido;
-            const paisDestino = session.metadata.pais_destino;
-            const taxaAplicada = parseFloat(session.metadata.taxa_aplicada);
+            const meta = session.metadata;
+            
+            // 1. Atualizar Stock
+            const ids = meta.ids_produtos.split(',');
             let custoProdutos = 0; let itensVendidos = [];
             for (const id of ids) {
                 const { data: p } = await supabase.from('produtos').select('*').eq('id', id).single();
                 if (p) {
                     await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - 1) }).eq('id', id);
                     custoProdutos += (p.preco_entrada || 0);
-                    itensVendidos.push({ nome: p.nome, preco: p.preco, marca: p.marca, categoria: p.categoria, sku: p.sku });
+                    itensVendidos.push({ nome: p.nome, preco: p.preco, marca: p.marca, sku: p.sku });
                 }
             }
+
+            // 2. Criar ou Atualizar Cliente (CRM)
+            const emailCliente = session.customer_details.email;
+            let clienteId = null;
+            const { data: clienteExistente } = await supabase.from('clientes').select('id').eq('email', emailCliente).single();
+
+            if (clienteExistente) {
+                clienteId = clienteExistente.id;
+                await supabase.from('clientes').update({
+                    nome: session.customer_details.name,
+                    telefone: meta.cli_telefone,
+                    morada_completa: meta.cli_morada,
+                    nif: meta.cli_nif,
+                    pais: meta.pais_destino,
+                    cp: meta.cli_cp
+                }).eq('id', clienteId);
+            } else {
+                const { data: novoCliente } = await supabase.from('clientes').insert([{
+                    email: emailCliente,
+                    nome: session.customer_details.name,
+                    telefone: meta.cli_telefone,
+                    morada_completa: meta.cli_morada,
+                    nif: meta.cli_nif,
+                    pais: meta.pais_destino,
+                    cp: meta.cli_cp
+                }]).select().single();
+                if (novoCliente) clienteId = novoCliente.id;
+            }
+
+            // 3. Registar Venda
             const total = session.amount_total / 100; 
             const frete = (session.total_details?.amount_shipping || 0) / 100;
             const receitaLiq = total - frete;
-            const details = session.shipping_details || session.customer_details;
-            const morada = details.address ? `${details.address.line1}, ${details.address.postal_code} ${details.address.city}, ${details.address.country}` : 'N/A';
             
-            const novaVenda = { cliente_nome: details.name, cliente_email: session.customer_details.email, cliente_morada: morada, itens: itensVendidos, codigo_pedido: codigoPedido, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos, pais_destino: paisDestino, taxa_iva_aplicada: taxaAplicada };
+            const novaVenda = { 
+                codigo_pedido: meta.codigo_pedido, 
+                cliente_nome: session.customer_details.name, 
+                cliente_email: emailCliente, 
+                cliente_morada: meta.cli_morada, 
+                telefone_contato: meta.cli_telefone,
+                nif_cliente: meta.cli_nif,
+                cliente_id: clienteId,
+                itens: itensVendidos, 
+                total_venda: total, 
+                total_frete: frete, 
+                total_custo: custoProdutos, 
+                lucro: receitaLiq - custoProdutos, 
+                pais_destino: meta.pais_destino, 
+                taxa_iva_aplicada: parseFloat(meta.taxa_aplicada) 
+            };
+            
             await supabase.from('vendas').insert([novaVenda]);
             processarEmailsVenda(novaVenda).catch(console.error);
         }
@@ -104,11 +132,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
+app.get('/', (req, res) => res.send("API Online"));
 app.get('/taxas', async (req, res) => { const { data } = await supabase.from('taxas_iva').select('*'); res.json(data || []); });
 app.get('/config', async (req, res) => { const { data } = await supabase.from('config_loja').select('*').single(); res.json(data || {}); });
 app.put('/config', async (req, res) => { const { error } = await supabase.from('config_loja').upsert({ id: 1, ...req.body }); if (error) return res.status(500).json({ error: error.message }); res.json({ success: true }); });
-app.get('/pedido/:codigo', async (req, res) => { const { codigo } = req.params; const { data, error } = await supabase.from('vendas').select('*').eq('codigo_pedido', codigo).single(); if (error || !data) return res.status(404).json({ erro: 'Pedido não encontrado' }); res.json(data); });
+app.get('/pedido/:codigo', async (req, res) => { const { codigo } = req.params; const { data } = await supabase.from('vendas').select('*').eq('codigo_pedido', codigo).single(); res.json(data || {erro:true}); });
 app.get('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').select('*').order('id', { ascending: true }); res.json(data || []); });
 app.post('/produtos', async (req, res) => { const { data } = await supabase.from('produtos').insert([req.body]).select(); res.json(data ? data[0] : null); });
 app.put('/produtos/:id', async (req, res) => { const b = {...req.body}; delete b.id; delete b.created_at; const { data } = await supabase.from('produtos').update(b).eq('id', req.params.id).select(); res.json(data ? data[0] : null); });
@@ -116,10 +144,10 @@ app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos'
 app.get('/vendas', async (req, res) => { const { data } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false }); res.json(data || []); });
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 
-// CHECKOUT DINÂMICO
+// CHECKOUT
 app.post('/checkout', async (req, res) => {
     try {
-        const { itens, pais, zip, tier } = req.body;
+        const { itens, pais, zip, tier, address, city, phone, nif } = req.body;
         const novoIdPedido = gerarIdLust(); 
         
         const { data: config } = await supabase.from('config_loja').select('*').single();
@@ -135,49 +163,45 @@ app.post('/checkout', async (req, res) => {
             return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(precoFinal * 100) }, quantity: 1 }; 
         });
 
-        // LÓGICA DE FRETE (TIER + ZONA)
-        let custoFinal = 0;
-        let nomeServico = "Envio";
-        let estimativa = { min: 2, max: 5 };
-        let custoStd = 0, custoExp = 0, limiteFree = 9999;
-        let nomeStd = "", nomeExp = "";
+        // FRETE
+        let custoFinal = 0, nomeServico = "Envio";
+        let custoStd=0, custoExp=0, limitFree=999;
 
         if (pais === 'PT') {
+            limitFree = cf.pt_free;
             const isIlhas = zip && zip.startsWith('9');
-            limiteFree = cf.pt_free;
-            if (isIlhas) {
-                custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00;
-                nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)";
-                estimativa = tier === 'exp' ? {min: 2, max: 4} : {min: 5, max: 9};
-            } else {
-                custoStd = cf.pt_std; custoExp = cf.pt_exp;
-                nomeStd = "Portugal Continental (CTT)"; nomeExp = "Portugal Expresso (24h)";
-                estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4};
-            }
+            if(isIlhas) { custoStd = cf.pt_std + 2; custoExp = cf.pt_exp + 4; nomeServico="Envio Ilhas"; }
+            else { custoStd = cf.pt_std; custoExp = cf.pt_exp; nomeServico="Envio Continente"; }
         } else if (pais === 'ES') {
-            custoStd = cf.es_std; custoExp = cf.es_exp; limiteFree = cf.es_free;
-            nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente";
+            limitFree = cf.es_free; custoStd = cf.es_std; custoExp = cf.es_exp; nomeServico="Envio Espanha";
         } else {
-            custoStd = cf.eu_std; custoExp = cf.eu_exp; limiteFree = cf.eu_free;
-            nomeStd = "Europa Standard"; nomeExp = "Europa Express";
+            limitFree = cf.eu_free; custoStd = cf.eu_std; custoExp = cf.eu_exp; nomeServico="Envio Europa";
         }
 
-        if (tier === 'exp') {
-            custoFinal = custoExp; nomeServico = nomeExp;
-        } else {
-            custoFinal = totalComImposto >= limiteFree ? 0 : custoStd;
-            nomeServico = totalComImposto >= limiteFree ? `${nomeStd} (Ofertado)` : nomeStd;
-        }
+        if (tier === 'exp') { custoFinal = custoExp; nomeServico += " Expresso"; }
+        else { custoFinal = totalComImposto >= limitFree ? 0 : custoStd; }
+
+        const moradaBD = `${address}, ${zip}, ${city}`;
 
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'], 
             shipping_address_collection: { allowed_countries: [pais] }, 
-            shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: estimativa.min }, maximum: { unit: 'business_day', value: estimativa.max } } } }],
+            shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: 3 }, maximum: { unit: 'business_day', value: 5 } } } }],
             line_items: line_items, 
             mode: 'payment', 
             success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, 
             cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html', 
-            metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido, pais_destino: pais, taxa_aplicada: taxa } 
+            metadata: { 
+                ids_produtos: itens.map(i => i.id).join(','), 
+                codigo_pedido: novoIdPedido, 
+                pais_destino: pais, 
+                taxa_aplicada: taxa,
+                cli_morada: moradaBD,
+                cli_cidade: city,
+                cli_cp: zip,
+                cli_telefone: phone,
+                cli_nif: nif
+            } 
         });
         res.json({ url: session.url });
     } catch (e) { res.status(500).json({ error: e.message }); }
