@@ -42,7 +42,7 @@
         <h1>Pedido Confirmado!</h1>
         <p class="msg-nice">Obrigado pela sua preferência.</p>
         
-        <div id="loading" style="padding: 20px; color: #64748b;">A carregar recibo...</div>
+        <div id="loading" style="padding: 20px; color: #64748b;">A carregar detalhes...</div>
         
         <div id="detalhes" style="display:none;">
             <div class="prazo-box">
@@ -79,6 +79,7 @@
         const codigo = params.get('pedido');
         let dadosVenda = null;
 
+        // INICIALIZAÇÃO
         if(codigo) {
             fetch(`${API_URL}/pedido/${codigo}`)
                 .then(r => r.json())
@@ -91,25 +92,26 @@
                 .catch(err => { console.error(err); document.getElementById('loading').innerText = "Erro ao carregar recibo."; });
         } else { document.getElementById('loading').innerText = "Código de pedido inválido."; }
 
+        // RENDERIZAR NO ECRÃ
         function renderizarPagina(data) {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('detalhes').style.display = 'block';
             document.getElementById('id-pedido').innerText = `#${data.codigo_pedido}`;
             
-            // Prazo
+            // Texto de prazo
             const dias = data.total_frete > 7 ? "1 a 2 dias úteis" : "2 a 5 dias úteis";
             document.getElementById('prazo-texto').innerText = `${dias} após envio (${data.pais_destino || 'PT'}).`;
             
-            // Cálculos
+            // Cálculos Fiscais (Reversos)
             const taxa = data.taxa_iva_aplicada || 23;
             const totalPago = parseFloat(data.total_venda);
             
-            // Reverter para Base (Total / 1.XX)
+            // Fórmula: Base = Total / (1 + Taxa)
             const baseImputavel = totalPago / (1 + taxa/100);
             const valorTotalIVA = totalPago - baseImputavel;
             const frete = parseFloat(data.total_frete);
 
-            // Preencher Totais
+            // Preencher Valores
             document.getElementById('txt-subtotal').innerText = `€${baseImputavel.toFixed(2)}`;
             document.getElementById('txt-iva-label').innerText = `IVA (${taxa}%)`;
             document.getElementById('txt-iva-val').innerText = `€${valorTotalIVA.toFixed(2)}`;
@@ -120,19 +122,21 @@
             const divItens = document.getElementById('lista-itens');
             data.itens.forEach(i => {
                 const baseItem = parseFloat(i.preco);
+                // Preço unitário final com imposto
                 const totalItem = baseItem * (1 + taxa/100);
                 
                 divItens.innerHTML += `
                     <div class="linha-item">
                         <div class="item-info">
                             <strong>[${i.sku || '?'}] ${i.nome}</strong>
-                            <span class="item-price-detail">Base: €${baseItem.toFixed(2)} + IVA</span>
+                            <span class="item-meta">${i.marca || 'Lust'}</span>
                         </div>
                         <span style="font-weight:600">€${totalItem.toFixed(2)}</span>
                     </div>`;
             });
         }
 
+        // GERAR PDF COMPLETO
         function baixarRecibo() {
             if(!dadosVenda) return;
             const { jsPDF } = window.jspdf; 
@@ -140,18 +144,25 @@
             const v = dadosVenda;
             const taxa = v.taxa_iva_aplicada || 23;
 
-            // HEADER
+            // CABEÇALHO BRANDING
             doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 20);
             doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.text("RECIBO PROVISÓRIO", 14, 28);
             
-            // INFO
-            doc.setTextColor(0, 0, 0); doc.setFontSize(11);
-            doc.text(`Pedido: #${codigo}`, 14, 55); 
-            doc.text(`Cliente: ${v.cliente_nome} (${v.pais_destino || 'PT'})`, 14, 62); 
-            doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 69);
+            // DADOS DO CLIENTE (INCLUINDO NIF E TEL)
+            doc.setTextColor(0, 0, 0); doc.setFontSize(10);
+            doc.text(`Pedido: #${codigo}`, 14, 50); 
+            doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 55);
             
-            // TABELA
+            doc.setFont("helvetica", "bold");
+            doc.text("CLIENTE:", 14, 65);
+            doc.setFont("helvetica", "normal");
+            doc.text(`${v.cliente_nome}`, 14, 70);
+            doc.text(`Morada: ${v.cliente_morada || 'N/A'}`, 14, 75);
+            doc.text(`Tel: ${v.telefone_contato || 'N/A'}`, 14, 80);
+            doc.text(`NIF: ${v.nif_cliente || 'Consumidor Final'}`, 14, 85);
+            
+            // TABELA DETALHADA
             const body = v.itens.map(i => {
                 const base = parseFloat(i.preco);
                 const total = base * (1 + taxa/100);
@@ -163,28 +174,28 @@
                 ];
             });
 
-            // Frete na Tabela
+            // Frete
             const frete = parseFloat(v.total_frete);
             const freteBase = frete / (1 + taxa/100);
             body.push(['Envio', `€${freteBase.toFixed(2)}`, `${taxa}%`, `€${frete.toFixed(2)}`]);
             
-            // Total
+            // Total Final
             body.push([{content: 'TOTAL PAGO', colSpan: 3, styles: {fontStyle: 'bold', halign: 'right'}}, `€${parseFloat(v.total_venda).toFixed(2)}`]);
 
             doc.autoTable({ 
-                startY: 80, 
-                head: [['Descrição', 'Base Líquida', 'Taxa', 'Total']], 
+                startY: 95, 
+                head: [['Descrição', 'Base Líquida', 'Taxa IVA', 'Total']], 
                 body: body, 
                 headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, 
                 theme: 'grid', 
-                styles: { cellPadding: 4 } 
+                styles: { cellPadding: 3, fontSize: 10 } 
             });
 
-            // RODAPÉ
+            // RODAPÉ LEGAL
             const finalY = doc.lastAutoTable.finalY + 20;
             doc.setFontSize(8); doc.setTextColor(100);
             doc.text("Este documento serve como comprovativo de encomenda.", 105, finalY, {align: 'center'});
-            doc.text("A fatura fiscal oficial será comunicada à Autoridade Tributária.", 105, finalY + 5, {align: 'center'});
+            doc.text("A fatura fiscal oficial será processada e enviada posteriormente.", 105, finalY + 5, {align: 'center'});
 
             doc.save(`Recibo_Lust_${codigo}.pdf`);
         }
