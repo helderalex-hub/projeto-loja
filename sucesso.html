@@ -13,21 +13,16 @@
         .check { font-size: 50px; color: #cca43b; display: block; margin-bottom: 10px; }
         h1 { color: #0f172a; font-family: 'Playfair Display', serif; margin: 0; font-size: 24px; }
         .msg-nice { color: #64748b; margin-top: 5px; font-size: 14px; }
-        
         .prazo-box { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 15px; border-radius: 6px; margin: 20px 0; display: flex; align-items: center; gap: 10px; text-align: left; }
         .prazo-icon { font-size: 24px; }
-        
         .resumo-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 20px 0; text-align: left; border-radius: 4px; }
-        
         .linha-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 12px; }
         .item-info { display: flex; flex-direction: column; }
         .item-meta { font-size: 10px; color: #94a3b8; }
         .item-price-detail { font-size: 10px; color: #64748b; }
-        
         .resumo-financeiro { margin-top: 15px; border-top: 2px solid #e2e8f0; padding-top: 10px; }
         .linha-fin { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 4px; }
         .linha-total { display: flex; justify-content: space-between; margin-top: 8px; font-weight: bold; font-size: 16px; color: #0f172a; padding-top: 8px; border-top: 1px dashed #cbd5e1; }
-        
         .btn { display: inline-block; padding: 12px 25px; background: #0f172a; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; text-transform: uppercase; font-size: 12px; margin: 5px 0; cursor: pointer; border: none; width: 100%; box-sizing: border-box; transition: 0.3s; }
         .btn:hover { opacity: 0.9; }
         .btn-gold { background: #cca43b; color: #0f172a; }
@@ -41,9 +36,7 @@
         <div class="check">✔</div>
         <h1>Pedido Confirmado!</h1>
         <p class="msg-nice">Obrigado pela sua preferência.</p>
-        
-        <div id="loading" style="padding: 20px; color: #64748b;">A carregar detalhes...</div>
-        
+        <div id="loading" style="padding: 20px; color: #64748b;">A carregar recibo...</div>
         <div id="detalhes" style="display:none;">
             <div class="prazo-box">
                 <span class="prazo-icon">🚚</span>
@@ -52,14 +45,11 @@
                     <span id="prazo-texto" style="font-size:13px;">...</span>
                 </div>
             </div>
-            
             <div class="resumo-box">
                 <p style="margin-top:0; font-size:12px; color:#94a3b8; text-transform:uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
                     PEDIDO <strong id="id-pedido" style="color:#cca43b; float: right;"></strong>
                 </p>
-                
                 <div id="lista-itens"></div>
-
                 <div class="resumo-financeiro">
                     <div class="linha-fin"><span>Subtotal (Líquido)</span><span id="txt-subtotal"></span></div>
                     <div class="linha-fin"><span id="txt-iva-label">IVA</span><span id="txt-iva-val"></span></div>
@@ -67,136 +57,87 @@
                     <div class="linha-total"><span>TOTAL PAGO</span><span id="txt-total" style="color:#cca43b"></span></div>
                 </div>
             </div>
-            
             <button onclick="baixarRecibo()" class="btn btn-gold">📄 Baixar Recibo (PDF)</button>
             <a href="loja.html" class="btn btn-outline">Voltar à Loja</a>
         </div>
     </div>
-
     <script>
         const API_URL = "https://projeto-loja-dzqv.onrender.com"; 
         const params = new URLSearchParams(window.location.search);
         const codigo = params.get('pedido');
         let dadosVenda = null;
 
-        // INICIALIZAÇÃO
         if(codigo) {
             fetch(`${API_URL}/pedido/${codigo}`)
                 .then(r => r.json())
                 .then(data => {
-                    if(!data.erro) {
+                    if(data && !data.erro) {
                         dadosVenda = data;
                         renderizarPagina(data);
-                    } else { document.getElementById('loading').innerText = "Pedido não encontrado."; }
+                    } else { 
+                        document.getElementById('loading').innerHTML = "<span style='color:#ef4444'>Pedido não encontrado.<br>Se acabou de pagar, aguarde 30s e atualize.</span>"; 
+                    }
                 })
                 .catch(err => { console.error(err); document.getElementById('loading').innerText = "Erro ao carregar recibo."; });
         } else { document.getElementById('loading').innerText = "Código de pedido inválido."; }
 
-        // RENDERIZAR NO ECRÃ
         function renderizarPagina(data) {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('detalhes').style.display = 'block';
             document.getElementById('id-pedido').innerText = `#${data.codigo_pedido}`;
-            
-            // Texto de prazo
             const dias = data.total_frete > 7 ? "1 a 2 dias úteis" : "2 a 5 dias úteis";
             document.getElementById('prazo-texto').innerText = `${dias} após envio (${data.pais_destino || 'PT'}).`;
             
-            // Cálculos Fiscais (Reversos)
             const taxa = data.taxa_iva_aplicada || 23;
             const totalPago = parseFloat(data.total_venda);
-            
-            // Fórmula: Base = Total / (1 + Taxa)
             const baseImputavel = totalPago / (1 + taxa/100);
             const valorTotalIVA = totalPago - baseImputavel;
             const frete = parseFloat(data.total_frete);
 
-            // Preencher Valores
             document.getElementById('txt-subtotal').innerText = `€${baseImputavel.toFixed(2)}`;
             document.getElementById('txt-iva-label').innerText = `IVA (${taxa}%)`;
             document.getElementById('txt-iva-val').innerText = `€${valorTotalIVA.toFixed(2)}`;
             document.getElementById('txt-frete').innerText = `€${frete.toFixed(2)}`;
             document.getElementById('txt-total').innerText = `€${totalPago.toFixed(2)}`;
 
-            // Listar Itens
             const divItens = document.getElementById('lista-itens');
             data.itens.forEach(i => {
                 const baseItem = parseFloat(i.preco);
-                // Preço unitário final com imposto
                 const totalItem = baseItem * (1 + taxa/100);
-                
                 divItens.innerHTML += `
                     <div class="linha-item">
                         <div class="item-info">
                             <strong>[${i.sku || '?'}] ${i.nome}</strong>
-                            <span class="item-meta">${i.marca || 'Lust'}</span>
+                            <span class="item-price-detail">Base: €${baseItem.toFixed(2)} + IVA</span>
                         </div>
                         <span style="font-weight:600">€${totalItem.toFixed(2)}</span>
                     </div>`;
             });
         }
 
-        // GERAR PDF COMPLETO
         function baixarRecibo() {
             if(!dadosVenda) return;
-            const { jsPDF } = window.jspdf; 
-            const doc = new jsPDF();
-            const v = dadosVenda;
-            const taxa = v.taxa_iva_aplicada || 23;
-
-            // CABEÇALHO BRANDING
+            const { jsPDF } = window.jspdf; const doc = new jsPDF(); const v = dadosVenda; const taxa = v.taxa_iva_aplicada || 23;
             doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
             doc.setTextColor(204, 164, 59); doc.setFontSize(22); doc.text("LUST STORE", 14, 20);
             doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.text("RECIBO PROVISÓRIO", 14, 28);
-            
-            // DADOS DO CLIENTE (INCLUINDO NIF E TEL)
             doc.setTextColor(0, 0, 0); doc.setFontSize(10);
-            doc.text(`Pedido: #${codigo}`, 14, 50); 
-            doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 55);
+            doc.text(`Pedido: #${codigo}`, 14, 50); doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 55);
+            doc.setFont("helvetica", "bold"); doc.text("CLIENTE:", 14, 65); doc.setFont("helvetica", "normal");
+            doc.text(`${v.cliente_nome}`, 14, 70); doc.text(`Morada: ${v.cliente_morada || 'N/A'}`, 14, 75);
+            doc.text(`Tel: ${v.telefone_contato || 'N/A'}`, 14, 80); doc.text(`NIF: ${v.nif_cliente || 'Consumidor Final'}`, 14, 85);
             
-            doc.setFont("helvetica", "bold");
-            doc.text("CLIENTE:", 14, 65);
-            doc.setFont("helvetica", "normal");
-            doc.text(`${v.cliente_nome}`, 14, 70);
-            doc.text(`Morada: ${v.cliente_morada || 'N/A'}`, 14, 75);
-            doc.text(`Tel: ${v.telefone_contato || 'N/A'}`, 14, 80);
-            doc.text(`NIF: ${v.nif_cliente || 'Consumidor Final'}`, 14, 85);
-            
-            // TABELA DETALHADA
             const body = v.itens.map(i => {
-                const base = parseFloat(i.preco);
-                const total = base * (1 + taxa/100);
-                return [
-                    `[${i.sku || '?'}] ${i.nome}`, 
-                    `€${base.toFixed(2)}`, 
-                    `${taxa}%`, 
-                    `€${total.toFixed(2)}`
-                ];
+                const base = parseFloat(i.preco); const total = base * (1 + taxa/100);
+                return [`[${i.sku || '?'}] ${i.nome}`, `€${base.toFixed(2)}`, `${taxa}%`, `€${total.toFixed(2)}`];
             });
-
-            // Frete
-            const frete = parseFloat(v.total_frete);
-            const freteBase = frete / (1 + taxa/100);
+            const frete = parseFloat(v.total_frete); const freteBase = frete / (1 + taxa/100);
             body.push(['Envio', `€${freteBase.toFixed(2)}`, `${taxa}%`, `€${frete.toFixed(2)}`]);
-            
-            // Total Final
             body.push([{content: 'TOTAL PAGO', colSpan: 3, styles: {fontStyle: 'bold', halign: 'right'}}, `€${parseFloat(v.total_venda).toFixed(2)}`]);
 
-            doc.autoTable({ 
-                startY: 95, 
-                head: [['Descrição', 'Base Líquida', 'Taxa IVA', 'Total']], 
-                body: body, 
-                headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, 
-                theme: 'grid', 
-                styles: { cellPadding: 3, fontSize: 10 } 
-            });
-
-            // RODAPÉ LEGAL
+            doc.autoTable({ startY: 95, head: [['Descrição', 'Base Líquida', 'Taxa IVA', 'Total']], body: body, headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, theme: 'grid', styles: { cellPadding: 3, fontSize: 10 } });
             const finalY = doc.lastAutoTable.finalY + 20;
-            doc.setFontSize(8); doc.setTextColor(100);
-            doc.text("Este documento serve como comprovativo de encomenda.", 105, finalY, {align: 'center'});
-            doc.text("A fatura fiscal oficial será processada e enviada posteriormente.", 105, finalY + 5, {align: 'center'});
-
+            doc.setFontSize(8); doc.setTextColor(100); doc.text("Este documento serve como comprovativo de encomenda.", 105, finalY, {align: 'center'});
             doc.save(`Recibo_Lust_${codigo}.pdf`);
         }
     </script>
