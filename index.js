@@ -6,12 +6,23 @@ const app = express();
 
 const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
 
+// --- FUNÇÕES AUXILIARES ---
+
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
         method: 'POST',
-        headers: { 'accept': 'application/json', 'api-key': process.env.BREVO_KEY, 'content-type': 'application/json' },
-        body: JSON.stringify({ sender: { name: "Lust Store", email: process.env.EMAIL_USER }, to: [{ email: para }], subject: assunto, htmlContent: htmlContent })
+        headers: { 
+            'accept': 'application/json', 
+            'api-key': process.env.BREVO_KEY, 
+            'content-type': 'application/json' 
+        },
+        body: JSON.stringify({ 
+            sender: { name: "Lust Store", email: process.env.EMAIL_USER }, 
+            to: [{ email: para }], 
+            subject: assunto, 
+            htmlContent: htmlContent 
+        })
     };
     try { const r = await fetch(url, options); return r.ok; } catch (e) { console.error(e); return false; }
 }
@@ -73,8 +84,16 @@ async function processarEmailsVenda(venda) {
     await enviarEmailViaBrevo(process.env.EMAIL_USER, `Venda: #${venda.codigo_pedido}`, `<h3>Venda #${venda.codigo_pedido}</h3><p>Total: €${venda.total_venda}</p>`);
 }
 
-app.use((req, res, next) => { res.setHeader('Access-Control-Allow-Origin', '*'); res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); if (req.method === 'OPTIONS') return res.status(200).end(); next(); });
+// --- MIDDLEWARES ---
+app.use((req, res, next) => { 
+    res.setHeader('Access-Control-Allow-Origin', '*'); 
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); 
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); 
+    if (req.method === 'OPTIONS') return res.status(200).end(); 
+    next(); 
+});
 
+// --- WEBHOOK STRIPE (IMPORTANTE) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -100,22 +119,26 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             }
 
             // 2. CRM: Criar ou Atualizar Cliente
-            // Aqui usamos o email que vem da sessão, pois é validado pelo Stripe
             const emailCliente = session.customer_details.email;
             let clienteId = null;
+            
+            // Tenta encontrar cliente pelo email
             const { data: clienteExistente } = await supabase.from('clientes').select('id').eq('email', emailCliente).single();
 
             if (clienteExistente) {
                 clienteId = clienteExistente.id;
+                // Atualiza dados caso tenham mudado
                 await supabase.from('clientes').update({
-                    nome: session.customer_details.name, // Usa o nome fornecido no checkout
+                    nome: session.customer_details.name,
                     telefone: meta.cli_telefone,
                     morada_completa: meta.cli_morada,
                     nif: meta.cli_nif,
                     pais: meta.pais_destino,
-                    cp: meta.cli_cp
+                    cp: meta.cli_cp,
+                    cidade: meta.cli_cidade
                 }).eq('id', clienteId);
             } else {
+                // Cria novo cliente
                 const { data: novoCliente } = await supabase.from('clientes').insert([{
                     email: emailCliente,
                     nome: session.customer_details.name,
@@ -123,7 +146,8 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                     morada_completa: meta.cli_morada,
                     nif: meta.cli_nif,
                     pais: meta.pais_destino,
-                    cp: meta.cli_cp
+                    cp: meta.cli_cp,
+                    cidade: meta.cli_cidade
                 }]).select().single();
                 if (novoCliente) clienteId = novoCliente.id;
             }
@@ -132,6 +156,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             const total = session.amount_total / 100; 
             const frete = (session.total_details?.amount_shipping || 0) / 100;
             const receitaLiq = total - frete;
+            const metodoPagamento = session.payment_method_types ? session.payment_method_types[0] : 'stripe';
             
             const novaVenda = { 
                 codigo_pedido: meta.codigo_pedido, 
@@ -141,6 +166,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 telefone_contato: meta.cli_telefone,
                 nif_cliente: meta.cli_nif,
                 cliente_id: clienteId,
+                metodo_pagamento: metodoPagamento,
                 itens: itensVendidos, 
                 total_venda: total, 
                 total_frete: frete, 
@@ -157,10 +183,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.json({ received: true });
 });
 
+// --- ROTAS DA API ---
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-app.get('/', (req, res) => res.send("API Online"));
+app.get('/', (req, res) => res.send("API Lust Store: ONLINE 💎"));
 app.get('/taxas', async (req, res) => { const { data } = await supabase.from('taxas_iva').select('*'); res.json(data || []); });
 app.get('/config', async (req, res) => { const { data } = await supabase.from('config_loja').select('*').single(); res.json(data || {}); });
 app.put('/config', async (req, res) => { const { error } = await supabase.from('config_loja').upsert({ id: 1, ...req.body }); if (error) return res.status(500).json({ error: error.message }); res.json({ success: true }); });
@@ -172,16 +199,19 @@ app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos'
 app.get('/vendas', async (req, res) => { const { data } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false }); res.json(data || []); });
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 
+// --- ROTA CHECKOUT (A MÁGICA ACONTECE AQUI) ---
 app.post('/checkout', async (req, res) => {
     try {
-        const { itens, pais, zip, tier, address, city, phone, nif, nome, email } = req.body; // Recebe nome e email
+        const { itens, pais, zip, tier, address, city, phone, nif, nome, email } = req.body; 
         const novoIdPedido = gerarIdLust(); 
         
+        // 1. Carregar Configs
         const { data: config } = await supabase.from('config_loja').select('*').single();
         const cf = config || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60, es_std: 5.95, es_exp: 9.95, es_free: 85, eu_std: 12.50, eu_exp: 25.00, eu_free: 125 };
         const { data: taxaData } = await supabase.from('taxas_iva').select('taxa_percentual').eq('pais_iso', pais).single();
         const taxa = taxaData ? taxaData.taxa_percentual : 23;
 
+        // 2. Calcular Itens
         let totalComImposto = 0;
         const line_items = itens.map(i => { 
             const precoBase = parseFloat(i.preco);
@@ -190,6 +220,7 @@ app.post('/checkout', async (req, res) => {
             return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(precoFinal * 100) }, quantity: 1 }; 
         });
 
+        // 3. Calcular Frete
         let custoFinal = 0;
         let nomeServico = "Envio";
         let estimativa = { min: 2, max: 5 };
@@ -197,8 +228,8 @@ app.post('/checkout', async (req, res) => {
         let nomeStd = "", nomeExp = "";
 
         if (pais === 'PT') {
-            limitFree = cf.pt_free;
             const isIlhas = zip && zip.startsWith('9');
+            limitFree = cf.pt_free;
             if (isIlhas) {
                 custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00;
                 nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)";
@@ -225,7 +256,8 @@ app.post('/checkout', async (req, res) => {
 
         const moradaCompletaParaBD = `${address}, ${zip}, ${city}`;
 
-        // 1. Criar Cliente no Stripe (Para pré-preencher)
+        // 4. CRIAR CLIENTE STRIPE (TRANSFERÊNCIA DE DADOS)
+        // Isso garante que o endereço aparece preenchido na página de pagamento
         const customer = await stripe.customers.create({
             email: email,
             name: nome,
@@ -235,19 +267,37 @@ app.post('/checkout', async (req, res) => {
                 city: city,
                 postal_code: zip,
                 country: pais
+            },
+            shipping: {
+                name: nome,
+                phone: phone,
+                address: {
+                    line1: address,
+                    city: city,
+                    postal_code: zip,
+                    country: pais
+                }
             }
         });
 
-        // 2. Criar Sessão
+        // 5. CRIAR SESSÃO CHECKOUT
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'],
-            customer: customer.id, // Associa ao cliente criado
-            customer_update: { // Permite atualizar se o cliente mudar algo no Stripe
+            customer: customer.id, // Associa o cliente criado
+            customer_update: {
                 address: 'auto',
+                shipping: 'auto',
                 name: 'auto'
             },
             shipping_address_collection: { allowed_countries: [pais] }, 
-            shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: estimativa.min }, maximum: { unit: 'business_day', value: estimativa.max } } } }],
+            shipping_options: [{ 
+                shipping_rate_data: { 
+                    type: 'fixed_amount', 
+                    fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, 
+                    display_name: nomeServico, 
+                    delivery_estimate: { minimum: { unit: 'business_day', value: estimativa.min }, maximum: { unit: 'business_day', value: estimativa.max } } 
+                } 
+            }],
             line_items: line_items, 
             mode: 'payment', 
             success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, 
