@@ -6,15 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     <meta property="og:description" content="Descubra a coleção exclusiva de cosmética premium.">
+    <link rel="icon" href="favicon.ico"> 
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
+        
+        /* FRETE BAR */
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
+        /* HEADER COM LOGO */
         header { background: var(--dark); padding: 15px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header-content { display: flex; align-items: center; gap: 15px; }
-        .logo-img { height: 45px; object-fit: contain; }
+        .logo-img { height: 45px; width: auto; object-fit: contain; } /* Ajuste altura conforme seu logo */
         header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; line-height: 1; }
         header h1 span { color: var(--gold); font-size: 0.8em; display: block; font-weight: 300; margin-top: 2px; }
         
@@ -28,32 +32,34 @@
         .cart-overlay.open { opacity: 1; visibility: visible; }
         .side-cart { position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100vh; background: white; z-index: 999; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.77, 0, 0.175, 1); box-shadow: -5px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
         .side-cart.open { transform: translateX(0); }
+        
         .cart-header { background: var(--dark); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--gold); }
         .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
         .empty-msg { text-align: center; color: #94a3b8; margin-top: 50px; }
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
 
+        /* ITEM DO CARRINHO (AGORA COM SKU) */
+        .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
+        .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
+        .item-details { flex: 1; }
+        .item-name { font-size: 13px; font-weight: bold; color: var(--dark); display: block; line-height: 1.2; }
+        .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; margin-top: 2px; } /* Estilo do Código */
+        .item-price { font-size: 13px; color: var(--gold); font-weight: bold; margin-top: 4px; display: block; }
+        
+        /* CONTROLES DE QUANTIDADE */
+        .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+        .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); transition: 0.2s; }
+        .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
+        .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
+
         /* FORMULÁRIO CARRINHO */
         .input-end { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; margin-top: 5px; box-sizing: border-box; }
         .country-select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-weight: bold; color: var(--dark); margin-top: 5px; }
-        .country-group-label { color: var(--gold); font-weight: bold; background: #1e293b; }
         .cart-row { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 5px; }
         .cart-row.total { font-size: 18px; font-weight: bold; color: var(--dark); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
         .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; margin-top: 15px; }
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
-
-        /* ITEM DO CARRINHO */
-        .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
-        .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
-        .item-details { flex: 1; }
-        .item-name { font-size: 13px; font-weight: bold; color: var(--dark); display: block; line-height: 1.2; }
-        .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; margin-top: 2px; }
-        .item-price { font-size: 13px; color: var(--gold); font-weight: bold; margin-top: 4px; display: block; }
-        .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-        .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); transition: 0.2s; }
-        .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
-        .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
 
         /* FILTROS E PRODUTOS */
         .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -93,13 +99,16 @@
         .btn-comprar { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 4px; font-size: 12px; }
         .btn-comprar:hover { background: var(--gold); color: var(--dark); }
         
-        /* BOTÕES FLUTUANTES */
+        /* BOTÕES FLUTUANTES (WhatsApp, Insta, Carrinho) */
         .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; align-items: flex-end; transition: opacity 0.3s; }
+        
         .btn-social { width: 50px; height: 50px; border-radius: 50%; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.3s; }
         .btn-social:hover { transform: scale(1.1); }
         .btn-social svg { width: 24px; height: 24px; fill: currentColor; }
+        
         .whatsapp { background: #25D366; }
         .instagram { background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); }
+        
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
         
         .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
@@ -190,7 +199,7 @@
     
     <div class="floating-container">
         <button class="btn-social instagram" onclick="window.open('https://instagram.com/luststore', '_blank')" title="Instagram">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
         </button>
         <button class="btn-social whatsapp" onclick="partilharLoja()" title="WhatsApp">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
@@ -204,113 +213,152 @@
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let todosProdutos = [], carrinho = [], taxasPorPais = [], configFrete = {};
         let freteSelecionado = { valor: 0, tier: 'std' };
+        let catAtual = 'todos'; // Variável de controle da categoria
 
         async function carregarProdutos() {
             try {
-                // Tenta carregar produtos primeiro (essencial)
-                const resP = await fetch(`${API}/produtos`);
-                if(resP.ok) todosProdutos = await resP.json();
-                else throw new Error("Falha produtos");
-
-                // Tenta carregar configs secundárias (se falhar, usa padrão)
-                try {
-                    const [resC, resT] = await Promise.all([fetch(`${API}/config`), fetch(`${API}/taxas`)]);
-                    if(resC.ok) configFrete = await resC.json();
-                    if(resT.ok) taxasPorPais = await resT.json();
-                } catch(errSec) { console.warn("Usando configurações padrão."); }
-
-                // Valores padrão caso API falhe
-                if(!taxasPorPais.length) taxasPorPais = [{pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20}];
+                const [resP, resC, resT] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/config`), fetch(`${API}/taxas`)]);
+                if (resP.ok) todosProdutos = await resP.json();
+                if (resC.ok) configFrete = await resC.json();
+                if (resT.ok) taxasPorPais = await resT.json();
                 
-                // Atualiza barra de frete
+                // Fallbacks caso falhe config
+                if(!taxasPorPais.length) taxasPorPais = [{pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20}];
                 const ptFree = configFrete.pt_free || 60;
                 const esFree = configFrete.es_free || 85;
-                const euFree = configFrete.eu_free || 125;
-                document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${ptFree} | ES > €${esFree} | EUROPA > €${euFree}`;
+                document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${ptFree} | ES > €${esFree}`;
                 
-                renderizarProdutos(todosProdutos); 
+                // Renderiza inicial COM regras aplicadas
+                aplicarRegras(); 
             } catch(e) { 
-                document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444; padding:50px;'>Erro ao conectar ao servidor. Tente atualizar a página.</p>"; 
+                console.error(e);
+                document.getElementById('vitrine').innerHTML = "<p style='text-align:center; padding:50px; color:#ef4444'>Erro ao carregar produtos. Verifique a conexão.</p>"; 
             }
         }
 
-        function mudarCategoria(cat, btn) { catAtual = cat; document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); btn.classList.add('ativo'); aplicarRegras(); }
+        // --- LÓGICA DE FILTROS CORRIGIDA ---
+        function mudarCategoria(cat, btn) { 
+            catAtual = cat; 
+            document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); 
+            if(btn) btn.classList.add('ativo'); 
+            aplicarRegras(); 
+        }
 
         function aplicarRegras() {
             let lista = [...todosProdutos];
-            // Filtro Categoria
-            if (catAtual !== 'todos') lista = lista.filter(p => p.categoria === catAtual);
             
-            // Filtro Pesquisa
-            const termo = document.getElementById('search-input').value.toLowerCase();
-            if (termo) lista = lista.filter(p => p.nome.toLowerCase().includes(termo) || (p.marca && p.marca.toLowerCase().includes(termo)));
+            // 1. Filtro de Categoria
+            if (catAtual !== 'todos') {
+                lista = lista.filter(p => p.categoria && p.categoria.toLowerCase().trim() === catAtual.toLowerCase().trim());
+            }
             
-            // Filtro Ordenação (CORRIGIDO: parseFloat)
+            // 2. Filtro de Pesquisa
+            const termo = document.getElementById('search-input').value.toLowerCase().trim();
+            if (termo) {
+                lista = lista.filter(p => 
+                    (p.nome && p.nome.toLowerCase().includes(termo)) || 
+                    (p.marca && p.marca.toLowerCase().includes(termo))
+                );
+            }
+            
+            // 3. Ordenação
             const ordem = document.getElementById('sort-select').value;
-            if (ordem === 'preco-menor') lista.sort((a,b) => parseFloat(a.preco) - parseFloat(b.preco));
-            else if (ordem === 'preco-maior') lista.sort((a,b) => parseFloat(b.preco) - parseFloat(a.preco));
-            else if (ordem === 'a-z') lista.sort((a,b) => a.nome.localeCompare(b.nome));
-            else if (ordem === 'z-a') lista.sort((a,b) => b.nome.localeCompare(a.nome));
+            lista.sort((a, b) => {
+                const precoA = parseFloat(a.preco || 0);
+                const precoB = parseFloat(b.preco || 0);
+                const nomeA = (a.nome || '').toLowerCase();
+                const nomeB = (b.nome || '').toLowerCase();
+
+                if (ordem === 'preco-menor') return precoA - precoB;
+                if (ordem === 'preco-maior') return precoB - precoA;
+                if (ordem === 'a-z') return nomeA.localeCompare(nomeB);
+                if (ordem === 'z-a') return nomeB.localeCompare(nomeA);
+                return 0; 
+            });
             
             renderizarProdutos(lista);
         }
 
         function renderizarProdutos(lista) {
-            const vitrine = document.getElementById('vitrine'); vitrine.innerHTML = '';
-            if(lista.length === 0) { vitrine.innerHTML = "<div class='sem-result'>Nenhum produto encontrado.</div>"; return; }
+            const vitrine = document.getElementById('vitrine'); 
+            vitrine.innerHTML = '';
+            
+            if(lista.length === 0) { 
+                vitrine.innerHTML = "<div class='sem-result'>Nenhum produto encontrado.</div>"; 
+                return; 
+            }
             
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0; 
-                let esgotado = stock <= 0 || (p.validade && new Date(p.validade) < new Date());
+                let esgotado = stock <= 0;
+                if (p.validade && new Date(p.validade) < new Date()) esgotado = true;
                 
                 vitrine.innerHTML += `
                     <div class="produto-card ${esgotado ? 'esgotado' : ''}">
-                        <div class="img-container"><img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'"><div class="overlay-esgotado">ESGOTADO</div></div>
+                        <div class="img-container">
+                            <img src="${p.imagem || 'https://placehold.co/300x300?text=Lust'}" onerror="this.src='https://placehold.co/300x300?text=Erro'">
+                            <div class="overlay-esgotado">ESGOTADO</div>
+                        </div>
                         <div class="info">
                             <span class="marca">${p.marca || 'Lust'}</span>
                             <h3>${p.nome}</h3>
-                            <div class="card-ref">Ref: ${p.sku || '-'}</div>
+                            <div class="card-ref">Ref: ${p.sku || 'N/A'}</div>
                             <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
+                            
                             <div class="compra-row">
                                 <div class="qtd-seletor-card">
                                     <button class="qtd-btn-card" onclick="mudarQtdVitrineCard('${p.id}', -1)">-</button>
                                     <span class="qtd-display-card" id="qtd-card-${p.id}">1</span>
                                     <button class="qtd-btn-card" onclick="mudarQtdVitrineCard('${p.id}', 1, ${stock})">+</button>
                                 </div>
-                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">${esgotado ? 'Esgotado' : 'Adicionar'}</button>
+                                <button class="btn-comprar" ${esgotado ? 'disabled' : ''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">
+                                    ${esgotado ? 'Esgotado' : 'Adicionar'}
+                                </button>
                             </div>
                         </div>
                     </div>`;
             });
         }
 
+        function mudarQtdVitrineCard(id, delta, max) { 
+            const el = document.getElementById(`qtd-card-${id}`); 
+            let val = parseInt(el.innerText) + delta; 
+            if(val >= 1 && (max === undefined || val <= max)) el.innerText = val; 
+        }
+
+        // --- CARRINHO & CHECKOUT ---
         function toggleCart() { 
-            const s = document.getElementById('side-cart'); 
-            const o = document.getElementById('cart-overlay'); 
-            const f = document.querySelector('.floating-container');
+            const s = document.getElementById('side-cart'); const o = document.getElementById('cart-overlay'); const f = document.querySelector('.floating-container');
             s.classList.toggle('open'); o.classList.toggle('open');
-            // ESCONDE BOTÕES FLUTUANTES SE ABERTO
             f.style.display = s.classList.contains('open') ? 'none' : 'flex';
         }
 
-        function mudarQtdVitrineCard(id, delta, max) { let el = document.getElementById(`qtd-card-${id}`); let val = parseInt(el.innerText) + delta; if(val >= 1 && (max === undefined || val <= max)) el.innerText = val; }
-        
         function addCarrinho(id, nome, preco, sku, img, stockMax) { 
             const qtdSpan = document.getElementById(`qtd-card-${id}`);
             const qtdToAdd = parseInt(qtdSpan.innerText);
             const item = carrinho.find(i => i.id == id);
+            
             if (item) { 
                 if(item.qtd + qtdToAdd <= stockMax) item.qtd += qtdToAdd; 
-                else alert("Limite de stock atingido.");
+                else alert("Limite de stock atingido para este item.");
             } else {
                 carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdToAdd, max: stockMax});
             }
-            qtdSpan.innerText = "1";
+            qtdSpan.innerText = "1"; // Reset qtd visual
             validarEAtualizarFrete(); toggleCart();
         }
 
         function removeDoCarrinho(id) { carrinho = carrinho.filter(i => i.id != id); validarEAtualizarFrete(); }
-        function mudarQtdCarrinho(id, delta) { const item = carrinho.find(i => i.id == id); if (item) { const n = item.qtd + delta; if (n > item.max) return alert("Max stock"); item.qtd = n; if (item.qtd <= 0) removeDoCarrinho(id); else validarEAtualizarFrete(); } }
+        function mudarQtdCarrinho(id, delta) { 
+            const item = carrinho.find(i => i.id == id); 
+            if (item) { 
+                const n = item.qtd + delta; 
+                if (n > item.max) return alert("Máximo em stock atingido."); 
+                item.qtd = n; 
+                if (item.qtd <= 0) removeDoCarrinho(id); 
+                else validarEAtualizarFrete(); 
+            } 
+        }
 
         function validarEAtualizarFrete() {
             if (carrinho.length === 0) { atualizarCarrinhoUI(); return; }
@@ -328,12 +376,17 @@
             const btn = document.getElementById('btn-checkout');
 
             if (!tudoPreenchido) {
-                containerOpcoes.style.display = 'none'; btn.disabled = true; btn.innerText = "Preencha Dados + Tel"; atualizarCarrinhoUI(); return;
+                containerOpcoes.style.display = 'none'; 
+                btn.disabled = true; 
+                btn.innerText = "Preencha Dados + Tel"; 
+                atualizarCarrinhoUI(); 
+                return;
             }
 
             const taxaObj = taxasPorPais.find(t => t.pais_iso === pais);
             const taxa = taxaObj ? taxaObj.taxa_percentual : 23;
-            let totalProdComImposto = 0; carrinho.forEach(i => { totalProdComImposto += (i.preco * (1 + taxa/100)) * i.qtd; });
+            let totalProdComImposto = 0; 
+            carrinho.forEach(i => { totalProdComImposto += (i.preco * (1 + taxa/100)) * i.qtd; });
 
             let custoStd = 0, custoExp = 0, limitFree = 999;
             let timeStd = "", timeExp = "";
@@ -363,17 +416,18 @@
             for(let r of radios) if(r.checked) selectedTier = r.value;
 
             document.getElementById('lista-radios-frete').innerHTML = `
-                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; margin-bottom:5px; border-radius:4px; cursor:pointer">
+                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; margin-bottom:5px; border-radius:4px; cursor:pointer; background:white;">
                     <div><input type="radio" name="frete_option" value="std" ${selectedTier==='std'?'checked':''} onchange="validarEAtualizarFrete()"> Normal ${timeStd}</div>
                     <b style="color:${custoStd===0 ? '#166534' : '#0f172a'}">${custoStd===0 ? 'GRÁTIS' : '€'+custoStd.toFixed(2)}</b>
                 </label>
-                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px; cursor:pointer">
+                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px; cursor:pointer; background:white;">
                     <div><input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()"> Expresso ${timeExp}</div>
                     <b>€${custoExp.toFixed(2)}</b>
                 </label>`;
 
             freteSelecionado = { tier: selectedTier, valor: selectedTier === 'std' ? custoStd : custoExp };
             btn.disabled = false; btn.innerText = "FINALIZAR COMPRA";
+            
             atualizarCarrinhoUI(taxa, totalProdComImposto, freteSelecionado.valor);
         }
 
@@ -382,12 +436,16 @@
             const badge = document.getElementById('header-cart-count');
             const floatCount = document.getElementById('cart-count');
             
-            if (!carrinho.length) { container.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:50px;">O seu carrinho está vazio.</p>'; document.getElementById('opcoes-frete-container').style.display='none'; document.getElementById('cart-total-val').innerText = '€0.00'; return; }
+            if (!carrinho.length) { 
+                container.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:50px; color:#94a3b8">O seu carrinho está vazio.</p>'; 
+                document.getElementById('opcoes-frete-container').style.display='none'; 
+                document.getElementById('cart-total-val').innerText = '€0.00'; 
+                return; 
+            }
 
             container.innerHTML = ''; let totalCount = 0;
             carrinho.forEach(item => {
                 totalCount += item.qtd;
-                // Exibe Código (SKU) no carrinho
                 container.innerHTML += `
                     <div class="cart-item">
                         <img src="${item.imagem}">
@@ -403,9 +461,12 @@
                         <div class="item-price">€${(item.preco * item.qtd).toFixed(2)}</div>
                     </div>`;
             });
-            badge.innerText = totalCount; if(floatCount) floatCount.innerText = totalCount;
+            
+            badge.innerText = totalCount;
+            if(floatCount) floatCount.innerText = totalCount;
 
             if (taxa === undefined) return;
+
             const totalBase = totalComImposto / (1 + taxa/100);
             const totalIVA = totalComImposto - totalBase;
             const totalFinal = totalComImposto + valorFrete;
@@ -424,23 +485,40 @@
             const moradaCompleta = `${document.getElementById('rua-destino').value}, ${document.getElementById('cidade-destino').value}`;
             
             btn.disabled = true; btn.innerText = "A PROCESSAR...";
-            let itens = []; carrinho.forEach(item => { for(let k=0; k<item.qtd; k++) itens.push({ id: item.id, nome: item.nome, preco: item.preco, sku: item.sku }); });
+            let itens = []; 
+            carrinho.forEach(item => { 
+                for(let k=0; k<item.qtd; k++) itens.push({ id: item.id, nome: item.nome, preco: item.preco, sku: item.sku }); 
+            });
 
             try { 
                 const res = await fetch(`${API}/checkout`, { 
-                    method: 'POST', headers: {'Content-Type': 'application/json'}, 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
                     body: JSON.stringify({ 
-                        itens: itens, pais: pais, zip: cp, tier: freteSelecionado.tier,
-                        address: moradaCompleta, city: document.getElementById('cidade-destino').value,
-                        phone: document.getElementById('tel-destino').value, nif: document.getElementById('nif-destino').value
+                        itens: itens, 
+                        pais: pais, 
+                        zip: cp, 
+                        tier: freteSelecionado.tier,
+                        address: moradaCompleta, 
+                        city: document.getElementById('cidade-destino').value,
+                        phone: document.getElementById('tel-destino').value, 
+                        nif: document.getElementById('nif-destino').value
                     }) 
                 }); 
                 const d = await res.json(); 
-                if(d.url) window.location.href = d.url; else throw new Error("Sem URL"); 
-            } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerText = "FINALIZAR COMPRA"; } 
+                if(d.url) window.location.href = d.url; 
+                else throw new Error("Sem URL do Stripe"); 
+            } catch(e) { 
+                console.error(e);
+                alert("Erro ao conectar com o pagamento. Tente novamente."); 
+                btn.disabled = false; 
+                btn.innerText = "FINALIZAR COMPRA"; 
+            } 
         }
 
         function partilharLoja() { const texto = "Confira as novidades exclusivas da Lust Store! 💎"; const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=${texto} ${url}`, '_blank'); }
+        
+        // INICIALIZAÇÃO
         window.onload = carregarProdutos;
     </script>
 </body>
