@@ -4,6 +4,7 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
+// ⚠️ CERTIFIQUE-SE QUE ESTE LINK APONTA PARA O SEU LOGO ONLINE VÁLIDO
 const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
 
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
@@ -47,11 +48,13 @@ async function processarEmailsVenda(venda) {
         </tr>`;
     }).join('');
 
+    // HTML DO EMAIL ATUALIZADO COM LOGO
     const htmlRecibo = `
         <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; background: #fff;">
             <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid #cca43b;">
-                <h1 style="color: #fff; margin: 0; font-family: 'Times New Roman', serif; letter-spacing: 2px;">LUST STORE</h1>
-                <p style="color: #cca43b; font-size: 10px; text-transform: uppercase;">Premium Beauty & Care</p>
+                <img src="${LOGO_URL}" alt="Lust Store" style="height: 60px; display: block; margin: 0 auto 10px auto;">
+                <h1 style="color: #fff; margin: 0; font-family: 'Times New Roman', serif; letter-spacing: 2px; font-size: 20px;">LUST STORE</h1>
+                <p style="color: #cca43b; font-size: 10px; text-transform: uppercase; margin-top:5px;">Premium Beauty & Care</p>
             </div>
             <div style="padding: 30px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
@@ -249,7 +252,7 @@ app.post('/checkout', async (req, res) => {
 
         const moradaCompletaParaBD = `${address}, ${zip}, ${city}`;
 
-        // 3. CRIAR CLIENTE STRIPE (TRANSFERÊNCIA DE DADOS)
+        // 3. CRIAR CLIENTE STRIPE
         const customer = await stripe.customers.create({
             email: email,
             name: nome,
@@ -275,15 +278,13 @@ app.post('/checkout', async (req, res) => {
         // 4. CRIAR SESSÃO CHECKOUT
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'],
-            customer: customer.id, // Associa o cliente
+            customer: customer.id,
             customer_update: {
                 address: 'auto',
                 shipping: 'auto',
                 name: 'auto'
             },
-            // AQUI ESTÁ A LINHA MÁGICA QUE FORÇA O FORMULÁRIO COMPLETO
-            billing_address_collection: 'required', 
-            
+            billing_address_collection: 'required', // FORÇA A COLETA DO ENDEREÇO DE FATURAÇÃO
             shipping_address_collection: { allowed_countries: [pais] }, 
             shipping_options: [{ 
                 shipping_rate_data: { 
