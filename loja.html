@@ -18,7 +18,7 @@
         /* HEADER COM LOGO */
         header { background: var(--dark); padding: 15px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header-content { display: flex; align-items: center; gap: 15px; }
-        .logo-img { height: 45px; width: auto; object-fit: contain; } /* Ajuste altura conforme seu logo */
+        .logo-img { height: 45px; width: auto; object-fit: contain; }
         header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; line-height: 1; }
         header h1 span { color: var(--gold); font-size: 0.8em; display: block; font-weight: 300; margin-top: 2px; }
         
@@ -38,12 +38,12 @@
         .empty-msg { text-align: center; color: #94a3b8; margin-top: 50px; }
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
 
-        /* ITEM DO CARRINHO (AGORA COM SKU) */
+        /* ITEM DO CARRINHO */
         .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
         .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
         .item-details { flex: 1; }
         .item-name { font-size: 13px; font-weight: bold; color: var(--dark); display: block; line-height: 1.2; }
-        .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; margin-top: 2px; } /* Estilo do Código */
+        .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; margin-top: 2px; }
         .item-price { font-size: 13px; color: var(--gold); font-weight: bold; margin-top: 4px; display: block; }
         
         /* CONTROLES DE QUANTIDADE */
@@ -107,6 +107,7 @@
         .btn-social svg { width: 24px; height: 24px; fill: currentColor; }
         
         .whatsapp { background: #25D366; }
+        /* CORREÇÃO DO FUNDO DO INSTAGRAM */
         .instagram { background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); }
         
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
@@ -198,7 +199,7 @@
     <div class="container"><div id="vitrine" class="vitrine"><div class="loading">A CARREGAR COLEÇÃO EXCLUSIVA...</div></div></div>
     
     <div class="floating-container">
-        <button class="btn-social instagram" onclick="window.open('https://instagram.com/luststore', '_blank')" title="Instagram">
+        <button class="btn-social instagram" onclick="window.open('https://www.instagram.com/luststore.pt', '_blank')" title="Instagram">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
         </button>
         <button class="btn-social whatsapp" onclick="partilharLoja()" title="WhatsApp">
