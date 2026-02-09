@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     <meta property="og:description" content="Descubra a coleção exclusiva de cosmética premium.">
-    <link rel="icon" href="favicon.ico"> 
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
@@ -15,10 +14,10 @@
         /* FRETE BAR */
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
-        /* HEADER COM LOGO */
+        /* HEADER */
         header { background: var(--dark); padding: 15px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header-content { display: flex; align-items: center; gap: 15px; }
-        .logo-img { height: 45px; width: auto; object-fit: contain; }
+        .logo-img { height: 45px; width: auto; object-fit: contain; } 
         header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; line-height: 1; }
         header h1 span { color: var(--gold); font-size: 0.8em; display: block; font-weight: 300; margin-top: 2px; }
         
@@ -99,17 +98,14 @@
         .btn-comprar { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 4px; font-size: 12px; }
         .btn-comprar:hover { background: var(--gold); color: var(--dark); }
         
-        /* BOTÕES FLUTUANTES (WhatsApp, Insta, Carrinho) */
+        /* BOTÕES FLUTUANTES */
         .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; align-items: flex-end; transition: opacity 0.3s; }
-        
         .btn-social { width: 50px; height: 50px; border-radius: 50%; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.3s; }
         .btn-social:hover { transform: scale(1.1); }
         .btn-social svg { width: 24px; height: 24px; fill: currentColor; }
-        
         .whatsapp { background: #25D366; }
         /* CORREÇÃO DO FUNDO DO INSTAGRAM */
         .instagram { background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); }
-        
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
         
         .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
@@ -121,7 +117,7 @@
     
     <header>
         <div class="header-content">
-            <img src="logo.png" alt="Lust Store" class="logo-img" onerror="this.src='https://placehold.co/100x50?text=LUST'">
+            <img src="logo.png" alt="Lust Store" class="logo-img" onerror="this.style.display='none'">
             <h1>Lust Store <span>| VITRINE</span></h1>
         </div>
         <div class="cart-trigger" onclick="toggleCart()">
@@ -139,6 +135,10 @@
         <div class="cart-footer">
             <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #e2e8f0;">
                 <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">📍 Dados de Envio</label>
+                
+                <input type="text" id="nome-cliente" placeholder="Seu Nome Completo" class="input-end" style="margin-top:0" onkeyup="validarEAtualizarFrete()">
+                <input type="email" id="email-cliente" placeholder="Seu Email" class="input-end" onkeyup="validarEAtualizarFrete()">
+
                 <div style="display: flex; gap: 5px; margin-top: 5px;">
                     <select id="pais-destino" class="country-select" style="margin:0; flex: 1;" onchange="validarEAtualizarFrete()">
                         <option value="PT">🇵🇹 Portugal</option>
@@ -364,6 +364,8 @@
         function validarEAtualizarFrete() {
             if (carrinho.length === 0) { atualizarCarrinhoUI(); return; }
 
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const email = document.getElementById('email-cliente').value.trim();
             const pais = document.getElementById('pais-destino').value;
             const cp = document.getElementById('cp-destino').value.trim();
             const cidade = document.getElementById('cidade-destino').value.trim();
@@ -371,7 +373,8 @@
             const tel = document.getElementById('tel-destino').value.trim();
             
             let cpValido = (pais === 'PT') ? /^\d{4}/.test(cp) : cp.length >= 3;
-            const tudoPreenchido = cpValido && cidade.length > 2 && rua.length > 5 && tel.length > 6;
+            // Valida NOME e EMAIL agora
+            const tudoPreenchido = nome.length > 2 && email.includes('@') && cpValido && cidade.length > 2 && rua.length > 5 && tel.length > 6;
 
             const containerOpcoes = document.getElementById('opcoes-frete-container');
             const btn = document.getElementById('btn-checkout');
@@ -379,7 +382,7 @@
             if (!tudoPreenchido) {
                 containerOpcoes.style.display = 'none'; 
                 btn.disabled = true; 
-                btn.innerText = "Preencha Dados + Tel"; 
+                btn.innerText = "Preencha Todos os Dados"; 
                 atualizarCarrinhoUI(); 
                 return;
             }
@@ -481,6 +484,8 @@
 
         async function finalizarCompra() { 
             const btn = document.getElementById('btn-checkout'); 
+            const nome = document.getElementById('nome-cliente').value;
+            const email = document.getElementById('email-cliente').value;
             const pais = document.getElementById('pais-destino').value;
             const cp = document.getElementById('cp-destino').value;
             const moradaCompleta = `${document.getElementById('rua-destino').value}, ${document.getElementById('cidade-destino').value}`;
@@ -503,7 +508,9 @@
                         address: moradaCompleta, 
                         city: document.getElementById('cidade-destino').value,
                         phone: document.getElementById('tel-destino').value, 
-                        nif: document.getElementById('nif-destino').value
+                        nif: document.getElementById('nif-destino').value,
+                        nome: nome,
+                        email: email
                     }) 
                 }); 
                 const d = await res.json(); 
