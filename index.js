@@ -6,8 +6,6 @@ const app = express();
 
 const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
 
-// --- FUNÇÕES AUXILIARES ---
-
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
@@ -93,7 +91,7 @@ app.use((req, res, next) => {
     next(); 
 });
 
-// --- WEBHOOK STRIPE (IMPORTANTE) ---
+// --- WEBHOOK STRIPE ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -118,16 +116,13 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 }
             }
 
-            // 2. CRM: Criar ou Atualizar Cliente
+            // 2. CRM
             const emailCliente = session.customer_details.email;
             let clienteId = null;
-            
-            // Tenta encontrar cliente pelo email
             const { data: clienteExistente } = await supabase.from('clientes').select('id').eq('email', emailCliente).single();
 
             if (clienteExistente) {
                 clienteId = clienteExistente.id;
-                // Atualiza dados caso tenham mudado
                 await supabase.from('clientes').update({
                     nome: session.customer_details.name,
                     telefone: meta.cli_telefone,
@@ -138,7 +133,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                     cidade: meta.cli_cidade
                 }).eq('id', clienteId);
             } else {
-                // Cria novo cliente
                 const { data: novoCliente } = await supabase.from('clientes').insert([{
                     email: emailCliente,
                     nome: session.customer_details.name,
@@ -199,7 +193,7 @@ app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos'
 app.get('/vendas', async (req, res) => { const { data } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false }); res.json(data || []); });
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 
-// --- ROTA CHECKOUT (A MÁGICA ACONTECE AQUI) ---
+// --- ROTA CHECKOUT ---
 app.post('/checkout', async (req, res) => {
     try {
         const { itens, pais, zip, tier, address, city, phone, nif, nome, email } = req.body; 
@@ -211,7 +205,6 @@ app.post('/checkout', async (req, res) => {
         const { data: taxaData } = await supabase.from('taxas_iva').select('taxa_percentual').eq('pais_iso', pais).single();
         const taxa = taxaData ? taxaData.taxa_percentual : 23;
 
-        // 2. Calcular Itens
         let totalComImposto = 0;
         const line_items = itens.map(i => { 
             const precoBase = parseFloat(i.preco);
@@ -220,7 +213,7 @@ app.post('/checkout', async (req, res) => {
             return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(precoFinal * 100) }, quantity: 1 }; 
         });
 
-        // 3. Calcular Frete
+        // 2. Calcular Frete
         let custoFinal = 0;
         let nomeServico = "Envio";
         let estimativa = { min: 2, max: 5 };
@@ -228,8 +221,8 @@ app.post('/checkout', async (req, res) => {
         let nomeStd = "", nomeExp = "";
 
         if (pais === 'PT') {
-            const isIlhas = zip && zip.startsWith('9');
             limitFree = cf.pt_free;
+            const isIlhas = zip && zip.startsWith('9');
             if (isIlhas) {
                 custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00;
                 nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)";
@@ -256,8 +249,7 @@ app.post('/checkout', async (req, res) => {
 
         const moradaCompletaParaBD = `${address}, ${zip}, ${city}`;
 
-        // 4. CRIAR CLIENTE STRIPE (TRANSFERÊNCIA DE DADOS)
-        // Isso garante que o endereço aparece preenchido na página de pagamento
+        // 3. CRIAR CLIENTE STRIPE (TRANSFERÊNCIA DE DADOS)
         const customer = await stripe.customers.create({
             email: email,
             name: nome,
@@ -280,15 +272,18 @@ app.post('/checkout', async (req, res) => {
             }
         });
 
-        // 5. CRIAR SESSÃO CHECKOUT
+        // 4. CRIAR SESSÃO CHECKOUT
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'],
-            customer: customer.id, // Associa o cliente criado
+            customer: customer.id, // Associa o cliente
             customer_update: {
                 address: 'auto',
                 shipping: 'auto',
                 name: 'auto'
             },
+            // AQUI ESTÁ A LINHA MÁGICA QUE FORÇA O FORMULÁRIO COMPLETO
+            billing_address_collection: 'required', 
+            
             shipping_address_collection: { allowed_countries: [pais] }, 
             shipping_options: [{ 
                 shipping_rate_data: { 
