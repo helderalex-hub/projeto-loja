@@ -1,56 +1,25 @@
-Com certeza. Vamos refinar a **Vitrine (`loja.html`)** para incluir esses detalhes visuais e de funcionalidade que enriquecem a experiência do cliente.
-
-### 📋 Resumo das Alterações:
-
-1. **Cabeçalho (Header):**
-* Reintroduzi a tag `<img>` para o logo à esquerda.
-* Adicionei a palavra **"Vitrine"** ao título (Lust Store | Vitrine).
-
-
-2. **Botões Flutuantes (Social):**
-* Corrigi o ícone do **WhatsApp** (SVG oficial).
-* Adicionei o botão do **Instagram** com o ícone e cores oficiais (gradiente).
-* Estilizei-os para ficarem empilhados e bonitos acima do botão do carrinho.
-
-
-3. **Carrinho:**
-* Agora mostra o **Código (SKU)** do produto logo abaixo do nome, em letra pequena e cinzenta.
-
-
-
-Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não precisa de alterações** (continua compatível com esta versão).
-
-### 🛍️ `loja.html` (Versão Visual Atualizada)
-
-```html
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
-    <meta property="og:description" content="Descubra a coleção exclusiva de cosmética premium.">
-    <link rel="icon" href="favicon.ico"> 
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* FRETE BAR */
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
-        /* HEADER COM LOGO */
-        header { background: var(--dark); padding: 15px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        header { background: var(--dark); padding: 20px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header-content { display: flex; align-items: center; gap: 15px; }
-        .logo-img { height: 45px; width: auto; object-fit: contain; } /* Ajuste altura conforme seu logo */
-        header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; line-height: 1; }
-        header h1 span { color: var(--gold); font-size: 0.8em; display: block; font-weight: 300; margin-top: 2px; }
-        
-        .cart-trigger { position: relative; cursor: pointer; color: white; transition: 0.3s; display: flex; align-items: center; }
+        .logo-img { height: 45px; object-fit: contain; }
+        header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; }
+        header h1 span { color: var(--gold); font-weight: 300; font-size: 0.8em; }
+
+        .cart-trigger { position: relative; cursor: pointer; color: white; transition: 0.3s; }
         .cart-trigger:hover { color: var(--gold); }
-        .cart-trigger svg { width: 28px; height: 28px; }
-        .cart-badge { position: absolute; top: -8px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .cart-badge { position: absolute; top: -5px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
         /* SIDE CART */
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(2px); }
@@ -60,35 +29,34 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
         
         .cart-header { background: var(--dark); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--gold); }
         .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
-        .empty-msg { text-align: center; color: #94a3b8; margin-top: 50px; }
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
 
-        /* ITEM DO CARRINHO (AGORA COM SKU) */
-        .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
-        .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
-        .item-details { flex: 1; }
-        .item-name { font-size: 13px; font-weight: bold; color: var(--dark); display: block; line-height: 1.2; }
-        .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; margin-top: 2px; } /* Estilo do Código */
-        .item-price { font-size: 13px; color: var(--gold); font-weight: bold; margin-top: 4px; display: block; }
-        
-        /* CONTROLES DE QUANTIDADE */
-        .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-        .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); transition: 0.2s; }
-        .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
-        .qty-val { font-size: 12px; font-weight: bold; width: 20px; text-align: center; }
-
-        /* FORMULÁRIO CARRINHO */
+        /* FORMULARIOS */
         .input-end { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; margin-top: 5px; box-sizing: border-box; }
         .country-select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-weight: bold; color: var(--dark); margin-top: 5px; }
+        
+        /* TOTAIS */
         .cart-row { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 5px; }
         .cart-row.total { font-size: 18px; font-weight: bold; color: var(--dark); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
         .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.3s; margin-top: 15px; }
         .btn-checkout:hover { background: var(--gold); color: var(--dark); }
         .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
 
-        /* FILTROS E PRODUTOS */
+        /* ITEM CARRINHO */
+        .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
+        .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
+        .item-details { flex: 1; }
+        .item-name { font-size: 13px; font-weight: bold; color: var(--dark); display: block; }
+        .item-sku { font-size: 10px; color: #94a3b8; font-family: monospace; }
+        .item-price { font-size: 13px; color: var(--gold); font-weight: bold; margin-top: 4px; display: block; }
+        .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+        .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); }
+        .qty-btn-mini:hover { background: var(--gold); }
+
+        /* VITRINE */
         .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         @media(min-width: 900px) { .controls-container { flex-direction: row; justify-content: space-between; } }
+        .search-wrapper { width: 100%; max-width: 300px; }
         .search-input { width: 100%; padding: 8px 15px; border-radius: 50px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Inter', sans-serif; outline: none; box-sizing: border-box; }
         .filtros-lista { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .btn-filtro { background: transparent; border: 1px solid #cbd5e1; padding: 6px 16px; border-radius: 50px; cursor: pointer; font-size: 12px; text-transform: uppercase; font-weight: bold; transition: 0.3s; }
@@ -103,8 +71,8 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
         .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; border: 1px solid transparent; display: flex; flex-direction: column; }
         .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         .img-container { width: 100%; height: 280px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .img-container img { width: 90%; height: 90%; object-fit: contain; transition: transform 0.5s ease; mix-blend-mode: multiply; }
-        .produto-card:hover img { transform: scale(1.08); }
+        .img-container img { width: 90%; height: 90%; object-fit: contain; mix-blend-mode: multiply; }
+        
         .produto-card.esgotado { opacity: 0.7; pointer-events: none; }
         .produto-card.esgotado img { filter: grayscale(100%); }
         .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; font-weight: bold; font-size: 12px; border: 1px solid var(--gold); display: none; text-transform: uppercase; letter-spacing: 1px; }
@@ -112,6 +80,7 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
         
         .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
         .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
+        .card-ref { font-size: 10px; color: #94a3b8; font-family: monospace; margin-bottom: 5px; display:block; }
         .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
         
         .compra-row { margin-top: auto; display: flex; gap: 10px; align-items: stretch; }
@@ -121,17 +90,14 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
         .qtd-display-card { width: 25px; text-align: center; font-size: 13px; font-weight: bold; }
         .btn-comprar { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 4px; font-size: 12px; }
         .btn-comprar:hover { background: var(--gold); color: var(--dark); }
-        
-        /* BOTÕES FLUTUANTES (WhatsApp, Insta, Carrinho) */
+
+        /* BOTOES FLUTUANTES */
         .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; align-items: flex-end; transition: opacity 0.3s; }
-        
         .btn-social { width: 50px; height: 50px; border-radius: 50%; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.3s; }
         .btn-social:hover { transform: scale(1.1); }
         .btn-social svg { width: 24px; height: 24px; fill: currentColor; }
-        
         .whatsapp { background: #25D366; }
         .instagram { background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); }
-        
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
         
         .loading { text-align: center; width: 100%; padding: 50px; color: #94a3b8; font-size: 14px; letter-spacing: 1px; }
@@ -140,10 +106,9 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
 </head>
 <body>
     <div id="frete-bar" class="frete-bar">A CARREGAR OFERTAS...</div>
-    
     <header>
         <div class="header-content">
-            <img src="logo.png" alt="Lust Store" class="logo-img" onerror="this.src='https://placehold.co/100x50?text=LUST'">
+            <img src="logo.png" alt="Lust" class="logo-img" onerror="this.style.display='none'">
             <h1>Lust Store <span>| VITRINE</span></h1>
         </div>
         <div class="cart-trigger" onclick="toggleCart()">
@@ -221,7 +186,7 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
     <div class="container"><div id="vitrine" class="vitrine"><div class="loading">A CARREGAR COLEÇÃO EXCLUSIVA...</div></div></div>
     
     <div class="floating-container">
-        <button class="btn-social instagram" onclick="window.open('https://instagram.com/luststore', '_blank')" title="Instagram">
+        <button class="btn-social instagram" onclick="window.open('https://instagram.com', '_blank')" title="Instagram">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
         </button>
         <button class="btn-social whatsapp" onclick="partilharLoja()" title="WhatsApp">
@@ -244,8 +209,8 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
                 configFrete = await resC.json();
                 taxasPorPais = await resT.json();
                 if(!taxasPorPais.length) taxasPorPais = [{pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20}];
-                if(configFrete.pt_free) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${configFrete.pt_free} | ES > €${configFrete.es_free} | EUROPA > €${configFrete.eu_free}`;
-                renderizarProdutos(todosProdutos); 
+                if(configFrete.pt_free) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${configFrete.pt_free} | ES > €${configFrete.es_free}`;
+                aplicarRegras(); 
             } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro ao conectar ao servidor.</p>"; }
         }
 
@@ -269,13 +234,13 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0; 
                 let esgotado = stock <= 0 || (p.validade && new Date(p.validade) < new Date());
-                
                 vitrine.innerHTML += `
                     <div class="produto-card ${esgotado ? 'esgotado' : ''}">
                         <div class="img-container"><img src="${p.imagem || ''}" onerror="this.src='https://placehold.co/300x300?text=Lust'"><div class="overlay-esgotado">ESGOTADO</div></div>
                         <div class="info">
-                            <span class="marca">${p.marca || 'Lust'}</span>
+                            <span style="font-size:10px; color:#999">${p.marca || 'Lust'}</span>
                             <h3>${p.nome}</h3>
+                            <div class="card-ref">Ref: ${p.sku || '-'}</div>
                             <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
                             <div class="compra-row">
                                 <div class="qtd-seletor-card">
@@ -339,12 +304,24 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
             let totalProdComImposto = 0; carrinho.forEach(i => { totalProdComImposto += (i.preco * (1 + taxa/100)) * i.qtd; });
 
             let custoStd = 0, custoExp = 0, limitFree = 999;
+            let timeStd = "", timeExp = "";
+
             if (pais === 'PT') {
                 limitFree = configFrete.pt_free || 60;
-                if (cp.startsWith('9')) { custoStd = (configFrete.pt_std||4.5)+2; custoExp = (configFrete.pt_exp||8)+4; }
-                else { custoStd = configFrete.pt_std||4.5; custoExp = configFrete.pt_exp||8; }
-            } else if (pais === 'ES') { limitFree = configFrete.es_free||85; custoStd = configFrete.es_std||6; custoExp = configFrete.es_exp||10; }
-            else { limitFree = configFrete.eu_free||125; custoStd = configFrete.eu_std||12; custoExp = configFrete.eu_exp||25; }
+                if (cp.startsWith('9')) { 
+                    custoStd = (configFrete.pt_std||4.5)+2; custoExp = (configFrete.pt_exp||8)+4; 
+                    timeStd = "(5-9 dias)"; timeExp = "(2-4 dias)";
+                } else { 
+                    custoStd = configFrete.pt_std||4.5; custoExp = configFrete.pt_exp||8; 
+                    timeStd = "(2-3 dias)"; timeExp = "(24h-48h)";
+                }
+            } else if (pais === 'ES') { 
+                limitFree = configFrete.es_free||85; custoStd = configFrete.es_std||6; custoExp = configFrete.es_exp||10; 
+                timeStd = "(3-5 dias)"; timeExp = "(1-2 dias)";
+            } else { 
+                limitFree = configFrete.eu_free||125; custoStd = configFrete.eu_std||12; custoExp = configFrete.eu_exp||25; 
+                timeStd = "(5-10 dias)"; timeExp = "(2-3 dias)";
+            }
 
             if (totalProdComImposto >= limitFree) custoStd = 0;
 
@@ -355,11 +332,11 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
 
             document.getElementById('lista-radios-frete').innerHTML = `
                 <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; margin-bottom:5px;">
-                    <div><input type="radio" name="frete_option" value="std" ${selectedTier==='std'?'checked':''} onchange="validarEAtualizarFrete()"> Normal</div>
+                    <div><input type="radio" name="frete_option" value="std" ${selectedTier==='std'?'checked':''} onchange="validarEAtualizarFrete()"> Normal ${timeStd}</div>
                     <b>${custoStd===0 ? 'GRÁTIS' : '€'+custoStd.toFixed(2)}</b>
                 </label>
                 <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0;">
-                    <div><input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()"> Expresso</div>
+                    <div><input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()"> Expresso ${timeExp}</div>
                     <b>€${custoExp.toFixed(2)}</b>
                 </label>`;
 
@@ -378,7 +355,6 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
             container.innerHTML = ''; let totalCount = 0;
             carrinho.forEach(item => {
                 totalCount += item.qtd;
-                // Exibe Código (SKU) no carrinho
                 container.innerHTML += `
                     <div class="cart-item">
                         <img src="${item.imagem}">
@@ -436,5 +412,3 @@ Aqui está o código completo atualizado da **`loja.html`**. O `index.js` **não
     </script>
 </body>
 </html>
-
-```
