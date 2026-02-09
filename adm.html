@@ -95,7 +95,24 @@
         </div>
         <div style="margin-bottom: 20px;"><button onclick="abrirRelatorio()" class="btn-acao btn-gold">📊 Relatório Detalhado</button><button onclick="gerarEtiquetasDia()" class="btn-acao btn-verde">📦 Etiquetas de Hoje</button></div>
         <h3 style="color:var(--gold); font-size:12px; text-transform:uppercase; margin-bottom:10px;">Últimas 10 Vendas</h3>
-        <div class="tabela-container"><table><thead><tr><th>Data</th><th>Pedido</th><th>Itens (Resumo)</th><th>Total Pago</th><th>Ações</th></tr></thead><tbody id="lista-vendas"><tr><td colspan="5" align="center" style="padding:20px; color:#94a3b8">A carregar vendas...</td></tr></tbody></table></div>
+        
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Pedido</th>
+                        <th>ID Cli.</th> <th>Cliente / Itens</th>
+                        <th>Total Pago</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-vendas">
+                    <tr><td colspan="6" align="center" style="padding:20px; color:#94a3b8">A carregar vendas...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
         <h3 style="color:var(--gold); font-size:12px; text-transform:uppercase; margin-top:30px;">Performance Mensal</h3>
         <div class="grafico-box"><canvas id="graficoVendas"></canvas></div>
     </div>
@@ -176,7 +193,7 @@
                     <tr>
                         <th style="color:white">Data</th>
                         <th style="color:white">Pedido</th>
-                        <th style="color:white">Itens Agrupados</th>
+                        <th style="color:white">ID Cli.</th> <th style="color:white">Itens</th>
                         <th style="color:white">Cliente</th>
                         <th style="color:var(--gold)">Base</th>
                         <th style="color:var(--gold)">IVA</th>
@@ -185,7 +202,7 @@
                     </tr>
                 </thead>
                 <tbody id="tabela-relatorio"></tbody>
-                <tfoot><tr><td colspan="7" style="text-align:right; padding:15px; font-weight:bold; color:var(--gold)">TOTAL:</td><td id="total-relatorio" style="font-weight:bold; color:var(--gold)">€0.00</td></tr></tfoot>
+                <tfoot><tr><td colspan="8" style="text-align:right; padding:15px; font-weight:bold; color:var(--gold)">TOTAL:</td><td id="total-relatorio" style="font-weight:bold; color:var(--gold)">€0.00</td></tr></tfoot>
             </table>
         </div>
     </div>
@@ -208,22 +225,11 @@
 
     function openTab(id) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); }
 
-    // --- FUNÇÃO DE AGRUPAMENTO (NOVA) ---
     function agruparItens(itens, separador = '<br>') {
         if (!itens || itens.length === 0) return '-';
         const contagem = {};
-        
-        // Conta as ocorrências
-        itens.forEach(i => {
-            const nome = i.sku ? `[${i.sku}] ${i.nome}` : i.nome;
-            if (!contagem[nome]) contagem[nome] = 0;
-            contagem[nome]++;
-        });
-
-        // Formata a string (ex: "2x Batom")
-        return Object.entries(contagem)
-            .map(([nome, qtd]) => `<b>${qtd}x</b> ${nome}`)
-            .join(separador);
+        itens.forEach(i => { const nome = i.sku ? `[${i.sku}] ${i.nome}` : i.nome; if (!contagem[nome]) contagem[nome] = 0; contagem[nome]++; });
+        return Object.entries(contagem).map(([nome, qtd]) => `<b>${qtd}x</b> ${nome}`).join(separador);
     }
 
     // --- RELATÓRIO DETALHADO ---
@@ -235,6 +241,7 @@
         const cli = document.getElementById('r-cliente').value.toLowerCase(); const ped = document.getElementById('r-pedido').value.toLowerCase();
         vendasFiltradas = vendas.filter(v => { const d = new Date(v.data_venda); return d >= di && d <= df && v.cliente_nome.toLowerCase().includes(cli) && v.codigo_pedido.toLowerCase().includes(ped); });
         const tb = document.getElementById('tabela-relatorio'); tb.innerHTML = ''; let totalFinal = 0;
+        
         vendasFiltradas.forEach(v => {
             totalFinal += parseFloat(v.total_venda);
             const taxa = v.taxa_iva_aplicada || 23;
@@ -242,38 +249,69 @@
             const base = total / (1 + (taxa/100));
             const iva = total - base;
             const frete = parseFloat(v.total_frete);
-            
-            // USA A FUNÇÃO DE AGRUPAMENTO AQUI
             const listaItens = agruparItens(v.itens);
+            const clienteId = v.cliente_id ? v.cliente_id : 'N/A';
 
-            tb.innerHTML += `<tr><td style="color:#cbd5e1;padding:8px;">${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold);padding:8px;">#${v.codigo_pedido}</td><td style="color:white;padding:8px;font-size:11px;">${listaItens}</td><td style="color:white;padding:8px;">${v.cliente_nome}</td><td style="color:var(--gold);padding:8px;">${fmtEur(base)}</td><td style="color:var(--gold);padding:8px;">${fmtEur(iva)} <small>(${taxa}%)</small></td><td style="color:var(--gold);padding:8px;">${fmtEur(frete)}</td><td style="color:white;padding:8px;">${fmtEur(total)}</td></tr>`;
+            tb.innerHTML += `<tr>
+                <td style="color:#cbd5e1;padding:8px;">${new Date(v.data_venda).toLocaleDateString()}</td>
+                <td style="color:var(--gold);padding:8px;">#${v.codigo_pedido}</td>
+                <td style="color:#94a3b8;padding:8px;font-family:monospace;">CLI-${clienteId}</td>
+                <td style="color:white;padding:8px;font-size:11px;">${listaItens}</td>
+                <td style="color:white;padding:8px;">${v.cliente_nome}</td>
+                <td style="color:var(--gold);padding:8px;">${fmtEur(base)}</td>
+                <td style="color:var(--gold);padding:8px;">${fmtEur(iva)} <small>(${taxa}%)</small></td>
+                <td style="color:var(--gold);padding:8px;">${fmtEur(frete)}</td>
+                <td style="color:white;padding:8px;">${fmtEur(total)}</td>
+            </tr>`;
         });
         document.getElementById('total-relatorio').innerText = fmtEur(totalFinal);
     }
 
     function baixarPDFRelatorio() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); 
-        doc.setFillColor(15,23,42); doc.rect(0,0,297,35,'F'); doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18); doc.setTextColor(255); doc.setFontSize(10); doc.text("RELATÓRIO DE VENDAS (AGRUPADO)", 14, 26);
+        doc.setFillColor(15,23,42); doc.rect(0,0,297,35,'F'); doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 14, 18); doc.setTextColor(255); doc.setFontSize(10); doc.text("RELATÓRIO DE VENDAS", 14, 26);
+        
         const body = vendasFiltradas.map(v => {
             const taxa = v.taxa_iva_aplicada || 23; const total = parseFloat(v.total_venda); const base = total / (1 + (taxa/100)); const iva = total - base;
-            
-            // AGRUPAMENTO PARA PDF (Sem HTML, com quebra de linha \n)
             const itensTexto = agruparItens(v.itens, '\n').replace(/<b>|<\/b>/g, ''); 
+            const clienteId = v.cliente_id ? `CLI-${v.cliente_id}` : 'N/A';
 
-            return [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, itensTexto, v.cliente_nome, fmtEur(base), fmtEur(iva), fmtEur(v.total_frete), fmtEur(total)];
+            return [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, clienteId, itensTexto, v.cliente_nome, fmtEur(base), fmtEur(iva), fmtEur(v.total_frete), fmtEur(total)];
         });
-        doc.autoTable({ startY: 40, head: [['Data', 'Pedido', 'Itens', 'Cliente', 'Base', 'IVA', 'Frete', 'Total']], body: body, headStyles: {fillColor:[15,23,42], textColor:[204,164,59]}, foot: [['TOTAL', '', '', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+parseFloat(b.total_venda),0))]] });
+        
+        doc.autoTable({ 
+            startY: 40, 
+            head: [['Data', 'Pedido', 'ID Cli.', 'Itens', 'Cliente', 'Base', 'IVA', 'Frete', 'Total']], 
+            body: body, 
+            headStyles: {fillColor:[15,23,42], textColor:[204,164,59]}, 
+            foot: [['TOTAL', '', '', '', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+parseFloat(b.total_venda),0))]] 
+        });
         doc.save('Relatorio_Lust.pdf');
     }
 
     // --- ETIQUETAS E TABELA PRINCIPAL ---
     function renderizarVendas() { 
         const tb = document.getElementById('lista-vendas'); if(!tb) return; tb.innerHTML = ''; 
-        if (vendas.length === 0) { tb.innerHTML = '<tr><td colspan="5" align="center" style="padding:20px; color:#94a3b8">Sem vendas.</td></tr>'; return; } 
+        if (vendas.length === 0) { tb.innerHTML = '<tr><td colspan="6" align="center" style="padding:20px; color:#94a3b8">Sem vendas.</td></tr>'; return; } 
         vendas.slice(0, 10).forEach(v => { 
-            // USA AGRUPAMENTO NA TABELA PRINCIPAL
             const itensResumo = agruparItens(v.itens);
-            tb.innerHTML += `<tr><td>${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td><td>${v.cliente_nome} <span style="font-size:10px; background:#e2e8f0; color:#333; padding:1px 4px; border-radius:3px;">${v.pais_destino || 'PT'}</span><div style="font-size:10px; color:#64748b; margin-top:2px;">${itensResumo}</div></td><td>${fmtEur(v.total_venda)}</td><td><button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta">📦</button><button onclick="gerarFaturaDummy('${v.codigo_pedido}')" class="btn-acao btn-fatura" title="Fatura Pro-Forma">📄</button><button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Reenviar Email">📧</button></td></tr>`; 
+            const clienteId = v.cliente_id ? `CLI-${v.cliente_id}` : '-';
+            
+            tb.innerHTML += `<tr>
+                <td>${new Date(v.data_venda).toLocaleDateString()}</td>
+                <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
+                <td style="color:#94a3b8; font-family:monospace;">${clienteId}</td>
+                <td>
+                    <div style="font-weight:bold; margin-bottom:4px;">${v.cliente_nome} <span style="font-size:10px; background:#e2e8f0; color:#333; padding:1px 4px; border-radius:3px;">${v.pais_destino || 'PT'}</span></div>
+                    <div style="font-size:11px; color:#cbd5e1;">${itensResumo}</div>
+                </td>
+                <td>${fmtEur(v.total_venda)}</td>
+                <td>
+                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta">📦</button>
+                    <button onclick="gerarFaturaDummy('${v.codigo_pedido}')" class="btn-acao btn-fatura" title="Fatura Pro-Forma">📄</button>
+                    <button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Reenviar Email">📧</button>
+                </td>
+            </tr>`; 
         }); 
     }
 
@@ -290,24 +328,12 @@
             if(v.telefone_contato) { doc.setFontSize(9); doc.text(`Tel: ${v.telefone_contato}`, 5, 80); }
             doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage();
             doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; 
-            
-            // AGRUPAMENTO PARA PACKING LIST
-            const itensAgrupados = {};
-            (v.itens || []).forEach(i => {
-                const k = `[${i.sku||'?'}] ${i.nome}`;
-                if(!itensAgrupados[k]) itensAgrupados[k]=0;
-                itensAgrupados[k]++;
-            });
-
-            Object.entries(itensAgrupados).forEach(([desc, qtd]) => { 
-                doc.text(`[ ] ${qtd}x ${desc}`, 5, y); 
-                y+=8; 
-            });
+            const itensAgrupados = {}; (v.itens || []).forEach(i => { const k = `[${i.sku||'?'}] ${i.nome}`; if(!itensAgrupados[k]) itensAgrupados[k]=0; itensAgrupados[k]++; });
+            Object.entries(itensAgrupados).forEach(([desc, qtd]) => { doc.text(`[ ] ${qtd}x ${desc}`, 5, y); y+=8; });
         });
         doc.save(`Etiquetas_${hoje}.pdf`);
     }
 
-    // --- FATURA ---
     function gerarFaturaDummy(cod) {
         const v = vendas.find(x => x.codigo_pedido === cod);
         if (!v) return alert("Venda off.");
@@ -319,27 +345,17 @@
         doc.setTextColor(0); doc.setFontSize(10); doc.text("CLIENTE:", 14, 45); doc.setFont("helvetica", "normal"); doc.text(`${v.cliente_nome}`, 14, 50); doc.text(doc.splitTextToSize(v.cliente_morada || '', 80), 14, 55);
         if(v.nif_cliente) doc.text(`NIF: ${v.nif_cliente}`, 14, 70);
         
-        // AGRUPAMENTO NA FATURA (Opcional, mas recomendado para ficar limpo)
-        const itensAgrupados = {};
-        (v.itens || []).forEach(i => {
-            const k = i.sku ? `[${i.sku}] ${i.nome}` : i.nome;
-            if(!itensAgrupados[k]) itensAgrupados[k] = {qtd:0, preco: parseFloat(i.preco)};
-            itensAgrupados[k].qtd++;
-        });
-
+        const itensAgrupados = {}; (v.itens || []).forEach(i => { const k = i.sku ? `[${i.sku}] ${i.nome}` : i.nome; if(!itensAgrupados[k]) itensAgrupados[k] = {qtd:0, preco: parseFloat(i.preco)}; itensAgrupados[k].qtd++; });
         const linhas = Object.entries(itensAgrupados).map(([nome, dados]) => {
-            const totalLinhaComIva = dados.preco * dados.qtd;
-            const baseLinha = totalLinhaComIva / divisor;
+            const totalLinhaComIva = dados.preco * dados.qtd; const baseLinha = totalLinhaComIva / divisor;
             return [`${dados.qtd}x ${nome}`, `${taxa}%`, `€${baseLinha.toFixed(2)}`, `€${(totalLinhaComIva - baseLinha).toFixed(2)}`, `€${totalLinhaComIva.toFixed(2)}`];
         });
-
         const freteComIva = parseFloat(v.total_frete || 0); const baseFrete = freteComIva / divisor;
         linhas.push(['Portes de Envio', `${taxa}%`, `€${baseFrete.toFixed(2)}`, `€${(freteComIva - baseFrete).toFixed(2)}`, `€${freteComIva.toFixed(2)}`]);
         doc.autoTable({ startY: 80, head: [['Descrição', 'Taxa', 'Base', 'IVA', 'Total']], body: linhas, foot: [['TOTAIS', '', '', '', `€${parseFloat(v.total_venda).toFixed(2)}`]], theme: 'grid', headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] } });
         doc.save(`Fatura_ProForma_${cod}.pdf`);
     }
 
-    // --- FUNÇÕES DE CONFIGURAÇÃO E MANUTENÇÃO (MANTIDAS IGUAIS) ---
     function carregarConfigNoForm() { if (configFrete) { if(document.getElementById('pt_std')) { document.getElementById('pt_std').value = configFrete.pt_std||0; document.getElementById('pt_exp').value = configFrete.pt_exp||0; document.getElementById('pt_free').value = configFrete.pt_free||0; document.getElementById('es_std').value = configFrete.es_std||0; document.getElementById('es_exp').value = configFrete.es_exp||0; document.getElementById('es_free').value = configFrete.es_free||0; document.getElementById('eu_std').value = configFrete.eu_std||0; document.getElementById('eu_exp').value = configFrete.eu_exp||0; document.getElementById('eu_free').value = configFrete.eu_free||0; } } }
     async function salvarConfigFrete() { const novaConfig = { pt_std: parseFloat(document.getElementById('pt_std').value), pt_exp: parseFloat(document.getElementById('pt_exp').value), pt_free: parseFloat(document.getElementById('pt_free').value), es_std: parseFloat(document.getElementById('es_std').value), es_exp: parseFloat(document.getElementById('es_exp').value), es_free: parseFloat(document.getElementById('es_free').value), eu_std: parseFloat(document.getElementById('eu_std').value), eu_exp: parseFloat(document.getElementById('eu_exp').value), eu_free: parseFloat(document.getElementById('eu_free').value) }; await fetch(`${API}/config`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(novaConfig) }); alert("Configurações atualizadas!"); iniciar(); }
     async function updateItem(id, campo, valor) { const p = produtos.find(x => x.id === id); p[campo] = valor; await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); atualizarDash(); if(campo === 'validade') renderizarInventario(); }
@@ -351,12 +367,10 @@
     const fmt = (v) => parseFloat(v || 0).toFixed(2); const fmtEur = (v) => `€${fmt(v)}`;
     function checkNum(val, filter, op) { if(!filter) return true; const n = parseFloat(filter); if(op === '>') return val > n; if(op === '<') return val < n; return val == n; }
     function filtrarInv() { const fProd = document.getElementById('f-prod').value.toLowerCase(); const fCusto = document.getElementById('f-custo').value; const opCusto = document.getElementById('op-custo').value; const fVenda = document.getElementById('f-venda').value; const opVenda = document.getElementById('op-venda').value; const fEstoque = document.getElementById('f-estoque').value; const opEstoque = document.getElementById('op-estoque').value; const listaFiltrada = produtos.filter(p => { return (p.nome.toLowerCase().includes(fProd)) && checkNum(parseFloat(p.preco_entrada||0), fCusto, opCusto) && checkNum(parseFloat(p.preco||0), fVenda, opVenda) && checkNum(p.estoque, fEstoque, opEstoque); }); renderizarInventario(listaFiltrada); }
-    function renderizarInventario(lista = produtos) { const tbody = document.getElementById('lista-inventario-tabela'); if(!tbody) return; tbody.innerHTML = ''; if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">Nenhum produto.</td></tr>'; return; } lista.forEach(p => { let aviso = ""; if (p.validade) { const diffDays = Math.ceil((new Date(p.validade) - new Date()) / (86400000)); if (diffDays < 0) aviso = `<span class="aviso-validade texto-critico">VENCIDO</span>`; else if (diffDays <= 180) aviso = `<span class="aviso-validade texto-atencao">Vence em ${diffDays} dias</span>`; } tbody.innerHTML += `<tr><td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td><td><input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"><select class="input-live" style="font-size:10px;" onchange="updateItem(${p.id}, 'categoria', this.value)"><option value="Pele" ${p.categoria==='Pele'?'selected':''}>Pele</option><option value="Cabelo" ${p.categoria==='Cabelo'?'selected':''}>Cabelo</option><option value="Olhos" ${p.categoria==='Olhos'?'selected':''}>Olhos</option><option value="Labios" ${p.categoria==='Labios'?'selected':''}>Lábios</option><option value="Unhas" ${p.categoria==='Unhas'?'selected':''}>Unhas</option></select><span class="cod-tag">Cód: ${p.sku || '-'}</span></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td><td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td><td><div style="display:flex; flex-direction:column; gap:2px;"><input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)">${aviso}</div></td><td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td></tr>`; }); }
     function renderizarGrafico() { const ctx = document.getElementById('graficoVendas'); if(!ctx) return; const hoje=new Date(); const dias=new Array(new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate()).fill(0); vendas.forEach(v => { const d=new Date(v.data_venda); if(d.getMonth()===hoje.getMonth()) dias[d.getDate()-1]+=v.total_venda; }); new Chart(ctx.getContext('2d'), { type:'bar', data:{labels:Array.from({length:dias.length},(_,i)=>i+1), datasets:[{label:'Vendas €',data:dias,backgroundColor:'#cca43b'}]}, options:{responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#334155'},ticks:{color:'#94a3b8'}},x:{ticks:{color:'#94a3b8'}}}} }); }
     async function reenviar(id) { if(confirm("Reenviar?")) await fetch(`${API}/reenviar-email/${id}`, {method:'POST'}); }
     async function apagarProduto(id) { if(confirm("Apagar?")) { await fetch(`${API}/produtos/${id}`, {method:'DELETE'}); iniciar(); } }
     
-    // Funções de Modal (Adicionar/Fechar)
     function abrirModalProd() { document.getElementById('modal-produto').style.display='flex'; document.getElementById('p-nome').value=''; document.getElementById('p-marca').value=''; document.getElementById('p-categoria').value=''; document.getElementById('p-sku').value=''; document.getElementById('p-custo').value=''; document.getElementById('p-venda').value=''; document.getElementById('p-stock').value=''; document.getElementById('p-validade').value=''; fotoBase64=''; document.getElementById('preview-img').style.display='none'; document.getElementById('label-upload').style.display='block'; }
     function fecharModalProd() { document.getElementById('modal-produto').style.display='none'; }
     function gerarSKU() { const m=document.getElementById('p-marca').value.substring(0,3).toUpperCase(); const c=document.getElementById('p-categoria').value.substring(0,3).toUpperCase(); const r=Math.floor(Math.random()*9999); document.getElementById('p-sku').value = `${m}-${c}-${r}`; }
