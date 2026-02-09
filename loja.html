@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
     <meta property="og:description" content="Descubra a coleção exclusiva de cosmética premium.">
+    <link rel="icon" href="favicon.ico"> 
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
@@ -14,10 +15,10 @@
         /* FRETE BAR */
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
         
-        /* HEADER */
+        /* HEADER COM LOGO */
         header { background: var(--dark); padding: 15px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header-content { display: flex; align-items: center; gap: 15px; }
-        .logo-img { height: 45px; width: auto; object-fit: contain; } 
+        .logo-img { height: 45px; width: auto; object-fit: contain; }
         header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; line-height: 1; }
         header h1 span { color: var(--gold); font-size: 0.8em; display: block; font-weight: 300; margin-top: 2px; }
         
@@ -90,6 +91,9 @@
         .card-ref { font-size: 10px; color: #94a3b8; font-family: monospace; margin-bottom: 5px; display:block; }
         .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
         
+        /* AVISO DE ESTOQUE BAIXO (NOVO) */
+        .aviso-stock { color: #ef4444; font-size: 10px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; }
+        
         .compra-row { margin-top: auto; display: flex; gap: 10px; align-items: stretch; }
         .qtd-seletor-card { display: flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; }
         .qtd-btn-card { width: 30px; height: 100%; background: transparent; border: none; font-weight: bold; cursor: pointer; color: var(--dark); font-size: 16px; }
@@ -104,7 +108,6 @@
         .btn-social:hover { transform: scale(1.1); }
         .btn-social svg { width: 24px; height: 24px; fill: currentColor; }
         .whatsapp { background: #25D366; }
-        /* CORREÇÃO DO FUNDO DO INSTAGRAM */
         .instagram { background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); }
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
         
@@ -117,7 +120,7 @@
     
     <header>
         <div class="header-content">
-            <img src="logo.png" alt="Lust Store" class="logo-img" onerror="this.style.display='none'">
+            <img src="logo.png" alt="Lust Store" class="logo-img" onerror="this.src='https://placehold.co/100x50?text=LUST'">
             <h1>Lust Store <span>| VITRINE</span></h1>
         </div>
         <div class="cart-trigger" onclick="toggleCart()">
@@ -214,7 +217,7 @@
         const API = 'https://projeto-loja-dzqv.onrender.com';
         let todosProdutos = [], carrinho = [], taxasPorPais = [], configFrete = {};
         let freteSelecionado = { valor: 0, tier: 'std' };
-        let catAtual = 'todos'; // Variável de controle da categoria
+        let catAtual = 'todos';
 
         async function carregarProdutos() {
             try {
@@ -223,13 +226,11 @@
                 if (resC.ok) configFrete = await resC.json();
                 if (resT.ok) taxasPorPais = await resT.json();
                 
-                // Fallbacks caso falhe config
                 if(!taxasPorPais.length) taxasPorPais = [{pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20}];
                 const ptFree = configFrete.pt_free || 60;
                 const esFree = configFrete.es_free || 85;
                 document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${ptFree} | ES > €${esFree}`;
                 
-                // Renderiza inicial COM regras aplicadas
                 aplicarRegras(); 
             } catch(e) { 
                 console.error(e);
@@ -237,7 +238,6 @@
             }
         }
 
-        // --- LÓGICA DE FILTROS CORRIGIDA ---
         function mudarCategoria(cat, btn) { 
             catAtual = cat; 
             document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); 
@@ -248,12 +248,10 @@
         function aplicarRegras() {
             let lista = [...todosProdutos];
             
-            // 1. Filtro de Categoria
             if (catAtual !== 'todos') {
                 lista = lista.filter(p => p.categoria && p.categoria.toLowerCase().trim() === catAtual.toLowerCase().trim());
             }
             
-            // 2. Filtro de Pesquisa
             const termo = document.getElementById('search-input').value.toLowerCase().trim();
             if (termo) {
                 lista = lista.filter(p => 
@@ -262,7 +260,6 @@
                 );
             }
             
-            // 3. Ordenação
             const ordem = document.getElementById('sort-select').value;
             lista.sort((a, b) => {
                 const precoA = parseFloat(a.preco || 0);
@@ -294,6 +291,11 @@
                 let esgotado = stock <= 0;
                 if (p.validade && new Date(p.validade) < new Date()) esgotado = true;
                 
+                let alertaStock = '';
+                if(stock > 0 && stock < 5) {
+                    alertaStock = `<div class="aviso-stock">⚠️ Restam ${stock} unidades!</div>`;
+                }
+
                 vitrine.innerHTML += `
                     <div class="produto-card ${esgotado ? 'esgotado' : ''}">
                         <div class="img-container">
@@ -304,6 +306,7 @@
                             <span class="marca">${p.marca || 'Lust'}</span>
                             <h3>${p.nome}</h3>
                             <div class="card-ref">Ref: ${p.sku || 'N/A'}</div>
+                            ${alertaStock}
                             <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
                             
                             <div class="compra-row">
@@ -327,7 +330,6 @@
             if(val >= 1 && (max === undefined || val <= max)) el.innerText = val; 
         }
 
-        // --- CARRINHO & CHECKOUT ---
         function toggleCart() { 
             const s = document.getElementById('side-cart'); const o = document.getElementById('cart-overlay'); const f = document.querySelector('.floating-container');
             s.classList.toggle('open'); o.classList.toggle('open');
@@ -341,11 +343,11 @@
             
             if (item) { 
                 if(item.qtd + qtdToAdd <= stockMax) item.qtd += qtdToAdd; 
-                else alert("Limite de stock atingido para este item.");
+                else alert("Limite de stock atingido.");
             } else {
                 carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdToAdd, max: stockMax});
             }
-            qtdSpan.innerText = "1"; // Reset qtd visual
+            qtdSpan.innerText = "1"; 
             validarEAtualizarFrete(); toggleCart();
         }
 
@@ -373,7 +375,6 @@
             const tel = document.getElementById('tel-destino').value.trim();
             
             let cpValido = (pais === 'PT') ? /^\d{4}/.test(cp) : cp.length >= 3;
-            // Valida NOME e EMAIL agora
             const tudoPreenchido = nome.length > 2 && email.includes('@') && cpValido && cidade.length > 2 && rua.length > 5 && tel.length > 6;
 
             const containerOpcoes = document.getElementById('opcoes-frete-container');
@@ -526,7 +527,6 @@
 
         function partilharLoja() { const texto = "Confira as novidades exclusivas da Lust Store! 💎"; const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=${texto} ${url}`, '_blank'); }
         
-        // INICIALIZAÇÃO
         window.onload = carregarProdutos;
     </script>
 </body>
