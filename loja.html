@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <title>Lust Store | Vitrine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="Lust Store | Luxo & Exclusividade">
+    <meta property="og:description" content="Descubra a coleção exclusiva de cosmética premium.">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --dark: #0f172a; --gold: #cca43b; --gold-light: #fcd34d; --texto: #334155; --bg-page: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--texto); margin: 0; padding: 0; overflow-x: hidden; }
         .frete-bar { background: #000; color: var(--gold-light); font-size: 11px; text-align: center; padding: 8px; font-weight: bold; letter-spacing: 1px; }
+        
         header { background: var(--dark); padding: 20px 30px; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; display: flex; justify-content: space-between; align-items: center; }
         header h1 { margin: 0; font-family: 'Playfair Display', serif; color: white; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; }
         .cart-trigger { position: relative; cursor: pointer; color: white; }
         .cart-badge { position: absolute; top: -5px; right: -8px; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        
+
         /* SIDE CART */
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; }
         .cart-overlay.open { opacity: 1; visibility: visible; }
@@ -23,26 +26,56 @@
         .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
         .cart-footer { padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
         
+        /* ESTILOS DE FORMULÁRIO DO CARRINHO */
         .input-end { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; margin-top: 5px; box-sizing: border-box; }
         .country-select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-weight: bold; color: var(--dark); }
-        
+        .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
         .cart-row { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 5px; }
         .cart-row.total { font-size: 18px; font-weight: bold; color: var(--dark); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
-        .btn-checkout { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
-        .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-        /* PRODUTOS */
+        /* ITEM DO CARRINHO COM BOTOES */
+        .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; align-items: center; }
+        .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
+        .item-details { flex: 1; }
+        .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+        .qty-btn-mini { width: 24px; height: 24px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--dark); transition: 0.2s; }
+        .qty-btn-mini:hover { background: var(--gold); border-color: var(--gold); }
+        
+        /* VITRINE & CARDS */
         .container { max-width: 1200px; margin: 40px auto; padding: 0 15px; }
         .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
-        .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; border: 1px solid transparent; }
+        .produto-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; border: 1px solid transparent; display: flex; flex-direction: column; }
         .produto-card:hover { transform: translateY(-5px); border-color: var(--gold); }
-        .img-container { width: 100%; height: 280px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+        .img-container { width: 100%; height: 280px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; }
         .img-container img { width: 90%; height: 90%; object-fit: contain; mix-blend-mode: multiply; }
-        .info { padding: 20px; }
-        .btn-comprar { background: var(--dark); color: white; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .overlay-esgotado { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; font-weight: bold; font-size: 12px; border: 1px solid var(--gold); display: none; text-transform: uppercase; letter-spacing: 1px; }
+        .produto-card.esgotado { opacity: 0.7; pointer-events: none; }
+        .produto-card.esgotado .overlay-esgotado { display: block; }
         
-        .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; align-items: flex-end; }
+        .info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .info h3 { margin: 5px 0; font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); }
+        .preco { font-size: 19px; color: var(--gold); font-weight: bold; margin: 8px 0; }
+        
+        /* SELETOR DE QTD NO CARD */
+        .compra-row { margin-top: auto; display: flex; gap: 10px; align-items: stretch; }
+        .qtd-seletor-card { display: flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .qtd-btn-card { width: 30px; height: 100%; background: transparent; border: none; font-weight: bold; cursor: pointer; color: var(--dark); }
+        .qtd-btn-card:hover { background: #e2e8f0; }
+        .qtd-display-card { width: 25px; text-align: center; font-size: 13px; font-weight: bold; }
+        .btn-comprar { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 4px; }
+        .btn-comprar:hover { background: var(--gold); color: var(--dark); }
+
+        /* OUTROS */
+        .controls-container { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        @media(min-width: 900px) { .controls-container { flex-direction: row; justify-content: space-between; } }
+        .search-input { width: 100%; padding: 8px 15px; border-radius: 50px; border: 1px solid #cbd5e1; background: #f8fafc; font-family: 'Inter', sans-serif; outline: none; box-sizing: border-box; }
+        .filtros-lista { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .btn-filtro { background: transparent; border: 1px solid #cbd5e1; padding: 6px 16px; border-radius: 50px; cursor: pointer; font-size: 12px; text-transform: uppercase; font-weight: bold; transition: 0.3s; }
+        .btn-filtro.ativo { background: var(--gold); color: #0f172a; border-color: var(--gold); }
+        .floating-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; align-items: flex-end; transition: opacity 0.3s; }
         #btn-carrinho-float { background: var(--gold); color: var(--dark); padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(204, 164, 59, 0.5); }
+        .btn-share { width: 50px; height: 50px; border-radius: 50%; background: #25D366; color: white; border: none; cursor: pointer; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.3s; }
     </style>
 </head>
 <body>
@@ -61,12 +94,11 @@
         <div class="cart-footer">
             <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #e2e8f0;">
                 <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b;">📍 Dados de Envio</label>
-                
                 <div style="display: flex; gap: 5px; margin-top: 5px;">
                     <select id="pais-destino" class="country-select" style="margin:0; flex: 1;" onchange="validarEAtualizarFrete()">
                         <option value="PT">🇵🇹 Portugal</option>
                         <option value="ES">🇪🇸 Espanha</option>
-                        <optgroup label="🇪🇺 Europa">
+                        <optgroup label="🇪🇺 Outros (Europa)">
                             <option value="FR">🇫🇷 França</option>
                             <option value="DE">🇩🇪 Alemanha</option>
                             <option value="IT">🇮🇹 Itália</option>
@@ -75,9 +107,8 @@
                     </select>
                     <input type="text" id="cp-destino" placeholder="CP (ex: 1000)" class="input-end" style="width: 80px; margin:0;" onkeyup="validarEAtualizarFrete()">
                 </div>
-                
                 <input type="text" id="cidade-destino" placeholder="Cidade" class="input-end" onkeyup="validarEAtualizarFrete()">
-                <input type="text" id="rua-destino" placeholder="Morada (Rua, Nº, Andar)" class="input-end" onkeyup="validarEAtualizarFrete()">
+                <input type="text" id="rua-destino" placeholder="Morada Completa (Rua, Nº, Andar)" class="input-end" onkeyup="validarEAtualizarFrete()">
                 <input type="tel" id="tel-destino" placeholder="Telefone (Obrigatório)" class="input-end" onkeyup="validarEAtualizarFrete()">
                 <input type="text" id="nif-destino" placeholder="NIF (Opcional)" class="input-end">
             </div>
@@ -88,17 +119,30 @@
             </div>
 
             <div class="cart-row"><span>Subtotal (Base)</span><span id="cart-subtotal">€0.00</span></div>
-            <div class="cart-row"><span id="cart-tax-label">IVA (23%)</span><span id="cart-tax-val">€0.00</span></div>
+            <div class="cart-row"><span id="cart-tax-label">IVA</span><span id="cart-tax-val">€0.00</span></div>
             <div class="cart-row"><span style="color:#cca43b">Frete</span><span id="cart-shipping-val" style="color:#cca43b">Calculando...</span></div>
             <div class="cart-row total"><span>Total Final</span><span id="cart-total-val">€0.00</span></div>
             <button class="btn-checkout" onclick="finalizarCompra()" id="btn-checkout" disabled>Preencha os Dados</button>
         </div>
     </div>
 
+    <div class="controls-container">
+        <div class="search-wrapper"><input type="text" id="search-input" class="search-input" placeholder="Buscar..." onkeyup="aplicarRegras()"></div>
+        <div class="filtros-lista">
+            <button class="btn-filtro ativo" onclick="mudarCategoria('todos', this)">Todos</button>
+            <button class="btn-filtro" onclick="mudarCategoria('Pele', this)">Pele</button>
+            <button class="btn-filtro" onclick="mudarCategoria('Cabelo', this)">Cabelo</button>
+            <button class="btn-filtro" onclick="mudarCategoria('Olhos', this)">Olhos</button>
+            <button class="btn-filtro" onclick="mudarCategoria('Labios', this)">Lábios</button>
+            <button class="btn-filtro" onclick="mudarCategoria('Unhas', this)">Unhas</button>
+        </div>
+    </div>
+
     <div class="container"><div id="vitrine" class="vitrine"><div class="loading">A CARREGAR...</div></div></div>
     
     <div class="floating-container">
-        <button id="btn-carrinho-float" onclick="toggleCart()">🛒 Ver Carrinho <span id="cart-count">0</span></button>
+        <button class="btn-share" onclick="partilharLoja()">📤</button>
+        <button id="btn-carrinho-float" onclick="toggleCart()">🛒 <span id="cart-count">0</span></button>
     </div>
     
     <script>
@@ -109,147 +153,135 @@
         async function carregarProdutos() {
             try {
                 const [resP, resC, resT] = await Promise.all([fetch(`${API}/produtos`), fetch(`${API}/config`), fetch(`${API}/taxas`)]);
-                todosProdutos = await resP.json();
-                configFrete = await resC.json();
-                taxasPorPais = await resT.json();
+                todosProdutos = await resP.json(); configFrete = await resC.json(); taxasPorPais = await resT.json();
                 if(!taxasPorPais.length) taxasPorPais = [{pais_iso: 'PT', taxa_percentual: 23}, {pais_iso: 'ES', taxa_percentual: 21}, {pais_iso: 'FR', taxa_percentual: 20}];
-                if(configFrete.pt_free) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${configFrete.pt_free} | ES > €${configFrete.es_free} | EUROPA > €${configFrete.eu_free}`;
+                if(configFrete.pt_free) document.getElementById('frete-bar').innerText = `PORTES GRÁTIS: PT > €${configFrete.pt_free} | ES > €${configFrete.es_free}`;
                 renderizarProdutos(todosProdutos); 
-            } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center; width:100%; color:#ef4444'>Erro API.</p>"; }
+            } catch(e) { document.getElementById('vitrine').innerHTML = "<p style='text-align:center;color:red'>Erro API</p>"; }
         }
 
         function renderizarProdutos(lista) {
             const vitrine = document.getElementById('vitrine'); vitrine.innerHTML = '';
             lista.forEach(p => {
                 const stock = parseInt(p.estoque) || 0; 
-                if (stock <= 0) return; // Não mostra esgotados
+                const esgotado = stock <= 0 || (p.validade && new Date(p.validade) < new Date());
                 vitrine.innerHTML += `
-                    <div class="produto-card">
-                        <div class="img-container"><img src="${p.imagem || 'https://placehold.co/300x300'}" onerror="this.src='https://placehold.co/300x300'"></div>
+                    <div class="produto-card ${esgotado?'esgotado':''}">
+                        <div class="img-container"><img src="${p.imagem}" onerror="this.src='https://placehold.co/300'"><div class="overlay-esgotado">ESGOTADO</div></div>
                         <div class="info">
                             <span style="font-size:10px; color:#999">${p.marca || 'Lust'}</span>
                             <h3>${p.nome}</h3>
-                            <div class="preco">€${parseFloat(p.preco).toFixed(2)} <span style="font-size:10px; color:#999;">+ IVA</span></div>
-                            <button class="btn-comprar" onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">Comprar</button>
+                            <div class="preco">€${parseFloat(p.preco).toFixed(2)}</div>
+                            <div class="compra-row">
+                                <div class="qtd-seletor-card">
+                                    <button class="qtd-btn-card" onclick="mudarQtdVitrineCard('${p.id}', -1)">-</button>
+                                    <span class="qtd-display-card" id="qtd-card-${p.id}">1</span>
+                                    <button class="qtd-btn-card" onclick="mudarQtdVitrineCard('${p.id}', 1, ${stock})">+</button>
+                                </div>
+                                <button class="btn-comprar" ${esgotado?'disabled':''} onclick="addCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.sku}', '${p.imagem}', ${stock})">Adicionar</button>
+                            </div>
                         </div>
                     </div>`;
             });
         }
 
-        function toggleCart() { 
-            const s = document.getElementById('side-cart'); 
-            const o = document.getElementById('cart-overlay'); 
-            const f = document.querySelector('.floating-container');
-            s.classList.toggle('open'); o.classList.toggle('open');
-            f.style.display = s.classList.contains('open') ? 'none' : 'flex'; // Esconde botão flutuante
+        function mudarQtdVitrineCard(id, delta, max) { 
+            const el = document.getElementById(`qtd-card-${id}`); 
+            let val = parseInt(el.innerText) + delta; 
+            if(val >= 1 && (max === undefined || val <= max)) el.innerText = val; 
         }
 
         function addCarrinho(id, nome, preco, sku, img, stockMax) { 
+            const qtdSpan = document.getElementById(`qtd-card-${id}`);
+            const qtdToAdd = parseInt(qtdSpan.innerText);
             const item = carrinho.find(i => i.id == id);
-            if (item) { if(item.qtd < stockMax) item.qtd++; else alert("Stock Max."); } 
-            else carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: 1, max: stockMax});
+            
+            if (item) { 
+                if(item.qtd + qtdToAdd <= stockMax) item.qtd += qtdToAdd; 
+                else alert("Limite de stock atingido.");
+            } else {
+                carrinho.push({id, nome, preco: parseFloat(preco), sku, imagem: img, qtd: qtdToAdd, max: stockMax});
+            }
+            qtdSpan.innerText = "1"; // Reset card
             validarEAtualizarFrete(); toggleCart();
         }
 
+        function toggleCart() { 
+            const s = document.getElementById('side-cart'); const o = document.getElementById('cart-overlay'); const f = document.querySelector('.floating-container');
+            s.classList.toggle('open'); o.classList.toggle('open');
+            f.style.display = s.classList.contains('open') ? 'none' : 'flex';
+        }
+
+        function mudarQtdCarrinho(id, delta) { const item = carrinho.find(i => i.id == id); if (item) { const n = item.qtd + delta; if (n > item.max) return alert("Max stock"); item.qtd = n; if (item.qtd <= 0) carrinho = carrinho.filter(i => i.id != id); validarEAtualizarFrete(); } }
+
         function validarEAtualizarFrete() {
             if (carrinho.length === 0) { atualizarCarrinhoUI(); return; }
-
             const pais = document.getElementById('pais-destino').value;
             const cp = document.getElementById('cp-destino').value.trim();
             const cidade = document.getElementById('cidade-destino').value.trim();
             const rua = document.getElementById('rua-destino').value.trim();
             const tel = document.getElementById('tel-destino').value.trim();
             
-            const containerOpcoes = document.getElementById('opcoes-frete-container');
-            const listaRadios = document.getElementById('lista-radios-frete');
-            const btn = document.getElementById('btn-checkout');
-
-            // Validação Completa
             let cpValido = (pais === 'PT') ? /^\d{4}/.test(cp) : cp.length >= 3;
             const tudoPreenchido = cpValido && cidade.length > 2 && rua.length > 5 && tel.length > 6;
 
+            const containerOpcoes = document.getElementById('opcoes-frete-container');
+            const btn = document.getElementById('btn-checkout');
+
             if (!tudoPreenchido) {
-                containerOpcoes.style.display = 'none';
-                btn.disabled = true;
-                btn.innerText = "Preencha Dados + Tel";
-                atualizarCarrinhoUI();
-                return;
+                containerOpcoes.style.display = 'none'; btn.disabled = true; btn.innerText = "Preencha Endereço"; atualizarCarrinhoUI(); return;
             }
 
-            // Calcular Total Produtos (Com IVA)
+            // Lógica Frete
             const taxaObj = taxasPorPais.find(t => t.pais_iso === pais);
             const taxa = taxaObj ? taxaObj.taxa_percentual : 23;
-            let totalProdComImposto = 0;
-            carrinho.forEach(i => { totalProdComImposto += (i.preco * (1 + taxa/100)) * i.qtd; });
+            let totalProdComImposto = 0; carrinho.forEach(i => { totalProdComImposto += (i.preco * (1 + taxa/100)) * i.qtd; });
 
-            // Custos
             let custoStd = 0, custoExp = 0, limitFree = 999;
-            let labelStd = "Normal", labelExp = "Expresso";
-
             if (pais === 'PT') {
                 limitFree = configFrete.pt_free || 60;
-                if (cp.startsWith('9')) { // Ilhas
-                    custoStd = (configFrete.pt_std || 4.5) + 2; custoExp = (configFrete.pt_exp || 8) + 4;
-                    labelStd = "Ilhas (Marítimo)"; labelExp = "Ilhas (Aéreo)";
-                } else { // Continente
-                    custoStd = configFrete.pt_std || 4.5; custoExp = configFrete.pt_exp || 8;
-                    labelStd = "Continente (CTT)"; labelExp = "Urgente (24h)";
-                }
-            } else if (pais === 'ES') {
-                limitFree = configFrete.es_free || 85; custoStd = configFrete.es_std || 6; custoExp = configFrete.es_exp || 10;
-            } else {
-                limitFree = configFrete.eu_free || 125; custoStd = configFrete.eu_std || 12; custoExp = configFrete.eu_exp || 25;
-            }
+                if (cp.startsWith('9')) { custoStd = (configFrete.pt_std||4.5)+2; custoExp = (configFrete.pt_exp||8)+4; }
+                else { custoStd = configFrete.pt_std||4.5; custoExp = configFrete.pt_exp||8; }
+            } else if (pais === 'ES') { limitFree = configFrete.es_free||85; custoStd = configFrete.es_std||6; custoExp = configFrete.es_exp||10; }
+            else { limitFree = configFrete.eu_free||125; custoStd = configFrete.eu_std||12; custoExp = configFrete.eu_exp||25; }
 
             if (totalProdComImposto >= limitFree) custoStd = 0;
 
-            // Render Opções
             containerOpcoes.style.display = 'block';
             const radios = document.getElementsByName('frete_option');
             let selectedTier = 'std';
             for(let r of radios) if(r.checked) selectedTier = r.value;
 
-            listaRadios.innerHTML = `
-                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px; margin-bottom:5px;">
-                    <div><input type="radio" name="frete_option" value="std" ${selectedTier==='std'?'checked':''} onchange="validarEAtualizarFrete()"> <b>${labelStd}</b></div>
-                    <span style="color:${custoStd===0 ? '#166534' : '#0f172a'}">${custoStd===0 ? 'GRÁTIS' : '€'+custoStd.toFixed(2)}</span>
+            document.getElementById('lista-radios-frete').innerHTML = `
+                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; margin-bottom:5px;">
+                    <div><input type="radio" name="frete_option" value="std" ${selectedTier==='std'?'checked':''} onchange="validarEAtualizarFrete()"> Normal</div>
+                    <b>${custoStd===0 ? 'GRÁTIS' : '€'+custoStd.toFixed(2)}</b>
                 </label>
-                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px;">
-                    <div><input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()"> <b>${labelExp}</b></div>
-                    <span>€${custoExp.toFixed(2)}</span>
+                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0;">
+                    <div><input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()"> Expresso</div>
+                    <b>€${custoExp.toFixed(2)}</b>
                 </label>`;
 
             freteSelecionado = { tier: selectedTier, valor: selectedTier === 'std' ? custoStd : custoExp };
-            btn.disabled = false;
-            btn.innerText = "FINALIZAR COMPRA";
-            
+            btn.disabled = false; btn.innerText = "FINALIZAR COMPRA";
             atualizarCarrinhoUI(taxa, totalProdComImposto, freteSelecionado.valor);
         }
 
         function atualizarCarrinhoUI(taxa, totalComImposto, valorFrete) {
             const container = document.getElementById('cart-items');
             const badge = document.getElementById('header-cart-count');
-            const floatCount = document.getElementById('cart-count'); // Corrigido erro de referencia
+            const floatCount = document.getElementById('cart-count');
             
-            if (!carrinho.length) {
-                container.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:50px;">Vazio</p>';
-                document.getElementById('opcoes-frete-container').style.display='none';
-                document.getElementById('cart-total-val').innerText = '€0.00';
-                return;
-            }
+            if (!carrinho.length) { container.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:50px;">Vazio</p>'; document.getElementById('opcoes-frete-container').style.display='none'; document.getElementById('cart-total-val').innerText = '€0.00'; return; }
 
-            container.innerHTML = '';
-            let totalCount = 0;
+            container.innerHTML = ''; let totalCount = 0;
             carrinho.forEach(item => {
                 totalCount += item.qtd;
-                container.innerHTML += `<div class="cart-item" style="display:flex; gap:10px; margin-bottom:10px;"><img src="${item.imagem}" style="width:50px;"><div class="item-details"><span class="item-name" style="font-weight:bold">${item.nome}</span><br><span class="item-price">€${item.preco.toFixed(2)}</span> x ${item.qtd}</div></div>`;
+                container.innerHTML += `<div class="cart-item"><img src="${item.imagem}"><div class="item-details"><span class="item-name">${item.nome}</span><div class="qty-controls"><button class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', -1)">-</button><span>${item.qtd}</span><button class="qty-btn-mini" onclick="mudarQtdCarrinho('${item.id}', 1)">+</button></div></div><div class="item-price">€${(item.preco * item.qtd).toFixed(2)}</div></div>`;
             });
-            
-            badge.innerText = totalCount;
-            if(floatCount) floatCount.innerText = totalCount;
+            badge.innerText = totalCount; floatCount.innerText = totalCount;
 
             if (taxa === undefined) return;
-
             const totalBase = totalComImposto / (1 + taxa/100);
             const totalIVA = totalComImposto - totalBase;
             const totalFinal = totalComImposto + valorFrete;
@@ -265,30 +297,18 @@
             const btn = document.getElementById('btn-checkout'); 
             const pais = document.getElementById('pais-destino').value;
             const cp = document.getElementById('cp-destino').value;
-            const cidade = document.getElementById('cidade-destino').value;
-            const rua = document.getElementById('rua-destino').value;
-            const tel = document.getElementById('tel-destino').value;
-            const nif = document.getElementById('nif-destino').value;
-            const moradaCompleta = `${rua}, ${cidade}`;
-
-            btn.disabled = true; btn.innerText = "A PROCESSAR...";
+            const moradaCompleta = `${document.getElementById('rua-destino').value}, ${document.getElementById('cidade-destino').value}`;
             
-            let itensParaBackend = [];
-            carrinho.forEach(item => { for(let k=0; k<item.qtd; k++) itensParaBackend.push({ id: item.id, nome: item.nome, preco: item.preco, sku: item.sku }); });
+            btn.disabled = true; btn.innerText = "A PROCESSAR...";
+            let itens = []; carrinho.forEach(item => { for(let k=0; k<item.qtd; k++) itens.push({ id: item.id, nome: item.nome, preco: item.preco, sku: item.sku }); });
 
             try { 
                 const res = await fetch(`${API}/checkout`, { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
+                    method: 'POST', headers: {'Content-Type': 'application/json'}, 
                     body: JSON.stringify({ 
-                        itens: itensParaBackend, 
-                        pais: pais, 
-                        zip: cp, 
-                        tier: freteSelecionado.tier,
-                        address: moradaCompleta,
-                        city: cidade,
-                        phone: tel,
-                        nif: nif 
+                        itens: itens, pais: pais, zip: cp, tier: freteSelecionado.tier,
+                        address: moradaCompleta, city: document.getElementById('cidade-destino').value,
+                        phone: document.getElementById('tel-destino').value, nif: document.getElementById('nif-destino').value
                     }) 
                 }); 
                 const d = await res.json(); 
@@ -296,6 +316,15 @@
             } catch(e) { alert("Erro ao conectar."); btn.disabled = false; btn.innerText = "FINALIZAR COMPRA"; } 
         }
 
+        function mudarCategoria(cat, btn) { catAtual = cat; document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo')); btn.classList.add('ativo'); aplicarRegras(); }
+        function aplicarRegras() {
+            let lista = [...todosProdutos];
+            if (catAtual !== 'todos') lista = lista.filter(p => p.categoria === catAtual);
+            const termo = document.getElementById('search-input').value.toLowerCase();
+            if (termo) lista = lista.filter(p => p.nome.toLowerCase().includes(termo));
+            renderizarProdutos(lista);
+        }
+        function partilharLoja() { const url = encodeURIComponent(window.location.href); window.open(`https://wa.me/?text=Veja esta loja: ${url}`, '_blank'); }
         window.onload = carregarProdutos;
     </script>
 </body>
