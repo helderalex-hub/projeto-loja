@@ -4,6 +4,8 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
+const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
+
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
     const options = {
@@ -22,27 +24,51 @@ function gerarIdLust() {
 
 async function processarEmailsVenda(venda) {
     const taxa = venda.taxa_iva_aplicada || 23;
+    
     const itensLista = venda.itens.map(i => {
         const precoBase = parseFloat(i.preco);
         const valorIvaItem = precoBase * (taxa / 100);
         const totalItem = precoBase + valorIvaItem;
-        return `<tr><td style="padding:10px;">${i.nome}</td><td style="text-align:right;">€${totalItem.toFixed(2)}</td></tr>`;
+        return `
+        <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 10px; color: #555;">[${i.sku || 'N/A'}] ${i.nome}</td>
+            <td style="padding: 10px; text-align: right; color: #555;">€${precoBase.toFixed(2)}</td>
+            <td style="padding: 10px; text-align: right; color: #555;">${taxa}%</td>
+            <td style="padding: 10px; text-align: right; font-weight: bold; color: #555;">€${totalItem.toFixed(2)}</td>
+        </tr>`;
     }).join('');
 
-    const htmlRecibo = `<div style="font-family:sans-serif; border:1px solid #ddd; padding:20px;">
-        <h2 style="color:#cca43b">Recibo #${venda.codigo_pedido}</h2>
-        <p>Olá ${venda.cliente_nome}, obrigado pela sua compra!</p>
-        <p><strong>Envio para:</strong><br>${venda.cliente_morada}<br>Tel: ${venda.telefone_contato || 'N/A'}</p>
-        <table style="width:100%; border-collapse:collapse; margin-top:20px;">
-            <tr style="background:#f8f8f8; font-weight:bold;"><td>Item</td><td style="text-align:right;">Total</td></tr>
-            ${itensLista}
-        </table>
-        <p style="text-align:right; font-size:18px; margin-top:10px;"><strong>Total Pago: €${venda.total_venda.toFixed(2)}</strong></p>
-        <div style="text-align:center; margin-top:20px;">
-            <a href="https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${venda.codigo_pedido}" style="background:#0f172a; color:#fff; padding:10px 20px; text-decoration:none; border-radius:5px;">Baixar Recibo PDF</a>
+    const htmlRecibo = `
+        <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; background: #fff;">
+            <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid #cca43b;">
+                <h1 style="color: #fff; margin: 0; font-family: 'Times New Roman', serif; letter-spacing: 2px;">LUST STORE</h1>
+                <p style="color: #cca43b; font-size: 10px; text-transform: uppercase;">Premium Beauty & Care</p>
+            </div>
+            <div style="padding: 30px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                    <div>
+                        <p style="font-size: 12px; color: #94a3b8; margin: 0;">CLIENTE</p>
+                        <p style="margin: 5px 0; color: #0f172a; font-weight: bold;">${venda.cliente_nome}</p>
+                        <p style="margin: 0; color: #64748b; font-size: 12px;">${venda.cliente_morada}</p>
+                        <p style="margin: 0; color: #64748b; font-size: 12px;">${venda.pais_destino}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 12px; color: #94a3b8; margin: 0;">RECIBO PROVISÓRIO</p>
+                        <p style="margin: 5px 0; color: #cca43b; font-weight: bold;">#${venda.codigo_pedido}</p>
+                        <p style="margin: 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;"><thead><tr style="background: #f8fafc; color: #94a3b8; font-size: 10px; text-transform: uppercase;"><th style="padding: 10px; text-align: left;">Descrição</th><th style="padding: 10px; text-align: right;">Base</th><th style="padding: 10px; text-align: right;">IVA</th><th style="padding: 10px; text-align: right;">Total</th></tr></thead><tbody>${itensLista}</tbody></table>
+                <div style="margin-top: 20px; border-top: 2px solid #0f172a; padding-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total Base (Líquido)</span><span style="color: #0f172a;">€${(venda.total_venda / (1 + taxa/100)).toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total IVA (${taxa}%)</span><span style="color: #0f172a;">€${(venda.total_venda - (venda.total_venda / (1 + taxa/100))).toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Frete</span><span style="color: #0f172a;">€${venda.total_frete.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 18px; font-weight: bold;"><span style="color: #0f172a;">TOTAL PAGO</span><span style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</span></div>
+                </div>
+                <div style="margin-top: 30px; text-align: center;"><a href="https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${venda.codigo_pedido}" style="background: #0f172a; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold;">BAIXAR RECIBO EM PDF</a></div>
+            </div>
         </div>
-    </div>`;
-
+    `;
     await enviarEmailViaBrevo(venda.cliente_email, `Recibo Lust Store: #${venda.codigo_pedido}`, htmlRecibo);
     await enviarEmailViaBrevo(process.env.EMAIL_USER, `Venda: #${venda.codigo_pedido}`, `<h3>Venda #${venda.codigo_pedido}</h3><p>Total: €${venda.total_venda}</p>`);
 }
@@ -74,6 +100,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             }
 
             // 2. CRM: Criar ou Atualizar Cliente
+            // Aqui usamos o email que vem da sessão, pois é validado pelo Stripe
             const emailCliente = session.customer_details.email;
             let clienteId = null;
             const { data: clienteExistente } = await supabase.from('clientes').select('id').eq('email', emailCliente).single();
@@ -81,7 +108,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             if (clienteExistente) {
                 clienteId = clienteExistente.id;
                 await supabase.from('clientes').update({
-                    nome: session.customer_details.name,
+                    nome: session.customer_details.name, // Usa o nome fornecido no checkout
                     telefone: meta.cli_telefone,
                     morada_completa: meta.cli_morada,
                     nif: meta.cli_nif,
@@ -147,7 +174,7 @@ app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha =
 
 app.post('/checkout', async (req, res) => {
     try {
-        const { itens, pais, zip, tier, address, city, phone, nif } = req.body;
+        const { itens, pais, zip, tier, address, city, phone, nif, nome, email } = req.body; // Recebe nome e email
         const novoIdPedido = gerarIdLust(); 
         
         const { data: config } = await supabase.from('config_loja').select('*').single();
@@ -163,16 +190,15 @@ app.post('/checkout', async (req, res) => {
             return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(precoFinal * 100) }, quantity: 1 }; 
         });
 
-        // LÓGICA DE FRETE (TIER + ZONA)
         let custoFinal = 0;
         let nomeServico = "Envio";
         let estimativa = { min: 2, max: 5 };
-        let custoStd = 0, custoExp = 0, limiteFree = 9999;
+        let custoStd = 0, custoExp = 0, limitFree = 9999;
         let nomeStd = "", nomeExp = "";
 
         if (pais === 'PT') {
+            limitFree = cf.pt_free;
             const isIlhas = zip && zip.startsWith('9');
-            limiteFree = cf.pt_free;
             if (isIlhas) {
                 custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00;
                 nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)";
@@ -183,24 +209,43 @@ app.post('/checkout', async (req, res) => {
                 estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4};
             }
         } else if (pais === 'ES') {
-            custoStd = cf.es_std; custoExp = cf.es_exp; limiteFree = cf.es_free;
+            custoStd = cf.es_std; custoExp = cf.es_exp; limitFree = cf.es_free;
             nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente";
         } else {
-            custoStd = cf.eu_std; custoExp = cf.eu_exp; limiteFree = cf.eu_free;
+            custoStd = cf.eu_std; custoExp = cf.eu_exp; limitFree = cf.eu_free;
             nomeStd = "Europa Standard"; nomeExp = "Europa Express";
         }
 
         if (tier === 'exp') {
             custoFinal = custoExp; nomeServico = nomeExp;
         } else {
-            custoFinal = totalComImposto >= limiteFree ? 0 : custoStd;
-            nomeServico = totalComImposto >= limiteFree ? `${nomeStd} (Ofertado)` : nomeStd;
+            custoFinal = totalComImposto >= limitFree ? 0 : custoStd;
+            nomeServico = totalComImposto >= limitFree ? `${nomeStd} (Ofertado)` : nomeStd;
         }
 
         const moradaCompletaParaBD = `${address}, ${zip}, ${city}`;
 
+        // 1. Criar Cliente no Stripe (Para pré-preencher)
+        const customer = await stripe.customers.create({
+            email: email,
+            name: nome,
+            phone: phone,
+            address: {
+                line1: address,
+                city: city,
+                postal_code: zip,
+                country: pais
+            }
+        });
+
+        // 2. Criar Sessão
         const session = await stripe.checkout.sessions.create({ 
-            payment_method_types: ['card'], 
+            payment_method_types: ['card'],
+            customer: customer.id, // Associa ao cliente criado
+            customer_update: { // Permite atualizar se o cliente mudar algo no Stripe
+                address: 'auto',
+                name: 'auto'
+            },
             shipping_address_collection: { allowed_countries: [pais] }, 
             shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: estimativa.min }, maximum: { unit: 'business_day', value: estimativa.max } } } }],
             line_items: line_items, 
