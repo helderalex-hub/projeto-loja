@@ -44,6 +44,7 @@ async function processarEmailsVenda(venda) {
     </div>`;
 
     await enviarEmailViaBrevo(venda.cliente_email, `Recibo Lust Store: #${venda.codigo_pedido}`, htmlRecibo);
+    await enviarEmailViaBrevo(process.env.EMAIL_USER, `Venda: #${venda.codigo_pedido}`, `<h3>Venda #${venda.codigo_pedido}</h3><p>Total: €${venda.total_venda}</p>`);
 }
 
 app.use((req, res, next) => { res.setHeader('Access-Control-Allow-Origin', '*'); res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); if (req.method === 'OPTIONS') return res.status(200).end(); next(); });
@@ -72,7 +73,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 }
             }
 
-            // 2. Criar ou Atualizar Cliente (CRM)
+            // 2. CRM: Criar ou Atualizar Cliente
             const emailCliente = session.customer_details.email;
             let clienteId = null;
             const { data: clienteExistente } = await supabase.from('clientes').select('id').eq('email', emailCliente).single();
@@ -144,7 +145,6 @@ app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos'
 app.get('/vendas', async (req, res) => { const { data } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false }); res.json(data || []); });
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN || 'admin2026')) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 
-// CHECKOUT
 app.post('/checkout', async (req, res) => {
     try {
         const { itens, pais, zip, tier, address, city, phone, nif } = req.body;
@@ -163,30 +163,46 @@ app.post('/checkout', async (req, res) => {
             return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(precoFinal * 100) }, quantity: 1 }; 
         });
 
-        // FRETE
-        let custoFinal = 0, nomeServico = "Envio";
-        let custoStd=0, custoExp=0, limitFree=999;
+        // LÓGICA DE FRETE (TIER + ZONA)
+        let custoFinal = 0;
+        let nomeServico = "Envio";
+        let estimativa = { min: 2, max: 5 };
+        let custoStd = 0, custoExp = 0, limiteFree = 9999;
+        let nomeStd = "", nomeExp = "";
 
         if (pais === 'PT') {
-            limitFree = cf.pt_free;
             const isIlhas = zip && zip.startsWith('9');
-            if(isIlhas) { custoStd = cf.pt_std + 2; custoExp = cf.pt_exp + 4; nomeServico="Envio Ilhas"; }
-            else { custoStd = cf.pt_std; custoExp = cf.pt_exp; nomeServico="Envio Continente"; }
+            limiteFree = cf.pt_free;
+            if (isIlhas) {
+                custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00;
+                nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)";
+                estimativa = tier === 'exp' ? {min: 2, max: 4} : {min: 5, max: 9};
+            } else {
+                custoStd = cf.pt_std; custoExp = cf.pt_exp;
+                nomeStd = "Portugal Continental (CTT)"; nomeExp = "Portugal Expresso (24h)";
+                estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4};
+            }
         } else if (pais === 'ES') {
-            limitFree = cf.es_free; custoStd = cf.es_std; custoExp = cf.es_exp; nomeServico="Envio Espanha";
+            custoStd = cf.es_std; custoExp = cf.es_exp; limiteFree = cf.es_free;
+            nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente";
         } else {
-            limitFree = cf.eu_free; custoStd = cf.eu_std; custoExp = cf.eu_exp; nomeServico="Envio Europa";
+            custoStd = cf.eu_std; custoExp = cf.eu_exp; limiteFree = cf.eu_free;
+            nomeStd = "Europa Standard"; nomeExp = "Europa Express";
         }
 
-        if (tier === 'exp') { custoFinal = custoExp; nomeServico += " Expresso"; }
-        else { custoFinal = totalComImposto >= limitFree ? 0 : custoStd; }
+        if (tier === 'exp') {
+            custoFinal = custoExp; nomeServico = nomeExp;
+        } else {
+            custoFinal = totalComImposto >= limiteFree ? 0 : custoStd;
+            nomeServico = totalComImposto >= limiteFree ? `${nomeStd} (Ofertado)` : nomeStd;
+        }
 
-        const moradaBD = `${address}, ${zip}, ${city}`;
+        const moradaCompletaParaBD = `${address}, ${zip}, ${city}`;
 
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'], 
             shipping_address_collection: { allowed_countries: [pais] }, 
-            shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: 3 }, maximum: { unit: 'business_day', value: 5 } } } }],
+            shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: estimativa.min }, maximum: { unit: 'business_day', value: estimativa.max } } } }],
             line_items: line_items, 
             mode: 'payment', 
             success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, 
@@ -196,7 +212,7 @@ app.post('/checkout', async (req, res) => {
                 codigo_pedido: novoIdPedido, 
                 pais_destino: pais, 
                 taxa_aplicada: taxa,
-                cli_morada: moradaBD,
+                cli_morada: moradaCompletaParaBD,
                 cli_cidade: city,
                 cli_cp: zip,
                 cli_telefone: phone,
