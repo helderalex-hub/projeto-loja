@@ -13,22 +13,16 @@
         .check { font-size: 50px; color: #cca43b; display: block; margin-bottom: 10px; }
         h1 { color: #0f172a; font-family: 'Playfair Display', serif; margin: 0; font-size: 24px; line-height: 1.2; }
         .msg-nice { color: #64748b; margin-top: 5px; font-size: 14px; }
-        
-        /* AVISO DE EMAIL */
         .aviso-email { background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; font-size: 12px; margin-top: 15px; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        
         .info-cliente { background: #f1f5f9; padding: 15px; border-radius: 6px; margin-top: 20px; text-align: left; border-left: 3px solid #cca43b; }
         .info-cliente p { margin: 4px 0; font-size: 12px; color: #475569; }
         .info-cliente strong { color: #0f172a; display: inline-block; width: 60px; }
-
         .prazo-box { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 15px; border-radius: 6px; margin: 15px 0; display: flex; align-items: center; gap: 10px; text-align: left; }
         .prazo-icon { font-size: 24px; }
-        
         .resumo-box { border: 1px solid #e2e8f0; padding: 15px; margin: 15px 0; text-align: left; border-radius: 4px; }
         .linha-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 12px; }
         .item-info { display: flex; flex-direction: column; }
         .linha-total { display: flex; justify-content: space-between; margin-top: 10px; font-weight: bold; font-size: 16px; color: #0f172a; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
-        
         .btn { display: inline-block; padding: 12px 25px; background: #0f172a; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; text-transform: uppercase; font-size: 12px; margin: 5px 0; cursor: pointer; border: none; width: 100%; box-sizing: border-box; transition: 0.3s; }
         .btn:hover { opacity: 0.9; }
         .btn-gold { background: #cca43b; color: #0f172a; }
@@ -87,11 +81,8 @@
         let tentativas = 0;
         const maxTentativas = 8; 
 
-        if(codigo) {
-            buscarPedido();
-        } else { 
-            document.getElementById('loading').innerText = "Código inválido."; 
-        }
+        if(codigo) { buscarPedido(); } 
+        else { document.getElementById('loading').innerText = "Código inválido."; }
 
         function buscarPedido() {
             fetch(`${API_URL}/pedido/${codigo}`)
@@ -116,7 +107,6 @@
             const primeiroNome = data.cliente_nome.split(' ')[0];
             document.getElementById('titulo-sucesso').innerText = `Obrigado, ${primeiroNome}!`;
             document.getElementById('email-confirmacao').innerText = data.cliente_email;
-            
             document.getElementById('display-codigo').innerText = `#${data.codigo_pedido}`;
             document.getElementById('display-nome').innerText = data.cliente_nome;
             document.getElementById('display-nif').innerText = data.nif_cliente || "N/A";
@@ -129,19 +119,12 @@
             const divItens = document.getElementById('lista-itens');
             divItens.innerHTML = '';
             
-            // LÓGICA DE AGRUPAMENTO CORRIGIDA (EVITA UNDEFINED)
+            // CORREÇÃO: Agrupamento que evita Undefined
             const itensAgrupados = {};
             data.itens.forEach(i => {
-                // Cria uma chave única baseada no ID ou Nome
                 const key = i.sku ? i.sku : i.nome;
-                
                 if(!itensAgrupados[key]) {
-                    itensAgrupados[key] = {
-                        qtd: 0,
-                        nome: i.nome,
-                        sku: i.sku || '',
-                        preco: parseFloat(i.preco)
-                    };
+                    itensAgrupados[key] = { qtd: 0, nome: i.nome, sku: i.sku || '', preco: parseFloat(i.preco) };
                 }
                 itensAgrupados[key].qtd++;
             });
@@ -150,14 +133,7 @@
                 const taxa = data.taxa_iva_aplicada || 23;
                 const totalItem = (item.preco * (1 + taxa/100)) * item.qtd;
                 const nomeExibicao = item.sku ? `[${item.sku}] ${item.nome}` : item.nome;
-                
-                divItens.innerHTML += `
-                    <div class="linha-item">
-                        <div class="item-info">
-                            <strong>${item.qtd}x ${nomeExibicao}</strong>
-                        </div>
-                        <span style="font-weight:600">€${totalItem.toFixed(2)}</span>
-                    </div>`;
+                divItens.innerHTML += `<div class="linha-item"><div class="item-info"><strong>${item.qtd}x ${nomeExibicao}</strong></div><span style="font-weight:600">€${totalItem.toFixed(2)}</span></div>`;
             });
         }
 
@@ -198,15 +174,12 @@
             doc.setTextColor(0, 0, 0); doc.setFontSize(10);
             doc.text(`Pedido: #${codigo}`, 14, 55); 
             doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 60);
-            
             doc.setFont("helvetica", "bold"); doc.text("DADOS DO CLIENTE:", 14, 70);
             doc.setFont("helvetica", "normal");
             doc.text(`Nome: ${v.cliente_nome}`, 14, 75);
             doc.text(`NIF: ${v.nif_cliente || 'Consumidor Final'}`, 14, 80);
-            doc.text(`Tel: ${v.telefone_contato || 'N/A'}`, 14, 85);
-            doc.text(`Morada: ${v.cliente_morada || 'N/A'}`, 14, 90);
+            doc.text(`Morada: ${v.cliente_morada || 'N/A'}`, 14, 85);
             
-            // Agrupamento para PDF (Corrigido Undefined)
             const itensPDF = {};
             v.itens.forEach(i => {
                 const k = i.sku ? i.sku : i.nome;
@@ -226,14 +199,7 @@
             body.push(['Envio', `€${freteBase.toFixed(2)}`, `${taxa}%`, `€${frete.toFixed(2)}`]);
             body.push([{content: 'TOTAL PAGO', colSpan: 3, styles: {fontStyle: 'bold', halign: 'right'}}, `€${parseFloat(v.total_venda).toFixed(2)}`]);
 
-            doc.autoTable({ 
-                startY: 100, 
-                head: [['Descrição', 'Base Líquida', 'Taxa', 'Total']], 
-                body: body, 
-                headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, 
-                theme: 'grid'
-            });
-
+            doc.autoTable({ startY: 100, head: [['Descrição', 'Base Líquida', 'Taxa', 'Total']], body: body, headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] }, theme: 'grid' });
             doc.save(`Recibo_Lust_${codigo}.pdf`);
         }
     </script>
