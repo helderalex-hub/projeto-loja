@@ -5,6 +5,11 @@
     <title>Lust Store | Gestão</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>if (localStorage.getItem('token_gerente') !== 'logado_sucesso_servidor') window.location.href = 'login-adm.html';</script>
+    <script>
+        let t; window.onload = reset; document.onmousemove = reset; document.onkeypress = reset;
+        function reset() { clearTimeout(t); t = setTimeout(() => { alert("Sessão expirada."); localStorage.removeItem('token_gerente'); location.href='login-adm.html'; }, 600000); }
+        function sair() { localStorage.removeItem('token_gerente'); location.href='login-adm.html'; }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -35,9 +40,18 @@
         .filtro-wrapper { display: flex; gap: 5px; }
         .sel-op { width: 40px; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; font-size: 11px; text-align: center; cursor: pointer; }
         .inp-filtro { width: 100%; background: var(--dark); color: white; border: 1px solid var(--borda); border-radius: 4px; padding: 6px; font-size: 11px; }
-        .input-live { background-color: var(--campo-edit) !important; border: 1px solid #94a3b8 !important; padding: 0 8px !important; color: var(--texto-input) !important; width: 100%; font-size: 13px !important; font-weight: bold !important; border-radius: 4px; text-align: center; appearance: none; -moz-appearance: textfield; transition: 0.3s; height: 36px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
-        .input-live:focus { border-color: var(--gold) !important; outline: none; background: #fff !important; }
-        select.input-live { text-align-last: center; background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 5px center; background-size: 16px; padding-right: 20px !important; margin-bottom: 4px; }
+        
+        /* ESTILO PARA INPUTS DO INVENTÁRIO (READONLY VS EDITÁVEL) */
+        .input-live { width: 100%; font-size: 13px; font-weight: bold; border-radius: 4px; text-align: center; transition: 0.3s; height: 36px; box-sizing: border-box; }
+        
+        /* Estado Bloqueado (Padrão) */
+        .input-live:read-only, .input-live:disabled { background: transparent; border: 1px solid transparent; color: #cbd5e1; cursor: default; }
+        .input-live:read-only:focus { outline: none; }
+        
+        /* Estado Editável */
+        .linha-editavel .input-live { background-color: var(--campo-edit); border: 1px solid #94a3b8; color: var(--texto-input); cursor: text; }
+        .linha-editavel select.input-live { background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 5px center; background-size: 16px; padding-right: 20px; }
+        
         .img-table { width: 55px; height: 55px; object-fit: contain; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--borda); }
         .cod-tag { font-family: monospace; color: var(--gold); font-size: 10px; display: block; margin-top: 2px; }
         .aviso-validade { font-size: 9px; font-weight: bold; text-align: center; display: block; padding-top: 4px; }
@@ -111,7 +125,7 @@
         <div class="tabela-container">
             <table>
                 <thead>
-                    <tr><th width="70">Foto</th><th>Produto / Categoria</th><th width="120">Custo (€)</th><th width="120">Venda (€)</th><th width="100">Estoque</th><th width="150">Validade</th><th width="50"></th></tr>
+                    <tr><th width="70">Foto</th><th>Produto / Categoria</th><th width="120">Custo (€)</th><th width="120">Venda (€)</th><th width="100">Estoque</th><th width="150">Validade</th><th width="80">Ações</th></tr>
                     <tr class="filtro-row"><th></th><th><input onkeyup="filtrarInv()" id="f-prod" class="inp-filtro" placeholder="Buscar..."></th><th><div class="filtro-wrapper"><select id="op-custo" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-custo" class="inp-filtro" type="number" placeholder="Valor"></div></th><th><div class="filtro-wrapper"><select id="op-venda" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-venda" class="inp-filtro" type="number" placeholder="Valor"></div></th><th><div class="filtro-wrapper"><select id="op-estoque" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-estoque" class="inp-filtro" type="number" placeholder="Qtd"></div></th><th></th><th></th></tr>
                 </thead>
                 <tbody id="lista-inventario-tabela">
@@ -214,9 +228,9 @@
         carregarConfigNoForm(); 
         atualizarDash(); 
         renderizarVendas(); 
-        renderizarInventario(); // Carrega a tabela de produtos
+        renderizarInventario(); 
         
-        // Timeout para garantir que o DOM do gráfico está pronto
+        // Timeout para garantir que o gráfico carrega
         setTimeout(renderizarGrafico, 500); 
     }
 
@@ -274,9 +288,11 @@
             
             if (v.status_envio === 'Enviado') {
                 statusBadge = `<span style="background:#10b981; color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">ENVIADO</span>`;
-                btnEnvio = `<button onclick="reenviarRastreio('${v.id}')" class="btn-acao" style="background:#0f172a; border:1px solid #10b981; color:#10b981;" title="Reenviar Rastreio">🚚📧</button>`;
+                // Botão de reenviar rastreio substitui o de marcar enviado
+                btnEnvio = `<button onclick="reenviarRastreio('${v.id}')" class="btn-acao" style="background:#0f172a; border:1px solid #10b981; color:#10b981;" title="Reenviar Email Rastreio">🚚📧</button>`;
             }
 
+            // BOTÃO DE RASTREIO AGORA É O ÚLTIMO
             tb.innerHTML += `<tr>
                 <td>${new Date(v.data_venda).toLocaleDateString()}</td>
                 <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
@@ -286,37 +302,114 @@
                 <td align="center">${statusBadge}</td>
                 <td>
                     <button onclick="reenviarRecibo('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Reenviar Recibo">📧</button>
-                    ${btnEnvio}
                     <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta">📦</button>
                     <button onclick="gerarFaturaDummy('${v.codigo_pedido}')" class="btn-acao btn-fatura" title="Fatura">📄</button>
+                    ${btnEnvio}
                 </td>
             </tr>`; 
         }); 
     }
 
-    // --- INVENTÁRIO ---
+    // --- INVENTÁRIO (Com Edição e Readonly) ---
     function renderizarInventario(lista = produtos) { 
         const tbody = document.getElementById('lista-inventario-tabela'); if(!tbody) return; 
         tbody.innerHTML = ''; 
         if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">Nenhum produto encontrado.</td></tr>'; return; } 
+        
         lista.forEach(p => { 
             let aviso = ""; if (p.validade) { const diffDays = Math.ceil((new Date(p.validade) - new Date()) / (86400000)); if (diffDays < 0) aviso = `<span class="aviso-validade texto-critico">VENCIDO</span>`; else if (diffDays <= 180) aviso = `<span class="aviso-validade texto-atencao">Vence em ${diffDays} dias</span>`; } 
-            tbody.innerHTML += `<tr><td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td><td><input type="text" class="input-live" value="${p.nome}" onchange="updateItem(${p.id}, 'nome', this.value)"><select class="input-live" style="font-size:10px;" onchange="updateItem(${p.id}, 'categoria', this.value)"><option value="Pele" ${p.categoria==='Pele'?'selected':''}>Pele</option><option value="Cabelo" ${p.categoria==='Cabelo'?'selected':''}>Cabelo</option><option value="Olhos" ${p.categoria==='Olhos'?'selected':''}>Olhos</option><option value="Labios" ${p.categoria==='Labios'?'selected':''}>Lábios</option><option value="Unhas" ${p.categoria==='Unhas'?'selected':''}>Unhas</option></select><span class="cod-tag">Cód: ${p.sku || '-'}</span></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" onchange="updateItem(${p.id}, 'preco_entrada', this.value)"></td><td><input type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" onchange="updateItem(${p.id}, 'preco', this.value)"></td><td><input type="number" class="input-live" value="${p.estoque}" onchange="updateItem(${p.id}, 'estoque', this.value)"></td><td><div style="display:flex; flex-direction:column; gap:2px;"><input type="date" class="input-live" value="${p.validade || ''}" onchange="updateItem(${p.id}, 'validade', this.value)">${aviso}</div></td><td><button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px;">✕</button></td></tr>`; 
+            
+            // Campos Readonly por padrão e IDs únicos para inputs
+            tbody.innerHTML += `<tr id="linha-${p.id}">
+                <td align="center"><img src="${p.imagem}" class="img-table" onclick="trocarFotoTabela(${p.id})"></td>
+                <td>
+                    <input id="inv-nome-${p.id}" type="text" class="input-live" value="${p.nome}" readonly>
+                    <select id="inv-cat-${p.id}" class="input-live" style="font-size:10px;" disabled>
+                        <option value="Pele" ${p.categoria==='Pele'?'selected':''}>Pele</option>
+                        <option value="Cabelo" ${p.categoria==='Cabelo'?'selected':''}>Cabelo</option>
+                        <option value="Olhos" ${p.categoria==='Olhos'?'selected':''}>Olhos</option>
+                        <option value="Labios" ${p.categoria==='Labios'?'selected':''}>Lábios</option>
+                        <option value="Unhas" ${p.categoria==='Unhas'?'selected':''}>Unhas</option>
+                    </select>
+                    <span class="cod-tag">Cód: ${p.sku || '-'}</span>
+                </td>
+                <td><input id="inv-custo-${p.id}" type="number" class="input-live" step="0.01" value="${fmt(p.preco_entrada)}" readonly></td>
+                <td><input id="inv-venda-${p.id}" type="number" class="input-live" step="0.01" value="${fmt(p.preco)}" readonly></td>
+                <td><input id="inv-stock-${p.id}" type="number" class="input-live" value="${p.estoque}" readonly></td>
+                <td>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <input id="inv-val-${p.id}" type="date" class="input-live" value="${p.validade || ''}" readonly>
+                        ${aviso}
+                    </div>
+                </td>
+                <td style="white-space:nowrap;">
+                    <button id="btn-edit-${p.id}" onclick="editarLinha(${p.id})" style="border:none; background:none; cursor:pointer; font-size:18px;" title="Editar">✏️</button>
+                    <button id="btn-save-${p.id}" onclick="salvarLinha(${p.id})" style="border:none; background:none; cursor:pointer; font-size:18px; display:none;" title="Salvar">💾</button>
+                    <button onclick="apagarProduto(${p.id})" style="border:none; background:none; color:var(--erro); cursor:pointer; font-size:18px; margin-left:5px;" title="Apagar">✕</button>
+                </td>
+            </tr>`; 
         }); 
     }
 
-    // --- MANUTENÇÃO ---
-    function carregarConfigNoForm() { if (configFrete && document.getElementById('pt_std')) { 
-        ['pt_std','pt_exp','pt_free','es_std','es_exp','es_free','eu_std','eu_exp','eu_free'].forEach(k => {
-            if(document.getElementById(k)) document.getElementById(k).value = parseFloat(configFrete[k]||0).toFixed(2);
+    // --- NOVAS FUNÇÕES DE EDIÇÃO DE INVENTÁRIO ---
+    function editarLinha(id) {
+        document.getElementById(`linha-${id}`).classList.add('linha-editavel');
+        
+        ['inv-nome', 'inv-custo', 'inv-venda', 'inv-stock', 'inv-val'].forEach(p => {
+            document.getElementById(`${p}-${id}`).readOnly = false;
         });
-    }}
+        document.getElementById(`inv-cat-${id}`).disabled = false;
+
+        document.getElementById(`btn-edit-${id}`).style.display = 'none';
+        document.getElementById(`btn-save-${id}`).style.display = 'inline-block';
+    }
+
+    async function salvarLinha(id) {
+        const prodAtual = produtos.find(x => x.id === id);
+        if(!prodAtual) return;
+
+        // Recolhe valores
+        prodAtual.nome = document.getElementById(`inv-nome-${id}`).value;
+        prodAtual.categoria = document.getElementById(`inv-cat-${id}`).value;
+        prodAtual.preco_entrada = parseFloat(document.getElementById(`inv-custo-${id}`).value) || 0;
+        prodAtual.preco = parseFloat(document.getElementById(`inv-venda-${id}`).value) || 0;
+        prodAtual.estoque = parseInt(document.getElementById(`inv-stock-${id}`).value) || 0;
+        prodAtual.validade = document.getElementById(`inv-val-${id}`).value;
+
+        // Envia para API
+        try {
+            await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(prodAtual) });
+            
+            // Volta ao estado original
+            document.getElementById(`linha-${id}`).classList.remove('linha-editavel');
+            ['inv-nome', 'inv-custo', 'inv-venda', 'inv-stock', 'inv-val'].forEach(p => {
+                document.getElementById(`${p}-${id}`).readOnly = true;
+            });
+            document.getElementById(`inv-cat-${id}`).disabled = true;
+
+            document.getElementById(`btn-edit-${id}`).style.display = 'inline-block';
+            document.getElementById(`btn-save-${id}`).style.display = 'none';
+            
+            atualizarDash(); // Recalcula totais
+        } catch(e) {
+            alert("Erro ao salvar.");
+            console.error(e);
+        }
+    }
+
+    // --- MANUTENÇÃO ---
+    function carregarConfigNoForm() { 
+        if (configFrete && document.getElementById('pt_std')) { 
+            ['pt_std','pt_exp','pt_free','es_std','es_exp','es_free','eu_std','eu_exp','eu_free'].forEach(k => {
+                if(document.getElementById(k)) document.getElementById(k).value = parseFloat(configFrete[k]||0).toFixed(2);
+            });
+        }
+    }
     
-    // Funções auxiliares (gráficos, pdfs, etc - mantidas iguais à versão anterior, apenas com correções de segurança)
+    // Funções auxiliares (gráficos, pdfs, etc)
     function gerarEtiqueta(cod) { const v=vendas.find(x=>x.codigo_pedido===cod); const {jsPDF}=window.jspdf; const doc=new jsPDF({format:[100,150],unit:'mm'}); doc.setFontSize(8); doc.text("LUST STORE",5,10); doc.line(2,30,98,30); doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40); doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome,5,48); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada||'',90),5,56); doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; const itensAgrupados = {}; (v.itens || []).forEach(i => { const k = `[${i.sku||'?'}] ${i.nome}`; if(!itensAgrupados[k]) itensAgrupados[k]=0; itensAgrupados[k]++; }); Object.entries(itensAgrupados).forEach(([desc, qtd]) => { doc.text(`[ ] ${qtd}x ${desc}`, 5, y); y+=8; }); doc.save(`Etiquetas.pdf`); }
-    function gerarFaturaDummy(cod) { const v=vendas.find(x=>x.codigo_pedido===cod); if(!v) return; const taxa=v.taxa_iva_aplicada||23; const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.text(`Fatura Pro-Forma: ${cod}`,14,20); doc.save(`Fatura_${cod}.pdf`); }
+    function gerarFaturaDummy(cod) { const v=vendas.find(x=>x.codigo_pedido===cod); if(!v) return; const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.text(`Fatura Pro-Forma: ${cod}`,14,20); doc.save(`Fatura_${cod}.pdf`); }
     async function salvarConfigFrete() { const novaConfig = { pt_std: parseFloat(document.getElementById('pt_std').value), pt_exp: parseFloat(document.getElementById('pt_exp').value), pt_free: parseFloat(document.getElementById('pt_free').value), es_std: parseFloat(document.getElementById('es_std').value), es_exp: parseFloat(document.getElementById('es_exp').value), es_free: parseFloat(document.getElementById('es_free').value), eu_std: parseFloat(document.getElementById('eu_std').value), eu_exp: parseFloat(document.getElementById('eu_exp').value), eu_free: parseFloat(document.getElementById('eu_free').value) }; await fetch(`${API}/config`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(novaConfig) }); alert("Configurações atualizadas!"); iniciar(); }
-    async function updateItem(id, campo, valor) { const p = produtos.find(x => x.id === id); p[campo] = valor; await fetch(`${API}/produtos/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); atualizarDash(); if(campo === 'validade') renderizarInventario(); }
     function trocarFotoTabela(id) { itemEditTabela = id; document.getElementById('table-file-input').click(); }
     function processarFotoTabela(input) { if(input.files[0]) { const r = new FileReader(); r.onload = async (e) => { const p = produtos.find(x => x.id === itemEditTabela); p.imagem = e.target.result; await fetch(`${API}/produtos/${itemEditTabela}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); iniciar(); }; r.readAsDataURL(input.files[0]); } }
     function processarFoto(input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => { fotoBase64 = e.target.result; document.getElementById('preview-img').src = fotoBase64; document.getElementById('preview-img').style.display='block'; document.getElementById('label-upload').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
@@ -331,11 +424,10 @@
     function fecharModalProd() { document.getElementById('modal-produto').style.display='none'; }
     function gerarSKU() { const m=document.getElementById('p-marca').value.substring(0,3).toUpperCase(); const c=document.getElementById('p-categoria').value.substring(0,3).toUpperCase(); const r=Math.floor(Math.random()*9999); document.getElementById('p-sku').value = `${m}-${c}-${r}`; }
     
-    // Funções de Relatório Detalhado (Mantidas simplificadas aqui)
     function abrirRelatorio() { document.getElementById('modal-relatorio').style.display='flex'; filtrarRelatorio(); }
     function fecharRelatorio() { document.getElementById('modal-relatorio').style.display='none'; }
-    function filtrarRelatorio() { /* Lógica igual à anterior */ }
-    function baixarPDFRelatorio() { /* Lógica igual à anterior */ }
+    function filtrarRelatorio() { /* Logica igual */ }
+    function baixarPDFRelatorio() { /* Logica igual */ }
 
     iniciar();
 </script>
