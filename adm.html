@@ -95,23 +95,16 @@
         </div>
         <div style="margin-bottom: 20px;"><button onclick="abrirRelatorio()" class="btn-acao btn-gold">📊 Relatório Detalhado</button><button onclick="gerarEtiquetasDia()" class="btn-acao btn-verde">📦 Etiquetas de Hoje</button></div>
         <h3 style="color:var(--gold); font-size:12px; text-transform:uppercase; margin-bottom:10px;">Últimas 10 Vendas</h3>
+        
         <div class="tabela-container">
             <table>
                 <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Pedido</th>
-                        <th>ID Cli.</th>
-                        <th>Cliente / Itens</th>
-                        <th>Total Pago</th>
-                        <th>Ações</th>
-                    </tr>
+                    <tr><th>Data</th><th>Pedido</th><th>ID Cli.</th><th>Cliente / Itens</th><th>Total Pago</th><th>Status</th><th>Ações</th></tr>
                 </thead>
-                <tbody id="lista-vendas">
-                    <tr><td colspan="6" align="center" style="padding:20px; color:#94a3b8">A carregar vendas...</td></tr>
-                </tbody>
+                <tbody id="lista-vendas"><tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">A carregar vendas...</td></tr></tbody>
             </table>
         </div>
+        
         <h3 style="color:var(--gold); font-size:12px; text-transform:uppercase; margin-top:30px;">Performance Mensal</h3>
         <div class="grafico-box"><canvas id="graficoVendas"></canvas></div>
     </div>
@@ -124,33 +117,16 @@
                     <tr><th width="70">Foto</th><th>Produto / Categoria</th><th width="120">Custo (€)</th><th width="120">Venda (€)</th><th width="100">Estoque</th><th width="150">Validade</th><th width="50"></th></tr>
                     <tr class="filtro-row"><th></th><th><input onkeyup="filtrarInv()" id="f-prod" class="inp-filtro" placeholder="Buscar..."></th><th><div class="filtro-wrapper"><select id="op-custo" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-custo" class="inp-filtro" type="number" placeholder="Valor"></div></th><th><div class="filtro-wrapper"><select id="op-venda" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-venda" class="inp-filtro" type="number" placeholder="Valor"></div></th><th><div class="filtro-wrapper"><select id="op-estoque" class="sel-op"><option value=">">></option><option value="<"><</option><option value="=">=</option></select><input onkeyup="filtrarInv()" id="f-estoque" class="inp-filtro" type="number" placeholder="Qtd"></div></th><th></th><th></th></tr>
                 </thead>
-                <tbody id="lista-inventario-tabela">
-                    <tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">A ligar à base de dados...</td></tr>
-                </tbody>
+                <tbody id="lista-inventario-tabela"><tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">A ligar à base de dados...</td></tr></tbody>
             </table>
         </div>
     </div>
 
     <div id="frete" class="tab-content">
         <div class="frete-grid">
-            <div class="frete-card">
-                <h3>🇵🇹 Portugal</h3>
-                <div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="pt_std" step="0.01"></div>
-                <div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="pt_exp" step="0.01"></div>
-                <div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="pt_free" step="0.01"></div>
-            </div>
-            <div class="frete-card">
-                <h3>🇪🇸 Espanha</h3>
-                <div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="es_std" step="0.01"></div>
-                <div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="es_exp" step="0.01"></div>
-                <div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="es_free" step="0.01"></div>
-            </div>
-            <div class="frete-card">
-                <h3>🇪🇺 Europa</h3>
-                <div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="eu_std" step="0.01"></div>
-                <div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="eu_exp" step="0.01"></div>
-                <div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="eu_free" step="0.01"></div>
-            </div>
+            <div class="frete-card"><h3>🇵🇹 Portugal</h3><div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="pt_std" step="0.01"></div><div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="pt_exp" step="0.01"></div><div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="pt_free" step="0.01"></div></div>
+            <div class="frete-card"><h3>🇪🇸 Espanha</h3><div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="es_std" step="0.01"></div><div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="es_exp" step="0.01"></div><div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="es_free" step="0.01"></div></div>
+            <div class="frete-card"><h3>🇪🇺 Europa</h3><div class="form-group"><label>Envio Rápido (€)</label><input type="number" id="eu_std" step="0.01"></div><div class="form-group"><label>Envio Expresso (€)</label><input type="number" id="eu_exp" step="0.01"></div><div class="form-group"><label style="color:var(--verde)">Frete Grátis Acima De (€)</label><input type="number" id="eu_free" step="0.01"></div></div>
         </div>
         <button class="btn-salvar" onclick="salvarConfigFrete()" style="margin-top: 20px;">Salvar Configurações de Frete</button>
     </div>
@@ -188,19 +164,7 @@
         </div>
         <div style="max-height:400px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse;">
-                <thead>
-                    <tr>
-                        <th style="color:white">Data</th>
-                        <th style="color:white">Pedido</th>
-                        <th style="color:white">ID Cli.</th>
-                        <th style="color:white">Itens</th>
-                        <th style="color:white">Cliente</th>
-                        <th style="color:var(--gold)">Base</th>
-                        <th style="color:var(--gold)">IVA</th>
-                        <th style="color:var(--gold)">Frete</th>
-                        <th style="color:white">Total</th>
-                    </tr>
-                </thead>
+                <thead><tr><th style="color:white">Data</th><th style="color:white">Pedido</th><th style="color:white">ID Cli.</th><th style="color:white">Itens</th><th style="color:white">Cliente</th><th style="color:var(--gold)">Base</th><th style="color:var(--gold)">IVA</th><th style="color:var(--gold)">Frete</th><th style="color:white">Total</th></tr></thead>
                 <tbody id="tabela-relatorio"></tbody>
                 <tfoot><tr><td colspan="8" style="text-align:right; padding:15px; font-weight:bold; color:var(--gold)">TOTAL:</td><td id="total-relatorio" style="font-weight:bold; color:var(--gold)">€0.00</td></tr></tfoot>
             </table>
@@ -208,12 +172,22 @@
     </div>
 </div>
 
+<div id="modal-rastreio" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <button class="btn-fechar" onclick="fecharModalRastreio()">×</button>
+        <h2 style="color:var(--gold); margin-top:0;">Expedir Pedido</h2>
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Isto irá atualizar o status para "Enviado" e enviar o email com o rastreio para o cliente.</p>
+        <input type="hidden" id="id-venda-envio">
+        <div class="form-group"><label>Transportadora</label><select id="envio-transportadora" style="width:100%; padding:10px; background:#0f172a; color:white; border:1px solid #334155; border-radius:4px;"><option value="CTT Expresso">CTT Expresso</option><option value="DPD">DPD</option><option value="DHL">DHL</option><option value="Outra">Outra</option></select></div>
+        <div class="form-group"><label>Código de Rastreio</label><input type="text" id="envio-codigo" placeholder="Ex: DA123456789PT" style="width:100%; padding:10px; background:#0f172a; color:white; border:1px solid #334155; border-radius:4px; font-weight:bold;"></div>
+        <button onclick="confirmarEnvio()" class="btn-salvar" id="btn-confirmar-envio">CONFIRMAR ENVIO 🚀</button>
+    </div>
+</div>
+
 <input type="file" id="table-file-input" hidden onchange="processarFotoTabela(this)">
 
 <script>
-    // ⚠️ SUBSTITUA PELO SEU ENDEREÇO DO RENDER
     const API = "https://projeto-loja-dzqv.onrender.com";
-    
     let produtos = [], vendas = [], vendasFiltradas = [], configFrete = {}, itemEditTabela = null, fotoBase64 = "";
 
     async function iniciar() { 
@@ -225,183 +199,92 @@
 
     function openTab(id) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); }
 
-    // --- FUNÇÃO DE AGRUPAMENTO ---
     function agruparItens(itens, separador = '<br>') {
         if (!itens || itens.length === 0) return '-';
         const contagem = {};
-        itens.forEach(i => {
-            const k = i.sku ? `[${i.sku}] ${i.nome}` : i.nome;
-            if(!contagem[k]) contagem[k]=0;
-            contagem[k]++;
-        });
+        itens.forEach(i => { const k = i.sku ? `[${i.sku}] ${i.nome}` : i.nome; if(!contagem[k]) contagem[k]=0; contagem[k]++; });
         return Object.entries(contagem).map(([nome, qtd]) => `<b>${qtd}x</b> ${nome}`).join(separador);
     }
 
-    // --- RELATÓRIO DETALHADO ---
     function abrirRelatorio() { document.getElementById('modal-relatorio').style.display='flex'; const h=new Date(); document.getElementById('r-data-ini').value=new Date(h.getFullYear(),h.getMonth(),1).toISOString().split('T')[0]; document.getElementById('r-data-fim').value=new Date(h.getFullYear(),h.getMonth()+1,0).toISOString().split('T')[0]; filtrarRelatorio(); }
     function fecharRelatorio() { document.getElementById('modal-relatorio').style.display='none'; }
-    
     function filtrarRelatorio() {
         const di = new Date(document.getElementById('r-data-ini').value); const df = new Date(document.getElementById('r-data-fim').value); df.setHours(23,59,59);
         const cli = document.getElementById('r-cliente').value.toLowerCase(); const ped = document.getElementById('r-pedido').value.toLowerCase();
         vendasFiltradas = vendas.filter(v => { const d = new Date(v.data_venda); return d >= di && d <= df && v.cliente_nome.toLowerCase().includes(cli) && v.codigo_pedido.toLowerCase().includes(ped); });
         const tb = document.getElementById('tabela-relatorio'); tb.innerHTML = ''; let totalFinal = 0;
-        
         vendasFiltradas.forEach(v => {
             totalFinal += parseFloat(v.total_venda);
-            const taxa = v.taxa_iva_aplicada || 23;
-            const total = parseFloat(v.total_venda);
-            const base = total / (1 + (taxa/100));
-            const iva = total - base;
-            const frete = parseFloat(v.total_frete);
-            const listaItens = agruparItens(v.itens);
-            const idCli = v.cliente_id ? `CLI-${v.cliente_id}` : 'N/A';
-
-            tb.innerHTML += `<tr>
-                <td style="color:#cbd5e1;padding:8px;">${new Date(v.data_venda).toLocaleDateString()}</td>
-                <td style="color:var(--gold);padding:8px;">#${v.codigo_pedido}</td>
-                <td style="color:#94a3b8;padding:8px;font-family:monospace;">${idCli}</td>
-                <td style="color:white;padding:8px;font-size:11px;">${listaItens}</td>
-                <td style="color:white;padding:8px;">${v.cliente_nome}</td>
-                <td style="color:var(--gold);padding:8px;">${fmtEur(base)}</td>
-                <td style="color:var(--gold);padding:8px;">${fmtEur(iva)} <small>(${taxa}%)</small></td>
-                <td style="color:var(--gold);padding:8px;">${fmtEur(frete)}</td>
-                <td style="color:white;padding:8px;">${fmtEur(total)}</td>
-            </tr>`;
+            const taxa = v.taxa_iva_aplicada || 23; const total = parseFloat(v.total_venda); const base = total / (1 + (taxa/100)); const iva = total - base; const frete = parseFloat(v.total_frete);
+            const listaItens = agruparItens(v.itens); const idCli = v.cliente_id ? `CLI-${v.cliente_id}` : 'N/A';
+            tb.innerHTML += `<tr><td style="color:#cbd5e1;padding:8px;">${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold);padding:8px;">#${v.codigo_pedido}</td><td style="color:#94a3b8;padding:8px;font-family:monospace;">${idCli}</td><td style="color:white;padding:8px;font-size:11px;">${listaItens}</td><td style="color:white;padding:8px;">${v.cliente_nome}</td><td style="color:var(--gold);padding:8px;">${fmtEur(base)}</td><td style="color:var(--gold);padding:8px;">${fmtEur(iva)} <small>(${taxa}%)</small></td><td style="color:var(--gold);padding:8px;">${fmtEur(frete)}</td><td style="color:white;padding:8px;">${fmtEur(total)}</td></tr>`;
         });
         document.getElementById('total-relatorio').innerText = fmtEur(totalFinal);
     }
 
-    // Função auxiliar para carregar o Logo
     function getImgBase64(url) {
         return new Promise((resolve, reject) => {
-            let img = new Image();
-            img.src = url;
-            img.crossOrigin = "Anonymous";
-            img.onload = () => {
-                let canvas = document.createElement("canvas");
-                canvas.width = img.width;
-                canvas.height = img.height;
-                let ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0);
-                resolve(canvas.toDataURL("image/png"));
-            };
+            let img = new Image(); img.src = url; img.crossOrigin = "Anonymous";
+            img.onload = () => { let c = document.createElement("canvas"); c.width = img.width; c.height = img.height; let ctx = c.getContext("2d"); ctx.drawImage(img, 0, 0); resolve(c.toDataURL("image/png")); };
             img.onerror = reject;
         });
     }
 
     async function baixarPDFRelatorio() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); 
-        
         doc.setFillColor(15,23,42); doc.rect(0,0,297,40,'F');
-        
-        try {
-            const imgData = await getImgBase64('logo.png');
-            doc.addImage(imgData, 'PNG', 14, 8, 25, 25);
-        } catch(e) { console.log("Sem logo"); }
-
-        doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 45, 20);
-        doc.setTextColor(255); doc.setFontSize(10); doc.text("RELATÓRIO FISCAL DE VENDAS", 45, 28);
-        
+        try { const imgData = await getImgBase64('logo.png'); doc.addImage(imgData, 'PNG', 14, 8, 25, 25); } catch(e) {}
+        doc.setTextColor(204,164,59); doc.setFontSize(22); doc.text("LUST STORE", 45, 20); doc.setTextColor(255); doc.setFontSize(10); doc.text("RELATÓRIO FISCAL DE VENDAS", 45, 28);
         const body = vendasFiltradas.map(v => {
             const taxa = v.taxa_iva_aplicada || 23; const total = parseFloat(v.total_venda); const base = total / (1 + (taxa/100)); const iva = total - base;
-            const itensTexto = agruparItens(v.itens, '\n').replace(/<b>|<\/b>/g, ''); 
-            const idCli = v.cliente_id ? `CLI-${v.cliente_id}` : 'N/A';
-
+            const itensTexto = agruparItens(v.itens, '\n').replace(/<b>|<\/b>/g, ''); const idCli = v.cliente_id ? `CLI-${v.cliente_id}` : 'N/A';
             return [new Date(v.data_venda).toLocaleDateString(), v.codigo_pedido, idCli, itensTexto, v.cliente_nome, fmtEur(base), fmtEur(iva), fmtEur(v.total_frete), fmtEur(total)];
         });
-        
-        doc.autoTable({ 
-            startY: 45, 
-            head: [['Data', 'Pedido', 'ID Cli.', 'Itens', 'Cliente', 'Base', 'IVA', 'Frete', 'Total']], 
-            body: body, 
-            headStyles: {fillColor:[15,23,42], textColor:[204,164,59]}, 
-            foot: [['TOTAL', '', '', '', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+parseFloat(b.total_venda),0))]] 
-        });
+        doc.autoTable({ startY: 45, head: [['Data', 'Pedido', 'ID Cli.', 'Itens', 'Cliente', 'Base', 'IVA', 'Frete', 'Total']], body: body, headStyles: {fillColor:[15,23,42], textColor:[204,164,59]}, foot: [['TOTAL', '', '', '', '', '', '', '', fmtEur(vendasFiltradas.reduce((a,b)=>a+parseFloat(b.total_venda),0))]] });
         doc.save('Relatorio_Lust.pdf');
     }
 
-    // --- ETIQUETAS E TABELA PRINCIPAL ---
     function renderizarVendas() { 
         const tb = document.getElementById('lista-vendas'); if(!tb) return; tb.innerHTML = ''; 
-        if (vendas.length === 0) { tb.innerHTML = '<tr><td colspan="6" align="center" style="padding:20px; color:#94a3b8">Sem vendas.</td></tr>'; return; } 
-        vendas.slice(0, 10).forEach(v => { 
-            const itensResumo = agruparItens(v.itens);
-            const idCli = v.cliente_id ? `CLI-${v.cliente_id}` : '-';
-            
-            tb.innerHTML += `<tr>
-                <td>${new Date(v.data_venda).toLocaleDateString()}</td>
-                <td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td>
-                <td style="color:#94a3b8; font-family:monospace;">${idCli}</td>
-                <td>
-                    <div style="font-weight:bold; margin-bottom:4px;">${v.cliente_nome} <span style="font-size:10px; background:#e2e8f0; color:#333; padding:1px 4px; border-radius:3px;">${v.pais_destino || 'PT'}</span></div>
-                    <div style="font-size:11px; color:#cbd5e1;">${itensResumo}</div>
-                </td>
-                <td>${fmtEur(v.total_venda)}</td>
-                <td>
-                    <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta">📦</button>
-                    <button onclick="gerarFaturaDummy('${v.codigo_pedido}')" class="btn-acao btn-fatura" title="Fatura Pro-Forma">📄</button>
-                    <button onclick="reenviar('${v.id}')" class="btn-acao" style="background:#3b82f6" title="Reenviar Email">📧</button>
-                </td>
-            </tr>`; 
+        if (vendas.length === 0) { tb.innerHTML = '<tr><td colspan="7" align="center" style="padding:20px; color:#94a3b8">Sem vendas.</td></tr>'; return; } 
+        vendas.slice(0, 20).forEach(v => { 
+            const itensResumo = agruparItens(v.itens); const idCli = v.cliente_id ? `CLI-${v.cliente_id}` : '-';
+            let statusBadge = `<span style="background:#f59e0b; color:black; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">PENDENTE</span>`;
+            let btnEnvio = `<button onclick="abrirModalRastreio('${v.id}')" class="btn-acao" style="background:#0f172a; border:1px solid #cca43b; color:#cca43b;" title="Marcar Enviado">🚚</button>`;
+            if (v.status_envio === 'Enviado') {
+                statusBadge = `<span style="background:#10b981; color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">ENVIADO</span>`;
+                btnEnvio = `<span style="font-size:10px; color:#94a3b8; display:block; text-align:center;">${v.codigo_rastreio || 'S/ Cód'}</span>`;
+            }
+            tb.innerHTML += `<tr><td>${new Date(v.data_venda).toLocaleDateString()}</td><td style="color:var(--gold); font-weight:bold">#${v.codigo_pedido}</td><td style="color:#94a3b8; font-family:monospace;">${idCli}</td><td><div style="font-weight:bold; margin-bottom:4px;">${v.cliente_nome} <span style="font-size:10px; background:#e2e8f0; color:#333; padding:1px 4px; border-radius:3px;">${v.pais_destino || 'PT'}</span></div><div style="font-size:11px; color:#cbd5e1;">${itensResumo}</div></td><td>${fmtEur(v.total_venda)}</td><td align="center">${statusBadge}</td><td>${btnEnvio} <button onclick="gerarEtiqueta('${v.codigo_pedido}')" class="btn-acao btn-verde" title="Etiqueta">📦</button> <button onclick="gerarFaturaDummy('${v.codigo_pedido}')" class="btn-acao btn-fatura" title="Fatura">📄</button></td></tr>`; 
         }); 
     }
 
+    function abrirModalRastreio(id) { document.getElementById('id-venda-envio').value = id; document.getElementById('envio-codigo').value = ''; document.getElementById('modal-rastreio').style.display = 'flex'; }
+    function fecharModalRastreio() { document.getElementById('modal-rastreio').style.display = 'none'; }
+    async function confirmarEnvio() {
+        const id = document.getElementById('id-venda-envio').value; const transp = document.getElementById('envio-transportadora').value; const cod = document.getElementById('envio-codigo').value; const btn = document.getElementById('btn-confirmar-envio');
+        if(!cod) return alert("Digite o código de rastreio!");
+        btn.innerText = "ENVIANDO EMAIL..."; btn.disabled = true;
+        try { const res = await fetch(`${API}/atualizar-rastreio`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: id, codigo_rastreio: cod, transportadora: transp }) }); if(res.ok) { alert("Sucesso! O cliente foi notificado."); fecharModalRastreio(); iniciar(); } else { alert("Erro ao atualizar."); } } catch(e) { console.error(e); alert("Erro de conexão."); } finally { btn.innerText = "CONFIRMAR ENVIO 🚀"; btn.disabled = false; }
+    }
+
     function gerarEtiquetasDia() {
-        const hoje = new Date().toISOString().split('T')[0];
-        const vendasHoje = vendas.filter(v => v.data_venda.startsWith(hoje));
+        const hoje = new Date().toISOString().split('T')[0]; const vendasHoje = vendas.filter(v => v.data_venda.startsWith(hoje));
         if (vendasHoje.length === 0) return alert("Nenhuma venda hoje.");
         const { jsPDF } = window.jspdf; const doc = new jsPDF({format:[100,150],unit:'mm'});
         vendasHoje.forEach((v, index) => {
             if (index > 0) doc.addPage();
-            doc.setFontSize(8); doc.text("LUST STORE",5,10); doc.line(2,30,98,30); doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40);
-            doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome,5,48);
-            doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada || '', 90),5,56);
-            if(v.telefone_contato) { doc.setFontSize(9); doc.text(`Tel: ${v.telefone_contato}`, 5, 80); }
-            doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage();
-            doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; 
-            
-            const itensAgrupados = {};
-            (v.itens || []).forEach(i => {
-                const k = `[${i.sku||'?'}] ${i.nome}`;
-                if(!itensAgrupados[k]) itensAgrupados[k]=0;
-                itensAgrupados[k]++;
-            });
-
-            Object.entries(itensAgrupados).forEach(([desc, qtd]) => { 
-                doc.text(`[ ] ${qtd}x ${desc}`, 5, y); 
-                y+=8; 
-            });
+            doc.setFontSize(8); doc.text("LUST STORE",5,10); doc.line(2,30,98,30); doc.setFontSize(10); doc.text("DESTINATÁRIO:",5,40); doc.setFontSize(13); doc.setFont("helvetica","bold"); doc.text(v.cliente_nome,5,48); doc.setFont("helvetica","normal"); doc.text(doc.splitTextToSize(v.cliente_morada||'',90),5,56); doc.rect(5,120,90,15); doc.text(`#${v.codigo_pedido}`,50,130,{align:'center'}); doc.addPage(); doc.setFontSize(14); doc.text("PACKING LIST",50,15,{align:'center'}); doc.setFontSize(10); let y=40; (v.itens||[]).forEach(x=>{ doc.text(`[ ] [${x.sku||'?'}] ${x.nome}`,5,y); y+=8; });
         });
         doc.save(`Etiquetas_${hoje}.pdf`);
     }
 
     function gerarFaturaDummy(cod) {
-        const v = vendas.find(x => x.codigo_pedido === cod);
-        if (!v) return alert("Venda off.");
-        const taxa = v.taxa_iva_aplicada || 23; const divisor = 1 + (taxa/100);
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F'); doc.setTextColor(204, 164, 59); doc.setFontSize(20); doc.text("LUST STORE", 14, 15);
-        doc.setTextColor(255); doc.setFontSize(9); doc.text("NIF: 999999990", 14, 22); doc.text("Sede: Lisboa, PT", 14, 27);
-        doc.setTextColor(204, 164, 59); doc.text(`FATURA PRO-FORMA Nº ${cod}`, 195, 15, {align: 'right'}); doc.setTextColor(255); doc.text(`Data: ${new Date(v.data_venda).toLocaleDateString()}`, 195, 22, {align: 'right'});
-        doc.setTextColor(0); doc.setFontSize(10); doc.text("CLIENTE:", 14, 45); doc.setFont("helvetica", "normal"); doc.text(`${v.cliente_nome}`, 14, 50); doc.text(doc.splitTextToSize(v.cliente_morada || '', 80), 14, 55);
-        if(v.nif_cliente) doc.text(`NIF: ${v.nif_cliente}`, 14, 70);
-        
-        const itensAgrupados = {};
-        (v.itens || []).forEach(i => {
-            const k = i.sku ? `[${i.sku}] ${i.nome}` : i.nome;
-            if(!itensAgrupados[k]) itensAgrupados[k] = {qtd:0, preco: parseFloat(i.preco)};
-            itensAgrupados[k].qtd++;
-        });
-
-        const linhas = Object.entries(itensAgrupados).map(([nome, dados]) => {
-            const totalLinhaComIva = dados.preco * dados.qtd;
-            const baseLinha = totalLinhaComIva / divisor;
-            return [`${dados.qtd}x ${nome}`, `${taxa}%`, `€${baseLinha.toFixed(2)}`, `€${(totalLinhaComIva - baseLinha).toFixed(2)}`, `€${totalLinhaComIva.toFixed(2)}`];
-        });
-
-        const freteComIva = parseFloat(v.total_frete || 0); const baseFrete = freteComIva / divisor;
-        linhas.push(['Portes de Envio', `${taxa}%`, `€${baseFrete.toFixed(2)}`, `€${(freteComIva - baseFrete).toFixed(2)}`, `€${freteComIva.toFixed(2)}`]);
+        const v = vendas.find(x => x.codigo_pedido === cod); if (!v) return alert("Venda off."); const taxa = v.taxa_iva_aplicada || 23; const divisor = 1 + (taxa/100); const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 35, 'F'); doc.setTextColor(204, 164, 59); doc.setFontSize(20); doc.text("LUST STORE", 14, 15); doc.setTextColor(255); doc.setFontSize(9); doc.text("NIF: 999999990", 14, 22); doc.text("Sede: Lisboa, PT", 14, 27); doc.setTextColor(204, 164, 59); doc.text(`FATURA PRO-FORMA Nº ${cod}`, 195, 15, {align: 'right'}); doc.setTextColor(255); doc.text(`Data: ${new Date(v.data_venda).toLocaleDateString()}`, 195, 22, {align: 'right'}); doc.setTextColor(0); doc.setFontSize(10); doc.text("CLIENTE:", 14, 45); doc.setFont("helvetica", "normal"); doc.text(`${v.cliente_nome}`, 14, 50); doc.text(doc.splitTextToSize(v.cliente_morada || '', 80), 14, 55); if(v.nif_cliente) doc.text(`NIF: ${v.nif_cliente}`, 14, 70);
+        const itensAgrupados = {}; (v.itens || []).forEach(i => { const k = i.sku ? `[${i.sku}] ${i.nome}` : i.nome; if(!itensAgrupados[k]) itensAgrupados[k] = {qtd:0, preco: parseFloat(i.preco)}; itensAgrupados[k].qtd++; });
+        const linhas = Object.entries(itensAgrupados).map(([nome, dados]) => { const totalLinhaComIva = dados.preco * dados.qtd; const baseLinha = totalLinhaComIva / divisor; return [`${dados.qtd}x ${nome}`, `${taxa}%`, `€${baseLinha.toFixed(2)}`, `€${(totalLinhaComIva - baseLinha).toFixed(2)}`, `€${totalLinhaComIva.toFixed(2)}`]; });
+        const freteComIva = parseFloat(v.total_frete || 0); const baseFrete = freteComIva / divisor; linhas.push(['Portes de Envio', `${taxa}%`, `€${baseFrete.toFixed(2)}`, `€${(freteComIva - baseFrete).toFixed(2)}`, `€${freteComIva.toFixed(2)}`]);
         doc.autoTable({ startY: 80, head: [['Descrição', 'Taxa', 'Base', 'IVA', 'Total']], body: linhas, foot: [['TOTAIS', '', '', '', `€${parseFloat(v.total_venda).toFixed(2)}`]], theme: 'grid', headStyles: { fillColor: [15, 23, 42], textColor: [204, 164, 59] } });
         doc.save(`Fatura_ProForma_${cod}.pdf`);
     }
