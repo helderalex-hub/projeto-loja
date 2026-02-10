@@ -4,8 +4,10 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const app = express();
 
-// ⚠️ CERTIFIQUE-SE QUE ESTE LINK APONTA PARA O SEU LOGO ONLINE VÁLIDO
+// ⚠️ LOGO URL PARA EMAILS
 const LOGO_URL = "https://helderalex-hub.github.io/projeto-loja/logo.png";
+
+// --- FUNÇÕES AUXILIARES ---
 
 async function enviarEmailViaBrevo(para, assunto, htmlContent) {
     const url = 'https://api.brevo.com/v3/smtp/email';
@@ -34,7 +36,6 @@ function gerarIdLust() {
 
 async function processarEmailsVenda(venda) {
     const taxa = venda.taxa_iva_aplicada || 23;
-    
     const itensLista = venda.itens.map(i => {
         const precoBase = parseFloat(i.preco);
         const valorIvaItem = precoBase * (taxa / 100);
@@ -48,7 +49,6 @@ async function processarEmailsVenda(venda) {
         </tr>`;
     }).join('');
 
-    // HTML DO EMAIL ATUALIZADO COM LOGO
     const htmlRecibo = `
         <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; background: #fff;">
             <div style="background: #0f172a; padding: 30px; text-align: center; border-bottom: 4px solid #cca43b;">
@@ -57,23 +57,12 @@ async function processarEmailsVenda(venda) {
                 <p style="color: #cca43b; font-size: 10px; text-transform: uppercase; margin-top:5px;">Premium Beauty & Care</p>
             </div>
             <div style="padding: 30px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-                    <div>
-                        <p style="font-size: 12px; color: #94a3b8; margin: 0;">CLIENTE</p>
-                        <p style="margin: 5px 0; color: #0f172a; font-weight: bold;">${venda.cliente_nome}</p>
-                        <p style="margin: 0; color: #64748b; font-size: 12px;">${venda.cliente_morada}</p>
-                        <p style="margin: 0; color: #64748b; font-size: 12px;">${venda.pais_destino}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="font-size: 12px; color: #94a3b8; margin: 0;">RECIBO PROVISÓRIO</p>
-                        <p style="margin: 5px 0; color: #cca43b; font-weight: bold;">#${venda.codigo_pedido}</p>
-                        <p style="margin: 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
-                    </div>
-                </div>
+                <p>Olá <strong>${venda.cliente_nome.split(' ')[0]}</strong>,</p>
+                <p>O seu pedido foi confirmado com sucesso!</p>
+                <br>
                 <table style="width: 100%; border-collapse: collapse; font-size: 13px;"><thead><tr style="background: #f8fafc; color: #94a3b8; font-size: 10px; text-transform: uppercase;"><th style="padding: 10px; text-align: left;">Descrição</th><th style="padding: 10px; text-align: right;">Base</th><th style="padding: 10px; text-align: right;">IVA</th><th style="padding: 10px; text-align: right;">Total</th></tr></thead><tbody>${itensLista}</tbody></table>
                 <div style="margin-top: 20px; border-top: 2px solid #0f172a; padding-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total Base (Líquido)</span><span style="color: #0f172a;">€${(venda.total_venda / (1 + taxa/100)).toFixed(2)}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total IVA (${taxa}%)</span><span style="color: #0f172a;">€${(venda.total_venda - (venda.total_venda / (1 + taxa/100))).toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Total Base</span><span style="color: #0f172a;">€${(venda.total_venda / (1 + taxa/100)).toFixed(2)}</span></div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="color: #64748b;">Frete</span><span style="color: #0f172a;">€${venda.total_frete.toFixed(2)}</span></div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 18px; font-weight: bold;"><span style="color: #0f172a;">TOTAL PAGO</span><span style="color: #cca43b;">€${venda.total_venda.toFixed(2)}</span></div>
                 </div>
@@ -202,9 +191,9 @@ app.post('/checkout', async (req, res) => {
         const { itens, pais, zip, tier, address, city, phone, nif, nome, email } = req.body; 
         const novoIdPedido = gerarIdLust(); 
         
-        // 1. Carregar Configs
+        // 1. Carregar Configs e Taxas
         const { data: config } = await supabase.from('config_loja').select('*').single();
-        const cf = config || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60, es_std: 5.95, es_exp: 9.95, es_free: 85, eu_std: 12.50, eu_exp: 25.00, eu_free: 125 };
+        const cf = config || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60 };
         const { data: taxaData } = await supabase.from('taxas_iva').select('taxa_percentual').eq('pais_iso', pais).single();
         const taxa = taxaData ? taxaData.taxa_percentual : 23;
 
@@ -224,22 +213,22 @@ app.post('/checkout', async (req, res) => {
         let nomeStd = "", nomeExp = "";
 
         if (pais === 'PT') {
-            limitFree = cf.pt_free;
+            limitFree = cf.pt_free || 60;
             const isIlhas = zip && zip.startsWith('9');
             if (isIlhas) {
-                custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00;
+                custoStd = (cf.pt_std || 4.5) + 2.00; custoExp = (cf.pt_exp || 8) + 4.00;
                 nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)";
                 estimativa = tier === 'exp' ? {min: 2, max: 4} : {min: 5, max: 9};
             } else {
-                custoStd = cf.pt_std; custoExp = cf.pt_exp;
+                custoStd = cf.pt_std || 4.5; custoExp = cf.pt_exp || 8;
                 nomeStd = "Portugal Continental (CTT)"; nomeExp = "Portugal Expresso (24h)";
                 estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4};
             }
         } else if (pais === 'ES') {
-            custoStd = cf.es_std; custoExp = cf.es_exp; limitFree = cf.es_free;
+            custoStd = cf.es_std || 6; custoExp = cf.es_exp || 10; limitFree = cf.es_free || 85;
             nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente";
         } else {
-            custoStd = cf.eu_std; custoExp = cf.eu_exp; limitFree = cf.eu_free;
+            custoStd = cf.eu_std || 12; custoExp = cf.eu_exp || 25; limitFree = cf.eu_free || 125;
             nomeStd = "Europa Standard"; nomeExp = "Europa Express";
         }
 
@@ -252,39 +241,21 @@ app.post('/checkout', async (req, res) => {
 
         const moradaCompletaParaBD = `${address}, ${zip}, ${city}`;
 
-        // 3. CRIAR CLIENTE STRIPE
+        // 3. CRIAR CLIENTE STRIPE (TRANSFERÊNCIA DE DADOS)
         const customer = await stripe.customers.create({
             email: email,
             name: nome,
             phone: phone,
-            address: {
-                line1: address,
-                city: city,
-                postal_code: zip,
-                country: pais
-            },
-            shipping: {
-                name: nome,
-                phone: phone,
-                address: {
-                    line1: address,
-                    city: city,
-                    postal_code: zip,
-                    country: pais
-                }
-            }
+            address: { line1: address, city: city, postal_code: zip, country: pais },
+            shipping: { name: nome, phone: phone, address: { line1: address, city: city, postal_code: zip, country: pais } }
         });
 
         // 4. CRIAR SESSÃO CHECKOUT
         const session = await stripe.checkout.sessions.create({ 
             payment_method_types: ['card'],
             customer: customer.id,
-            customer_update: {
-                address: 'auto',
-                shipping: 'auto',
-                name: 'auto'
-            },
-            billing_address_collection: 'required', // FORÇA A COLETA DO ENDEREÇO DE FATURAÇÃO
+            customer_update: { address: 'auto', shipping: 'auto', name: 'auto' },
+            billing_address_collection: 'required',
             shipping_address_collection: { allowed_countries: [pais] }, 
             shipping_options: [{ 
                 shipping_rate_data: { 
@@ -311,6 +282,42 @@ app.post('/checkout', async (req, res) => {
             } 
         });
         res.json({ url: session.url });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- ROTA PARA ATUALIZAR RASTREIO E ENVIAR EMAIL 2 ---
+app.post('/atualizar-rastreio', async (req, res) => {
+    try {
+        const { id, codigo_rastreio, transportadora } = req.body;
+        const { data: venda, error: errBusca } = await supabase.from('vendas').select('*').eq('id', id).single();
+        if (errBusca || !venda) throw new Error("Venda não encontrada");
+
+        await supabase.from('vendas').update({ status_envio: 'Enviado', codigo_rastreio, transportadora, data_envio: new Date() }).eq('id', id);
+
+        let linkRastreio = `https://www.google.com/search?q=${transportadora}+tracking+${codigo_rastreio}`;
+        if (transportadora.includes('CTT')) linkRastreio = `https://www.ctt.pt/feapl_2/app/open/objectSearch/objectSearch.jspx?objects=${codigo_rastreio}`;
+        if (transportadora.includes('DPD')) linkRastreio = `https://dpd.pt/rastrear?reference=${codigo_rastreio}`;
+
+        const htmlEmail = `
+            <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; color: #333;">
+                <div style="background: #0f172a; padding: 20px; text-align: center; border-bottom: 4px solid #cca43b;">
+                    <h1 style="color: #fff; margin: 0; font-family: 'Times New Roman', serif;">LUST STORE</h1>
+                </div>
+                <div style="padding: 30px; border: 1px solid #e2e8f0;">
+                    <h2 style="color: #cca43b; margin-top: 0;">A sua encomenda está a caminho! 🚚</h2>
+                    <p>Olá <strong>${venda.cliente_nome.split(' ')[0]}</strong>,</p>
+                    <p>O seu pedido <strong>#${venda.codigo_pedido}</strong> já saiu do nosso armazém.</p>
+                    <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #cca43b; margin: 20px 0;">
+                        <p style="margin: 0; font-size: 12px; color: #64748b;">CÓDIGO DE RASTREIO:</p>
+                        <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 18px;">${codigo_rastreio}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 12px;">Transp: ${transportadora}</p>
+                    </div>
+                    <div style="text-align: center; margin: 30px 0;"><a href="${linkRastreio}" style="background: #0f172a; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold;">ACOMPANHAR ENTREGA</a></div>
+                </div>
+            </div>`;
+
+        await enviarEmailViaBrevo(venda.cliente_email, `A sua Lust Box está a caminho! 🚚 (#${venda.codigo_pedido})`, htmlEmail);
+        res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
