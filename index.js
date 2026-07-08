@@ -31,7 +31,6 @@ function gerarIdLust() {
     return `LS-${codigo}`;
 }
 
-// GERA HTML DO RECIBO (REUTILIZÁVEL)
 function gerarHtmlRecibo(venda) {
     const taxa = venda.taxa_iva_aplicada || 23;
     const itensLista = venda.itens.map(i => {
@@ -67,7 +66,6 @@ function gerarHtmlRecibo(venda) {
     `;
 }
 
-// GERA HTML DO RASTREIO (REUTILIZÁVEL)
 function gerarHtmlRastreio(venda) {
     let linkRastreio = "#";
     const transp = venda.transportadora || "Transportadora";
@@ -99,7 +97,6 @@ function gerarHtmlRastreio(venda) {
     `;
 }
 
-// --- MIDDLEWARES ---
 app.use((req, res, next) => { 
     res.setHeader('Access-Control-Allow-Origin', '*'); 
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); 
@@ -108,7 +105,6 @@ app.use((req, res, next) => {
     next(); 
 });
 
-// --- ROTA WEBHOOK (REGISTO VENDA) ---
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
@@ -120,7 +116,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         
         if (session.metadata && session.metadata.ids_produtos) {
             const meta = session.metadata;
-            // 1. Atualizar Stock
             const ids = meta.ids_produtos.split(',');
             let custoProdutos = 0; let itensVendidos = [];
             for (const id of ids) {
@@ -131,7 +126,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                     itensVendidos.push({ nome: p.nome, preco: p.preco, marca: p.marca, sku: p.sku });
                 }
             }
-            // 2. CRM
             const emailCliente = session.customer_details.email;
             let clienteId = null;
             const { data: clienteExistente } = await supabase.from('clientes').select('id').eq('email', emailCliente).single();
@@ -142,13 +136,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                 const { data: novoCliente } = await supabase.from('clientes').insert([{ email: emailCliente, nome: session.customer_details.name, telefone: meta.cli_telefone, morada_completa: meta.cli_morada, nif: meta.cli_nif, pais: meta.pais_destino, cp: meta.cli_cp, cidade: meta.cli_cidade }]).select().single();
                 if (novoCliente) clienteId = novoCliente.id;
             }
-            // 3. Registar Venda
             const total = session.amount_total / 100; const frete = (session.total_details?.amount_shipping || 0) / 100; const receitaLiq = total - frete;
             const metodoPagamento = session.payment_method_types ? session.payment_method_types[0] : 'stripe';
             const novaVenda = { codigo_pedido: meta.codigo_pedido, cliente_nome: session.customer_details.name, cliente_email: emailCliente, cliente_morada: meta.cli_morada, telefone_contato: meta.cli_telefone, nif_cliente: meta.cli_nif, cliente_id: clienteId, metodo_pagamento: metodoPagamento, itens: itensVendidos, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos, pais_destino: meta.pais_destino, taxa_iva_aplicada: parseFloat(meta.taxa_aplicada) };
             
             await supabase.from('vendas').insert([novaVenda]);
-            // Envia Email 1 (Recibo)
             const html = gerarHtmlRecibo(novaVenda);
             await enviarEmailViaBrevo(novaVenda.cliente_email, `Recibo Lust Store: #${novaVenda.codigo_pedido}`, html);
             await enviarEmailViaBrevo(process.env.EMAIL_USER, `Venda: #${novaVenda.codigo_pedido}`, `Nova venda de €${total}`);
@@ -157,27 +149,21 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     res.json({ received: true });
 });
 
-// --- ROTA: ATUALIZAR RASTREIO E ENVIAR EMAIL 2 ---
 app.post('/atualizar-rastreio', async (req, res) => {
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY); // Instancia aqui para garantir
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
     try {
         const { id, codigo_rastreio, transportadora } = req.body;
         const { data: venda } = await supabase.from('vendas').select('*').eq('id', id).single();
         if (!venda) throw new Error("Venda não encontrada");
-
         await supabase.from('vendas').update({ status_envio: 'Enviado', codigo_rastreio, transportadora, data_envio: new Date() }).eq('id', id);
-        
-        // Atualiza objeto local para gerar email correto
         venda.codigo_rastreio = codigo_rastreio; 
         venda.transportadora = transportadora;
-        
         const html = gerarHtmlRastreio(venda);
         await enviarEmailViaBrevo(venda.cliente_email, `A sua Lust Box está a caminho! 🚚 (#${venda.codigo_pedido})`, html);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// --- ROTA: REENVIAR EMAIL DE COMPRA (RECIBO) ---
 app.post('/reenviar-recibo/:id', async (req, res) => {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
     try {
@@ -189,7 +175,6 @@ app.post('/reenviar-recibo/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// --- ROTA: REENVIAR EMAIL DE RASTREIO ---
 app.post('/reenviar-rastreio/:id', async (req, res) => {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
     try {
@@ -202,7 +187,6 @@ app.post('/reenviar-rastreio/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// --- ROTAS PADRÃO ---
 app.use(express.json({ limit: '10mb' }));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
@@ -227,6 +211,7 @@ app.post('/checkout', async (req, res) => {
         const cf = config || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60, es_std: 5.95, es_exp: 9.95, es_free: 85, eu_std: 12.50, eu_exp: 25.00, eu_free: 125 };
         const { data: taxaData } = await supabase.from('taxas_iva').select('taxa_percentual').eq('pais_iso', pais).single();
         const taxa = taxaData ? taxaData.taxa_percentual : 23;
+        
         let totalComImposto = 0;
         const line_items = itens.map(i => { 
             const precoBase = parseFloat(i.preco);
@@ -234,9 +219,25 @@ app.post('/checkout', async (req, res) => {
             totalComImposto += precoFinal;
             return { price_data: { currency: 'eur', product_data: { name: `[${i.sku || '?'}] ${i.nome}` }, unit_amount: Math.round(precoFinal * 100) }, quantity: 1 }; 
         });
+
         let custoFinal = 0; let nomeServico = "Envio"; let estimativa = { min: 2, max: 5 }; let custoStd = 0, custoExp = 0, limitFree = 9999; let nomeStd = "", nomeExp = "";
-        if (pais === 'PT') { limitFree = cf.pt_free; const isIlhas = zip && zip.startsWith('9'); if (isIlhas) { custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00; nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)"; estimativa = tier === 'exp' ? {min: 2, max: 4} : {min: 5, max: 9}; } else { custoStd = cf.pt_std; custoExp = cf.pt_exp; nomeStd = "Portugal Continental (CTT)"; nomeExp = "Portugal Expresso (24h)"; estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4}; } } else if (pais === 'ES') { custoStd = cf.es_std; custoExp = cf.es_exp; limitFree = cf.es_free; nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente"; } else { custoStd = cf.eu_std; custoExp = cf.eu_exp; limitFree = cf.eu_free; nomeStd = "Europa Standard"; nomeExp = "Europa Express"; }
-        if (tier === 'exp') { custoFinal = custoExp; nomeServico = nomeExp; } else { custoFinal = totalComImposto >= limitFree ? 0 : custoStd; nomeServico = totalComImposto >= limitFree ? `${nomeStd} (Ofertado)` : nomeStd; }
+
+        if (tier === 'pickup') {
+            custoFinal = 0;
+            nomeServico = "Retirada em Loja (Sem Frete)";
+            estimativa = { min: 0, max: 0 };
+        } else {
+            if (pais === 'PT') { 
+                limitFree = cf.pt_free; const isIlhas = zip && zip.startsWith('9'); 
+                if (isIlhas) { custoStd = cf.pt_std + 2.00; custoExp = cf.pt_exp + 4.00; nomeStd = "Envio Ilhas (Marítimo)"; nomeExp = "Envio Ilhas (Aéreo)"; estimativa = tier === 'exp' ? {min: 2, max: 4} : {min: 5, max: 9}; } 
+                else { custoStd = cf.pt_std; custoExp = cf.pt_exp; nomeStd = "Portugal Continental (CTT)"; nomeExp = "Portugal Expresso (24h)"; estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4}; } 
+            } else if (pais === 'ES') { custoStd = cf.es_std; custoExp = cf.es_exp; limitFree = cf.es_free; nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente"; 
+            } else { custoStd = cf.eu_std; custoExp = cf.eu_exp; limitFree = cf.eu_free; nomeStd = "Europa Standard"; nomeExp = "Europa Express"; }
+            
+            if (tier === 'exp') { custoFinal = custoExp; nomeServico = nomeExp; } 
+            else { custoFinal = totalComImposto >= limitFree ? 0 : custoStd; nomeServico = totalComImposto >= limitFree ? `${nomeStd} (Ofertado)` : nomeStd; }
+        }
+
         const customer = await stripe.customers.create({ email: email, name: nome, phone: phone, address: { line1: address, city: city, postal_code: zip, country: pais }, shipping: { name: nome, phone: phone, address: { line1: address, city: city, postal_code: zip, country: pais } } });
         const session = await stripe.checkout.sessions.create({ payment_method_types: ['card'], customer: customer.id, customer_update: { address: 'auto', shipping: 'auto', name: 'auto' }, billing_address_collection: 'required', shipping_address_collection: { allowed_countries: [pais] }, shipping_options: [{ shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: Math.round(custoFinal * 100), currency: 'eur' }, display_name: nomeServico, delivery_estimate: { minimum: { unit: 'business_day', value: estimativa.min }, maximum: { unit: 'business_day', value: estimativa.max } } } }], line_items: line_items, mode: 'payment', success_url: `https://helderalex-hub.github.io/projeto-loja/sucesso.html?pedido=${novoIdPedido}`, cancel_url: 'https://helderalex-hub.github.io/projeto-loja/loja.html', metadata: { ids_produtos: itens.map(i => i.id).join(','), codigo_pedido: novoIdPedido, pais_destino: pais, taxa_aplicada: taxa, cli_morada: `${address}, ${zip}, ${city}`, cli_cidade: city, cli_cp: zip, cli_telefone: phone, cli_nif: nif } });
         res.json({ url: session.url });
