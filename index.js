@@ -70,7 +70,6 @@ function gerarHtmlRastreio(venda) {
     let linkRastreio = "#";
     const transp = venda.transportadora || "Transportadora";
     const cod = venda.codigo_rastreio || "Indisponível";
-
     if (transp.toLowerCase().includes('ctt')) linkRastreio = `https://www.ctt.pt/feapl_2/app/open/objectSearch/objectSearch.jspx?objects=${cod}`;
     else if (transp.toLowerCase().includes('dpd')) linkRastreio = `https://dpd.pt/rastrear?reference=${cod}`;
     else linkRastreio = `https://www.google.com/search?q=${transp}+tracking+${cod}`;
@@ -105,15 +104,14 @@ app.use((req, res, next) => {
     next(); 
 });
 
+// WEBHOOK STRIPE
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
     try { event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET); } catch (err) { return res.status(400).send(`Webhook Error: ${err.message}`); }
-    
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-        
         if (session.metadata && session.metadata.ids_produtos) {
             const meta = session.metadata;
             const ids = meta.ids_produtos.split(',');
@@ -139,16 +137,37 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             const total = session.amount_total / 100; const frete = (session.total_details?.amount_shipping || 0) / 100; const receitaLiq = total - frete;
             const metodoPagamento = session.payment_method_types ? session.payment_method_types[0] : 'stripe';
             const novaVenda = { codigo_pedido: meta.codigo_pedido, cliente_nome: session.customer_details.name, cliente_email: emailCliente, cliente_morada: meta.cli_morada, telefone_contato: meta.cli_telefone, nif_cliente: meta.cli_nif, cliente_id: clienteId, metodo_pagamento: metodoPagamento, itens: itensVendidos, total_venda: total, total_frete: frete, total_custo: custoProdutos, lucro: receitaLiq - custoProdutos, pais_destino: meta.pais_destino, taxa_iva_aplicada: parseFloat(meta.taxa_aplicada) };
-            
             await supabase.from('vendas').insert([novaVenda]);
             const html = gerarHtmlRecibo(novaVenda);
             await enviarEmailViaBrevo(novaVenda.cliente_email, `Recibo Lust Store: #${novaVenda.codigo_pedido}`, html);
-            await enviarEmailViaBrevo(process.env.EMAIL_USER, `Venda: #${novaVenda.codigo_pedido}`, `Nova venda de €${total}`);
         }
     }
     res.json({ received: true });
 });
 
+// VENDAS MANUAIS (DINHEIRO)
+app.post('/venda-manual', async (req, res) => {
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+    try {
+        const { itens, total, cliente_nome, nif, morada } = req.body;
+        const codigoPedido = gerarIdLust();
+        let custoProdutos = 0;
+        let itensVendidos = [];
+        for (const i of itens) {
+            const { data: p } = await supabase.from('produtos').select('*').eq('id', i.id).single();
+            if (p) {
+                await supabase.from('produtos').update({ estoque: Math.max(0, p.estoque - i.qtd) }).eq('id', i.id);
+                custoProdutos += (p.preco_entrada || 0) * i.qtd;
+                itensVendidos.push({ nome: p.nome, preco: p.preco, marca: p.marca, sku: p.sku });
+            }
+        }
+        const novaVenda = { codigo_pedido: codigoPedido, cliente_nome: cliente_nome || 'Cliente Balcão', nif_cliente: nif, cliente_morada: morada, metodo_pagamento: 'dinheiro', itens: itensVendidos, total_venda: total, total_frete: 0, total_custo: custoProdutos, lucro: total - custoProdutos, status_envio: 'Retirada em Loja' };
+        await supabase.from('vendas').insert([novaVenda]);
+        res.json({ success: true, codigo: codigoPedido });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ROTAS AUXILIARES E CHECKOUT
 app.post('/atualizar-rastreio', async (req, res) => {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
     try {
@@ -156,8 +175,7 @@ app.post('/atualizar-rastreio', async (req, res) => {
         const { data: venda } = await supabase.from('vendas').select('*').eq('id', id).single();
         if (!venda) throw new Error("Venda não encontrada");
         await supabase.from('vendas').update({ status_envio: 'Enviado', codigo_rastreio, transportadora, data_envio: new Date() }).eq('id', id);
-        venda.codigo_rastreio = codigo_rastreio; 
-        venda.transportadora = transportadora;
+        venda.codigo_rastreio = codigo_rastreio; venda.transportadora = transportadora;
         const html = gerarHtmlRastreio(venda);
         await enviarEmailViaBrevo(venda.cliente_email, `A sua Lust Box está a caminho! 🚚 (#${venda.codigo_pedido})`, html);
         res.json({ success: true });
@@ -180,7 +198,7 @@ app.post('/reenviar-rastreio/:id', async (req, res) => {
     try {
         const { data: venda } = await supabase.from('vendas').select('*').eq('id', req.params.id).single();
         if (!venda) throw new Error("Venda não encontrada");
-        if (!venda.codigo_rastreio) throw new Error("Esta venda ainda não tem código de rastreio.");
+        if (!venda.codigo_rastreio) throw new Error("Sem rastreio.");
         const html = gerarHtmlRastreio(venda);
         await enviarEmailViaBrevo(venda.cliente_email, `(Reenvio) A sua Lust Box está a caminho! 🚚`, html);
         res.json({ success: true });
@@ -202,7 +220,6 @@ app.delete('/produtos/:id', async (req, res) => { await supabase.from('produtos'
 app.get('/vendas', async (req, res) => { const { data } = await supabase.from('vendas').select('*').order('data_venda', { ascending: false }); res.json(data || []); });
 app.post('/login-admin', (req, res) => { const { senha } = req.body; if (senha === (process.env.SENHA_ADMIN)) res.json({ sucesso: true, token: 'logado_sucesso_servidor' }); else res.status(401).json({ sucesso: false }); });
 
-// ROTA CHECKOUT
 app.post('/checkout', async (req, res) => {
     try {
         const { itens, pais, zip, tier, address, city, phone, nif, nome, email } = req.body; 
@@ -211,7 +228,6 @@ app.post('/checkout', async (req, res) => {
         const cf = config || { pt_std: 4.50, pt_exp: 8.00, pt_free: 60, es_std: 5.95, es_exp: 9.95, es_free: 85, eu_std: 12.50, eu_exp: 25.00, eu_free: 125 };
         const { data: taxaData } = await supabase.from('taxas_iva').select('taxa_percentual').eq('pais_iso', pais).single();
         const taxa = taxaData ? taxaData.taxa_percentual : 23;
-        
         let totalComImposto = 0;
         const line_items = itens.map(i => { 
             const precoBase = parseFloat(i.preco);
@@ -233,7 +249,6 @@ app.post('/checkout', async (req, res) => {
                 else { custoStd = cf.pt_std; custoExp = cf.pt_exp; nomeStd = "Portugal Continental (CTT)"; nomeExp = "Portugal Expresso (24h)"; estimativa = tier === 'exp' ? {min: 1, max: 2} : {min: 2, max: 4}; } 
             } else if (pais === 'ES') { custoStd = cf.es_std; custoExp = cf.es_exp; limitFree = cf.es_free; nomeStd = "Espanha Standard"; nomeExp = "Espanha Urgente"; 
             } else { custoStd = cf.eu_std; custoExp = cf.eu_exp; limitFree = cf.eu_free; nomeStd = "Europa Standard"; nomeExp = "Europa Express"; }
-            
             if (tier === 'exp') { custoFinal = custoExp; nomeServico = nomeExp; } 
             else { custoFinal = totalComImposto >= limitFree ? 0 : custoStd; nomeServico = totalComImposto >= limitFree ? `${nomeStd} (Ofertado)` : nomeStd; }
         }
