@@ -434,9 +434,13 @@
                 <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px; cursor:pointer; background:white;">
                     <div><input type="radio" name="frete_option" value="exp" ${selectedTier==='exp'?'checked':''} onchange="validarEAtualizarFrete()"> Expresso ${timeExp}</div>
                     <b>€${custoExp.toFixed(2)}</b>
+                </label>
+                <label style="display:flex; justify-content:space-between; padding:10px; border:1px solid #e2e8f0; border-radius:4px; cursor:pointer; background:#f8fafc; margin-top:5px;">
+                    <div><input type="radio" name="frete_option" value="pickup" ${selectedTier==='pickup'?'checked':''} onchange="validarEAtualizarFrete()"> Retirada em Loja</div>
+                    <b style="color:#166534">GRÁTIS</b>
                 </label>`;
 
-            freteSelecionado = { tier: selectedTier, valor: selectedTier === 'std' ? custoStd : custoExp };
+            freteSelecionado = { tier: selectedTier, valor: selectedTier === 'std' ? custoStd : (selectedTier === 'pickup' ? 0 : custoExp) };
             btn.disabled = false; btn.innerText = "FINALIZAR COMPRA";
             
             atualizarCarrinhoUI(taxa, totalProdComImposto, freteSelecionado.valor);
